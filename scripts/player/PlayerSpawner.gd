@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var player_scene: PackedScene
-@export var spawn_position: Vector2 = Vector2(-600, -75)
+@export var spawn_position: Vector2 = Vector2(-900, -75)
 
 var player_instance: Node = null
 
