@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://vd7j71qvqcph"]
+
+[node name="CameraManager" type="Node2D"]
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position_smoothing_enabled = true
