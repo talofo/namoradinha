@@ -1,0 +1,16 @@
+# Godot-specific
+.import/
+.godot/
+/android/
+export_presets.cfg
+
+# macOS junk
+.DS_Store
+
+# Optional: Godot crash logs and backups
+*.log
+*.tmp
+*.converted_res
+
+# Optional: if you use VS Code
+.vscode/
