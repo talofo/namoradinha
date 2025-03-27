@@ -43,7 +43,7 @@ func apply_bounce() -> void:
 	var base_bounce: float = max(abs(velocity.y), 800.0)
 	var bounce_force: float = base_bounce * falloff
 
-	if bounce_force < 100.0:
+	if bounce_force < 50.0:
 		velocity.y = 0.0
 		has_launched = false
 		is_sliding = true
