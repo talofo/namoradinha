@@ -1,11 +1,11 @@
 extends Node2D
 
 @export var player_scene: PackedScene
-@export var spawn_position: Vector2 = Vector2(-7900, -75)
+@export var spawn_position: Vector2 = Vector2(-3000, 100)
 
 @export var launch_power: float = 1.0       # Overall multiplier
 @export var launch_strength_x: float = 2200 # Base horizontal force
-@export var launch_strength_y: float = 4000 # Base vertical force
+@export var launch_strength_y: float = 2000 # Base vertical force
 
 var player_instance: Node = null
 
