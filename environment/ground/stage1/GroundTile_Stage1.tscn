@@ -1,7 +1,7 @@
 [gd_scene load_steps=2 format=3 uid="uid://b53ntkufdjn12"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_o2ucc"]
-size = Vector2(10000, 100)
+size = Vector2(90000, 100)
 
 [node name="GroundTile_Stage1" type="StaticBody2D"]
 
