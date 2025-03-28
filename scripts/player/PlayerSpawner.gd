@@ -3,6 +3,10 @@ extends Node2D
 @export var player_scene: PackedScene
 @export var spawn_position: Vector2 = Vector2(-7900, -75)
 
+@export var launch_power: float = 1.0       # Overall multiplier
+@export var launch_strength_x: float = 2200 # Base horizontal force
+@export var launch_strength_y: float = 4000 # Base vertical force
+
 var player_instance: Node = null
 
 func spawn_player():
@@ -17,6 +21,11 @@ func spawn_player():
 	player_instance.position = spawn_position
 	add_child(player_instance)
 
-	# Immediately launch it downward with an initial velocity
+	# Launch using configured strength + power
+	var launch_vector = Vector2(
+		launch_strength_x * launch_power,
+		-launch_strength_y * launch_power
+	)
+
 	if player_instance.has_method("launch"):
-		player_instance.launch(Vector2(1400, -2000))  # 300, -1000 but, adjust power as needed
+		player_instance.launch(launch_vector)

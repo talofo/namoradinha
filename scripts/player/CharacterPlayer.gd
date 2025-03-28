@@ -1,9 +1,9 @@
 extends CharacterBody2D
 
 # === TUNABLE VARIABLES ===
-@export var gravity: float = 1000.0
+@export var gravity: float = 1500.0 # 980 is closer to earth 
 @export var bounce_falloff: float = 0.7  # Controls how fast bounce height decays
-@export var ground_friction: float = 0.03  # Controls how fast the player slows down on ground
+@export var ground_friction: float = 0.012  # 0.03 Controls how fast the player slows down on ground
 
 # === STATE VARIABLES ===
 var has_launched: bool = false
@@ -40,7 +40,7 @@ func apply_bounce() -> void:
 	bounce_count += 1
 
 	var falloff: float = pow(bounce_falloff, bounce_count)
-	var base_bounce: float = max(abs(velocity.y), 800.0)
+	var base_bounce: float = max(abs(velocity.y), 2800.0) #800
 	var bounce_force: float = base_bounce * falloff
 
 	if bounce_force < 50.0:
