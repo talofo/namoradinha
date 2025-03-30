@@ -1,4 +1,5 @@
 extends CharacterBody2D
+
 # === TUNABLE VARIABLES ===
 @export var gravity: float = 1200.0
 @export var first_bounce_ratio: float = 0.8  # First bounce will be 80% of max launch height
@@ -15,9 +16,11 @@ var launch_position_y: float = 0.0  # Y position at launch
 var floor_position_y: float = 0.0   # Y position of the floor
 var max_height_y: float = 0.0       # Lowest Y value reached (highest point)
 var current_target_height: float = 0.0  # Target height for current bounce cycle
+var launch_velocity: Vector2 = Vector2.ZERO  # Store original launch velocity
 
 func launch(direction: Vector2) -> void:
 	velocity = direction
+	launch_velocity = direction
 	has_launched = true
 	is_sliding = false
 	bounce_count = 0
@@ -31,6 +34,7 @@ func launch(direction: Vector2) -> void:
 	current_target_height = 0.0  # Will be calculated after max height is reached
 	
 	print("Launched from Y:", launch_position_y)
+	print("Launch velocity:", launch_velocity)
 
 func _physics_process(delta: float) -> void:
 	# Only process if flying or sliding
@@ -95,10 +99,12 @@ func apply_bounce() -> void:
 		# Reset max height tracking for the next bounce
 		max_height_y = position.y
 		
-	# Maintain horizontal speed but with some decay
+	# Maintain horizontal speed with consistent decay - using the original approach
+	# This preserves more of the forward momentum for better sliding
 	velocity.x = velocity.x * 0.9
 
 func apply_slide() -> void:
+	# Using the same slide logic as your original code
 	velocity.x = lerp(velocity.x, 0.0, ground_friction)
 	if abs(velocity.x) < 5.0:
 		velocity.x = 0.0
