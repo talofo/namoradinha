@@ -94,4 +94,10 @@ godot --script scripts/motion/tests/run_launch_test.gd
 
 ## Integration with PlayerSpawner
 
-In future refactoring steps, the PlayerSpawner will be updated to use the LaunchSystem instead of its own launch logic. This will centralize all launch-related functionality and reduce code duplication.
+The PlayerSpawner has been updated to use the LaunchSystem exclusively for all launch-related functionality. This centralizes all launch logic and eliminates code duplication.
+
+The PlayerSpawner now:
+1. Gets a reference to LaunchSystem from MotionSystem
+2. Registers the player entity with LaunchSystem
+3. Uses LaunchSystem for all launch calculations and trajectory predictions
+4. Handles error cases gracefully when LaunchSystem is not available

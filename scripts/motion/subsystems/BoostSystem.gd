@@ -14,7 +14,8 @@ func get_name() -> String:
 	return "BoostSystem"
 
 # Called when the subsystem is registered with the MotionSystem
-func on_register() -> void:
+func on_register(motion_system) -> void:
+	_motion_system = motion_system
 	print("[BoostSystem] Registered with MotionSystem")
 
 # Called when the subsystem is unregistered from the MotionSystem
@@ -49,7 +50,7 @@ func get_continuous_modifiers(delta: float) -> Array:
 # Returns modifiers for collision events
 # collision_info: Information about the collision
 # Returns: Array of MotionModifier objects
-func get_collision_modifiers(collision_info: Dictionary) -> Array:
+func get_collision_modifiers(_collision_info: Dictionary) -> Array:
 	print("[BoostSystem] Getting collision modifiers")
 	
 	# In a real implementation, this would check for collision-triggered boosts

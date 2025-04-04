@@ -8,10 +8,10 @@ const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
 # Implement the IMotionSubsystem interface
 var _motion_system = null
 
-# Physics configuration resource
-var physics_config: LoadedPhysicsConfig
+# Physics configuration resource (will be set during registration)
+var physics_config: LoadedPhysicsConfig = null
 
-# Launch configuration
+# Launch configuration (will be updated from config during registration)
 var default_launch_strength: float = 1500.0
 var default_launch_angle_degrees: float = 45.0
 
@@ -28,24 +28,6 @@ var default_launch_angle_degrees: float = 45.0
 # }
 var _entity_launch_data = {}
 
-func _init() -> void:
-	print("[LaunchSystem] Initialized")
-	
-	# Load physics configuration
-	var config_path = "res://resources/physics/default_physics.tres"
-	if ResourceLoader.exists(config_path):
-		physics_config = load(config_path) as LoadedPhysicsConfig
-		if physics_config:
-			# Update default parameters from config if they exist
-			if physics_config.get("default_launch_strength"):
-				default_launch_strength = physics_config.default_launch_strength
-			if physics_config.get("default_launch_angle_degrees"):
-				default_launch_angle_degrees = physics_config.default_launch_angle_degrees
-		else:
-			push_warning("[LaunchSystem] Failed to load physics config as PhysicsConfig resource")
-	else:
-		push_warning("[LaunchSystem] Physics config not found at " + config_path)
-
 # Returns the subsystem name for debugging
 func get_name() -> String:
 	return "LaunchSystem"
@@ -53,8 +35,9 @@ func get_name() -> String:
 # Called when the subsystem is registered with the MotionSystem
 func on_register() -> void:
 	print("[LaunchSystem] Registered with MotionSystem")
-	# The motion system will be set externally when registered
-	# We don't use get_parent() because RefCounted doesn't have that method
+	# _motion_system reference is set by MotionSystem just before calling this.
+	# Config and defaults are handled dynamically later.
+	pass # No action needed here now
 
 # Called when the subsystem is unregistered from the MotionSystem
 func on_unregister() -> void:
@@ -82,10 +65,22 @@ func register_entity(entity_id: int) -> bool:
 	if _entity_launch_data.has(entity_id):
 		return false
 	
+	# Get current defaults dynamically from config if possible
+	var current_angle = default_launch_angle_degrees # Fallback
+	var current_strength = default_launch_strength # Fallback
+	if _motion_system and _motion_system.has_method("get_physics_config"):
+		var current_physics_config = _motion_system.get_physics_config()
+		if current_physics_config:
+			# Use 'in' to check for property existence on Resource objects
+			if "default_launch_angle_degrees" in current_physics_config:
+				current_angle = current_physics_config.default_launch_angle_degrees
+			if "default_launch_strength" in current_physics_config:
+				current_strength = current_physics_config.default_launch_strength
+	
 	_entity_launch_data[entity_id] = {
 		"launch_power": 1.0,
-		"launch_angle_degrees": default_launch_angle_degrees,
-		"launch_strength": default_launch_strength,
+		"launch_angle_degrees": current_angle,
+		"launch_strength": current_strength,
 		"last_launch_vector": Vector2.ZERO,
 		"last_launch_time": 0.0
 	}
@@ -153,16 +148,18 @@ func calculate_launch_vector(entity_id: int) -> Vector2:
 
 # Launch an entity with current parameters
 # entity_id: Unique identifier for the entity
+# position: The current position of the entity being launched
 # Returns: The launch vector
-func launch_entity(entity_id: int) -> Vector2:
+func launch_entity(entity_id: int, position: Vector2) -> Vector2:
 	var launch_vector = calculate_launch_vector(entity_id)
 	
-	print("[LaunchSystem] Launching entity ", entity_id, " with vector ", launch_vector)
+	print("[LaunchSystem] Launching entity ", entity_id, " at position ", position, " with vector ", launch_vector)
 	
 	# Emit a signal that the entity was launched
 	# This could be used by other systems to react to the launch
 	if _motion_system and _motion_system.has_signal("entity_launched"):
-		_motion_system.emit_signal("entity_launched", entity_id, launch_vector)
+		# Use the proper signal emission syntax for Godot 4, now including position
+		_motion_system.entity_launched.emit(entity_id, launch_vector, position)
 	
 	return launch_vector
 
@@ -171,10 +168,12 @@ func launch_entity(entity_id: int) -> Vector2:
 # angle_degrees: Launch angle in degrees (0-90)
 # power: Launch power (0.0-1.0)
 # strength: Base magnitude of the launch force
+# position: The current position of the entity being launched
 # Returns: The launch vector
-func launch_entity_with_parameters(entity_id: int, angle_degrees: float, power: float, strength: float = -1.0) -> Vector2:
+func launch_entity_with_parameters(entity_id: int, angle_degrees: float, power: float, strength: float = -1.0, position: Vector2 = Vector2.ZERO) -> Vector2:
+	# It's important that the position is passed here if this function is used directly
 	set_launch_parameters(entity_id, angle_degrees, power, strength)
-	return launch_entity(entity_id)
+	return launch_entity(entity_id, position)
 
 # Get trajectory preview points for UI
 # entity_id: Unique identifier for the entity
@@ -196,10 +195,17 @@ func get_preview_trajectory(entity_id: int, num_points: int = 20, time_step: flo
 		-sin(angle_radians) * launch_data.launch_strength * launch_data.launch_power
 	)
 	
-	# Get gravity from physics config or use default
-	var gravity = 1200.0  # Default fallback
-	if physics_config and physics_config.has_method("get_gravity_for_entity"):
-		gravity = physics_config.get_gravity_for_entity("default", 1.0)
+	# Ensure motion system and config are available
+	if not _motion_system or not _motion_system.has_method("get_physics_config"):
+		push_error("[LaunchSystem] MotionSystem or get_physics_config method not available.")
+		return []
+	var current_physics_config = _motion_system.get_physics_config()
+	if not current_physics_config:
+		push_error("[LaunchSystem] Physics config not available from MotionSystem.")
+		return []
+		
+	# Get gravity from config
+	var gravity = current_physics_config.get_gravity_for_entity("default", 1.0)
 	
 	# Simple physics simulation to get trajectory points
 	var pos = Vector2.ZERO

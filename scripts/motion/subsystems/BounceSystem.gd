@@ -11,10 +11,6 @@ const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
 # Physics configuration resource
 var physics_config: LoadedPhysicsConfig
 
-# Legacy bounce configuration - will be overridden by physics_config when available
-var first_bounce_ratio: float = 0.8  # First bounce will be 80% of max launch height
-var subsequent_bounce_ratio: float = 0.6  # Each subsequent bounce will be 60% of previous
-
 # Entity bounce data storage
 # Structure:
 # {
@@ -29,19 +25,8 @@ var subsequent_bounce_ratio: float = 0.6  # Each subsequent bounce will be 60% o
 # }
 var _entity_bounce_data = {}
 
-func _init() -> void:
-	# Load physics configuration
-	var config_path = "res://resources/physics/default_physics.tres"
-	if ResourceLoader.exists(config_path):
-		physics_config = load(config_path) as LoadedPhysicsConfig
-		if physics_config:
-			# Update legacy parameters from config
-			first_bounce_ratio = physics_config.first_bounce_ratio
-			subsequent_bounce_ratio = physics_config.subsequent_bounce_ratio
-		else:
-			push_warning("[BounceSystem] Failed to load physics config as PhysicsConfig resource")
-	else:
-		push_warning("[BounceSystem] Physics config not found at " + config_path)
+# Reference to the motion system (set during registration)
+var _motion_system = null
 
 # Returns the subsystem name for debugging
 func get_name() -> String:
@@ -49,7 +34,9 @@ func get_name() -> String:
 
 # Called when the subsystem is registered with the MotionSystem
 func on_register() -> void:
-	pass
+	# _motion_system reference is set by MotionSystem just before calling this.
+	# Config is fetched dynamically later when needed.
+	pass # No action needed here now
 
 # Called when the subsystem is unregistered from the MotionSystem
 func on_unregister() -> void:
@@ -70,12 +57,22 @@ func get_collision_modifiers(collision_info: Dictionary) -> Array:
 	var modifiers = []
 	var entity_id = collision_info.get("entity_id", 0)
 	
+	
 	# Only process if we have data for this entity and it's a floor collision
 	if not _entity_bounce_data.has(entity_id) or not is_floor_collision(collision_info):
 		return modifiers
 	
 	var bounce_data = _entity_bounce_data[entity_id]
 	
+	# Ensure motion system and config are available
+	if not _motion_system or not _motion_system.has_method("get_physics_config"):
+		push_error("[BounceSystem] MotionSystem or get_physics_config method not available.")
+		return modifiers
+	var current_physics_config = _motion_system.get_physics_config()
+	if not current_physics_config:
+		push_error("[BounceSystem] Physics config not available from MotionSystem.")
+		return modifiers
+		
 	# Update floor position
 	bounce_data.floor_position_y = collision_info.get("position", Vector2.ZERO).y
 	
@@ -140,7 +137,7 @@ func record_launch(entity_id: int, velocity: Vector2, position: Vector2) -> void
 	
 	if not _entity_bounce_data.has(entity_id):
 		register_entity(entity_id, position)
-		print("BounceSystem: Entity registered")
+		# print("BounceSystem: Entity registered") # Keep original print if desired
 	
 	var bounce_data = _entity_bounce_data[entity_id]
 	bounce_data.bounce_count = 0
@@ -179,7 +176,7 @@ func is_floor_collision(collision_info: Dictionary) -> bool:
 	var normal = collision_info.get("normal", Vector2.ZERO)
 	return normal.y < -0.7  # Consider surfaces with normals pointing mostly up as floors
 
-# Calculate the bounce vector for an entity
+	# Calculate the bounce vector for an entity
 # entity_id: Unique identifier for the entity
 # collision_info: Information about the collision (NOW USED for current velocity)
 # Returns: The bounce vector
@@ -190,18 +187,23 @@ func calculate_bounce_vector(entity_id: int, collision_info: Dictionary) -> Vect
 	var entity_type = collision_info.get("entity_type", "default")
 	var entity_mass = collision_info.get("mass", physics_config.default_mass if physics_config else 1.0)
 	
-	# Get gravity from config or use default
-	var gravity = 1200.0 # Default fallback
-	if physics_config:
-		gravity = physics_config.get_gravity_for_entity(entity_type, entity_mass)
-	else:
-		gravity = collision_info.get("gravity", 1200.0)
-	
+	# Ensure motion system and config are available
+	if not _motion_system or not _motion_system.has_method("get_physics_config"):
+		push_error("[BounceSystem] MotionSystem or get_physics_config method not available.")
+		return Vector2.ZERO
+	var current_physics_config = _motion_system.get_physics_config()
+	if not current_physics_config:
+		push_error("[BounceSystem] Physics config not available from MotionSystem.")
+		return Vector2.ZERO
+		
+	# Get gravity from config
+	var gravity = current_physics_config.get_gravity_for_entity(entity_type, entity_mass)
+		
 	# Calculate the max height achieved relative to floor
 	# Important: This calculation should always result in a positive value
 	var max_height_reached = bounce_data.floor_position_y - bounce_data.max_height_y
 	
-	# Debug the height calculation
+	# Debug the height calculation (Restored original print)
 	print("BounceSystem: floor_position_y=", bounce_data.floor_position_y, 
 		  " max_height_y=", bounce_data.max_height_y, 
 		  " calculated max_height_reached=", max_height_reached)
@@ -212,20 +214,22 @@ func calculate_bounce_vector(entity_id: int, collision_info: Dictionary) -> Vect
 		# to estimate how high the player would have gone using basic physics formula: h = v²/2g
 		var launch_velocity_y_magnitude = abs(bounce_data.launch_velocity.y)
 		max_height_reached = (launch_velocity_y_magnitude * launch_velocity_y_magnitude) / (2 * gravity)
-		print("BounceSystem: Using velocity-based height estimate instead: ", max_height_reached)
+		print("BounceSystem: Using velocity-based height estimate instead: ", max_height_reached) # Restored original print
 	
-	# Calculate bounce based on height reached
+	# Calculate bounce based on height reached using config values
+	var current_first_bounce_ratio = current_physics_config.first_bounce_ratio
+	var current_subsequent_bounce_ratio = current_physics_config.subsequent_bounce_ratio
 	
 	# Calculate target height for this bounce
 	var target_height = 0.0
 	if bounce_data.bounce_count == 0:
 		# First bounce - relative to max launch height
-		target_height = max_height_reached * first_bounce_ratio
+		target_height = max_height_reached * current_first_bounce_ratio
 		bounce_data.current_target_height = target_height
 		# First bounce calculation
 	else:
 		# Subsequent bounces - relative to previous bounce target
-		target_height = bounce_data.current_target_height * subsequent_bounce_ratio
+		target_height = bounce_data.current_target_height * current_subsequent_bounce_ratio
 		bounce_data.current_target_height = target_height
 		# Subsequent bounce calculation
 	
@@ -235,18 +239,18 @@ func calculate_bounce_vector(entity_id: int, collision_info: Dictionary) -> Vect
 	
 	# Use ORIGINAL launch velocity for horizontal momentum, with consistent reduction based on bounce count
 	# This prevents the horizontal velocity from increasing with each bounce
-	var horizontal_preservation = physics_config.horizontal_preservation if physics_config else 0.95
-	horizontal_preservation = pow(horizontal_preservation, bounce_data.bounce_count)  # reduction per bounce
-	var bounce_velocity_x = bounce_data.launch_velocity.x * horizontal_preservation
+	var current_horizontal_preservation = current_physics_config.horizontal_preservation
+	current_horizontal_preservation = pow(current_horizontal_preservation, bounce_data.bounce_count)  # reduction per bounce
+	var bounce_velocity_x = bounce_data.launch_velocity.x * current_horizontal_preservation
 
-	print("BounceSystem: target_height=", target_height, " bounce_count=", bounce_data.bounce_count)
+	print("BounceSystem: target_height=", target_height, " bounce_count=", bounce_data.bounce_count) # Restored original print
 
-	# Get minimum bounce threshold from physics config or use default
-	var min_bounce_threshold = physics_config.min_bounce_threshold if physics_config else 5.0
+	# Get minimum bounce threshold from physics config
+	var current_min_bounce_threshold = current_physics_config.min_bounce_threshold
 	
-	if target_height >= min_bounce_threshold:
+	if target_height >= current_min_bounce_threshold:
 		bounce_velocity_y = -sqrt(2 * gravity * target_height)
-		print("BounceSystem: Continuing to bounce with velocity_y=", bounce_velocity_y)
+		print("BounceSystem: Continuing to bounce with velocity_y=", bounce_velocity_y) # Restored original print
 	else:
 		# Below minimum bounce threshold - stop bouncing and start sliding
 		bounce_velocity_y = 0.0  # Ensure y velocity is exactly zero for sliding
@@ -254,27 +258,27 @@ func calculate_bounce_vector(entity_id: int, collision_info: Dictionary) -> Vect
 		# When transitioning to sliding, use the CURRENT horizontal velocity
 		# This ensures a smooth transition from bouncing to sliding
 		bounce_velocity_x = bounce_velocity_x  # Keep the current reduced horizontal velocity
-		print("BounceSystem: Stopping bounce, transitioning to slide with velocity_x=", bounce_velocity_x)
+		print("BounceSystem: Stopping bounce, transitioning to slide with velocity_x=", bounce_velocity_x) # Restored original print
 
-		# Get minimum slide speed from physics config or use default
-		var min_slide_speed = physics_config.min_slide_speed if physics_config else 200.0
+		# Get minimum slide speed from physics config
+		var current_min_slide_speed = current_physics_config.min_slide_speed
 		
 		# Entity mass affects minimum slide speed (heavier entities need more speed)
-		var mass_adjusted_min_speed = min_slide_speed * (0.8 + entity_mass * 0.2)
+		var mass_adjusted_min_speed = current_min_slide_speed * (0.8 + entity_mass * 0.2)
 		
 		if abs(bounce_velocity_x) < mass_adjusted_min_speed and bounce_velocity_x != 0.0:
 			# Preserve direction but ensure minimum sliding speed
 			bounce_velocity_x = sign(bounce_velocity_x) * mass_adjusted_min_speed
-			print("BounceSystem: Boosting slide velocity to ", bounce_velocity_x)
+			print("BounceSystem: Boosting slide velocity to ", bounce_velocity_x) # Restored original print
 		
 		# Apply an initial velocity adjustment based on mass
 		# Lighter entities get more initial speed boost
 		var boost_factor = 1.5 * (1.1 - entity_mass * 0.1) # Range 1.0-1.1 based on mass
 		bounce_velocity_x *= boost_factor
-		print("BounceSystem: Applied mass-adjusted boost factor ", boost_factor)
+		print("BounceSystem: Applied mass-adjusted boost factor ", boost_factor) # Restored original print
 	
 	var bounce_vector = Vector2(bounce_velocity_x, bounce_velocity_y)
-	print("BounceSystem: Final bounce vector=", bounce_vector)
+	print("BounceSystem: Final bounce vector=", bounce_vector) # Restored original print
 	
 	return bounce_vector
 
@@ -288,7 +292,16 @@ func should_stop_bouncing(entity_id: int) -> bool:
 	var bounce_data = _entity_bounce_data[entity_id]
 	var target_height = bounce_data.current_target_height
 	
-	# Get minimum bounce threshold from physics config or use default
-	var min_bounce_threshold = physics_config.min_bounce_threshold if physics_config else 5.0
+	# Ensure motion system and config are available
+	if not _motion_system or not _motion_system.has_method("get_physics_config"):
+		push_error("[BounceSystem] MotionSystem or get_physics_config method not available.")
+		return true # Assume stop if config is missing
+	var current_physics_config = _motion_system.get_physics_config()
+	if not current_physics_config:
+		push_error("[BounceSystem] Physics config not available from MotionSystem.")
+		return true # Assume stop if config is missing
+		
+	# Get minimum bounce threshold from physics config
+	var current_min_bounce_threshold = current_physics_config.min_bounce_threshold
 	
-	return target_height < min_bounce_threshold
+	return target_height < current_min_bounce_threshold

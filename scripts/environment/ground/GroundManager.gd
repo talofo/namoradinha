@@ -1,9 +1,28 @@
 extends Node2D
 
-@onready var stage_number := StageUtils.get_stage_number_from_parent(self)
+# The stage number this ground manager belongs to. Will be set by StageManager.
+var stage_number: int = -1 
 @export var ground_height: float = 100.0  # Match your CollisionShape height
 
+# Called by StageManager after this node is added to the scene tree.
+func set_stage_number(num: int):
+	stage_number = num
+	# Optional: Add a check in _ready if logic depends on stage_number being set immediately.
+	# However, StageManager should call this before _ready executes its main logic.
+	print("[GroundManager] Stage number set to: ", stage_number)
+	# Load the ground tile now that the stage number is known
+	_load_ground_tile()
+
 func _ready():
+	# _ready might be called before set_stage_number, so we defer loading
+	pass
+
+# Loads and positions the ground tile based on the set stage_number
+func _load_ground_tile():
+	if stage_number == -1:
+		push_error("[GroundManager] Attempted to load ground tile before stage number was set.")
+		return
+		
 	var scene_path := "res://environment/ground/stage%d/GroundTile_Stage%d.tscn" % [stage_number, stage_number]
 	var ground_scene := load(scene_path) as PackedScene
 

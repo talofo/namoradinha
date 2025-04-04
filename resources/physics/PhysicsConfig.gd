@@ -19,6 +19,10 @@ extends Resource
 @export var max_deceleration_factor: float = 0.15  # Maximum deceleration per frame
 @export var frame_rate_adjustment: float = 60.0  # Base frame rate for physics calculations
 
+# Launch physics
+@export var default_launch_strength: float = 1500.0
+@export var default_launch_angle_degrees: float = 45.0
+
 # Entity specific defaults
 @export var default_mass: float = 1.0
 @export var default_size_factor: float = 1.0

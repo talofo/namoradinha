@@ -7,7 +7,10 @@ const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
 
 signal subsystem_registered(subsystem_name: String)
 signal subsystem_unregistered(subsystem_name: String)
-signal entity_launched(entity_id: int, launch_vector: Vector2)
+# This signal is emitted by the LaunchSystem subsystem, not directly by MotionSystem
+# Now includes the position at which the launch occurred.
+@warning_ignore("unused_signal")
+signal entity_launched(entity_id: int, launch_vector: Vector2, position: Vector2)
 
 # === PHYSICS CONFIGURATION ===
 # Physics configuration resource
@@ -44,6 +47,10 @@ func _init() -> void:
 	else:
 		push_warning("[MotionSystem] Physics config not found at " + config_path)
 
+# Returns the loaded physics configuration resource
+func get_physics_config() -> LoadedPhysicsConfig:
+	return physics_config
+
 func _ready() -> void:
 	# Initialize with debug mode off by default
 	set_debug_enabled(false)
@@ -62,6 +69,15 @@ func register_subsystem(subsystem) -> bool:
 	if _subsystems.has(subsystem_name):
 		push_warning("[MotionSystem] Subsystem '%s' is already registered" % subsystem_name)
 		return false
+	
+	# Set the motion_system reference in the subsystem IF it has the variable
+	if "_motion_system" in subsystem: # Use 'in' to check for property existence
+		subsystem._motion_system = self
+	else:
+		# Optional: Warn if a subsystem doesn't have the expected variable, 
+		# if it's intended for all subsystems needing the reference.
+		# push_warning("[MotionSystem] Subsystem '%s' does not have a '_motion_system' variable." % subsystem_name)
+		pass 
 	
 	_subsystems[subsystem_name] = subsystem
 	subsystem.on_register()
