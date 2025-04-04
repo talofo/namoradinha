@@ -6,10 +6,14 @@ extends Node2D
 
 # Launch parameters
 @export var launch_power: float = 1  # Current power (0.0 to 1.0)
-@export var launch_strength: float = 50000000.0  # Base magnitude of the launch force
+@export var launch_strength: float = 1500.0  # Base magnitude of the launch force
 @export var launch_angle_degrees: float = 45.0  # Current angle in degrees (0-90)
 
 var player_instance: Node = null
+
+#func _ready():
+	# Force the launch_strength to our desired value, overriding any editor settings
+	#launch_strength = 1500.0
 
 func spawn_player():
 	if player_instance:

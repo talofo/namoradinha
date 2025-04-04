@@ -13,6 +13,7 @@ var is_sliding: bool = false
 var entity_id: int = 0
 var floor_position_y: float = 0.0
 var max_height_y: float = 0.0
+var debug_frame_count: int = 0  # Frame counter for debugging
 
 func _ready():
 	# Get references to the motion system and subsystems
@@ -35,9 +36,12 @@ func _exit_tree():
 # Launch the player with a given direction vector
 func launch(direction: Vector2) -> void:
 	print("PlayerCharacter: Launching with direction ", direction)
+	print("PlayerCharacter: Launch magnitude: ", direction.length())
 	
 	# Set velocity directly - this is critical for determining jump height
 	velocity = direction
+	print("PlayerCharacter: Velocity immediately after setting: ", velocity, " (length: ", velocity.length(), ")")
+	
 	has_launched = true
 	is_sliding = false
 	
@@ -54,6 +58,11 @@ func _physics_process(delta: float) -> void:
 	# Skip if not in motion
 	if not has_launched and not is_sliding:
 		return
+
+	# Add debug tracking for first few frames
+	if has_launched and debug_frame_count < 5:
+		print("Frame ", debug_frame_count, " velocity: ", velocity, " (length: ", velocity.length(), ")")
+		debug_frame_count += 1
 
 	# Track height for bounce system
 	if bounce_system and has_launched:
@@ -74,6 +83,7 @@ func _physics_process(delta: float) -> void:
 	# Apply motion physics (gravity, etc.)
 	if motion_system.has_method("resolve_frame_motion"):
 		var motion_result = motion_system.resolve_frame_motion(motion_context)
+		print("After resolve_frame_motion, new velocity: ", motion_result.get("velocity"), " (length: ", motion_result.get("velocity").length(), ")")
 		if motion_result.has("velocity"):
 			velocity = motion_result.velocity
 
@@ -84,11 +94,20 @@ func _physics_process(delta: float) -> void:
 
 	# Perform the actual movement
 	var original_velocity = velocity
+	print("Before move_and_slide, velocity: ", velocity, " (length: ", velocity.length(), ")")
 	move_and_slide()
+	print("After move_and_slide, velocity: ", velocity, " (length: ", velocity.length(), ")")
 	
 	# If we're in air, preserve velocity to prevent Godot's built-in physics from interfering
 	if has_launched and !is_on_floor():
 		velocity = original_velocity
+		
+	# If we're sliding, preserve horizontal velocity to prevent Godot's built-in friction from stopping us too quickly
+	if is_sliding and is_on_floor():
+		velocity.x = original_velocity.x
+		
+	# Round position to integer pixels to prevent subpixel flickering
+	position = position.round()
 
 # Handle floor collision with MotionSystem integration
 func _handle_floor_collision() -> void:

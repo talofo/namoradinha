@@ -144,6 +144,8 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 		var velocity = context.get("velocity", Vector2.ZERO)
 		var delta = context.get("delta", 0.01) # Fallback to 0.01 if no delta
 		
+		print("MotionSystem: BEFORE gravity - velocity=", velocity, " (magnitude=", velocity.length(), ")")
+		
 		# Get appropriate gravity based on entity type and mass
 		var entity_type = context.get("entity_type", "default")
 		var mass = context.get("mass", physics_config.default_mass if physics_config else 1.0)
@@ -155,8 +157,12 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 		else:
 			gravity = context.get("gravity", default_gravity)
 		
+		print("MotionSystem: Using gravity: ", gravity)
+		
 		velocity.y += gravity * delta
 		result["velocity"] = velocity
+		
+		print("MotionSystem: AFTER gravity - velocity=", velocity, " (magnitude=", velocity.length(), ")")
 	
 	# Get continuous motion modifiers
 	var motion_delta = resolve_continuous_motion(context.get("delta", 0.0), context.get("is_sliding", false))
@@ -166,6 +172,12 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 		result["velocity"] += motion_delta
 	else:
 		result["velocity"] = context.get("velocity", Vector2.ZERO) + motion_delta
+	
+	# Round velocity values to reduce visual jittering from small incremental changes
+	result["velocity"].x = round(result["velocity"].x * 10) / 10.0
+	result["velocity"].y = round(result["velocity"].y * 10) / 10.0
+	
+	print("MotionSystem: FINAL frame motion velocity=", result["velocity"], " (magnitude=", result["velocity"].length(), ")")
 	
 	return result
 
