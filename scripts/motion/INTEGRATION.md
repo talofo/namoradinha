@@ -57,6 +57,7 @@ The MotionSystem is now fully integrated into the game:
 ### Phase 3: Core Physics (Implemented)
 - All physics calculations now use MotionSystem
 - Bounce and slide physics fully implemented in MotionSystem
+  - *Recent Refinements (April 2025):* Updated sliding friction to use a physics-based model (`friction * gravity * delta`) and corrected the bounce-to-slide velocity transition logic for more consistent and predictable behavior.
 - State transitions managed by MotionSystem
 - Material-specific physics effects (friction, bounce)
 

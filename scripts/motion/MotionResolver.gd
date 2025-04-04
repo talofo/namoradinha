@@ -57,11 +57,11 @@ func resolve_scalar_modifiers(modifiers: Array, base_value: float) -> float:
 				replacement_applied = true
 			# Skip lower priority replacement modifiers
 	
-	# Then process multiplicative modifiers
+	# Then process additive modifiers
 	for mod in modifiers:
 		if mod.is_additive:
-			# Apply multiplicative scalar modifier
-			final_value *= mod.scalar
+			# Apply additive scalar modifier (e.g., base_friction + bonus - penalty)
+			final_value += mod.scalar
 	
 	# Return final scalar value
 	

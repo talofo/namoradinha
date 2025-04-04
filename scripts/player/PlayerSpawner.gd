@@ -72,36 +72,13 @@ func spawn_player():
 		push_warning("PlayerSpawner: Could not register player with LaunchSystem - system not available")
 
 # Prepare the player for launch by ensuring it's on the ground
+# Prepare the player for launch (Simplified)
 func _prepare_and_launch_player():
-	# Wait one frame to ensure the player is properly added to the scene
-	await get_tree().process_frame
-	
-	# Check if player is on the ground
-	if player_instance and player_instance.has_method("is_on_floor"):
-		# Adjust player position to be just above the ground if needed
-		var space_state = get_world_2d().direct_space_state
-		var query = PhysicsRayQueryParameters2D.create(player_instance.global_position, 
-					player_instance.global_position + Vector2(0, 1000))
-		var result = space_state.intersect_ray(query)
-		
-		if result and result.has("position"):
-			# Adjust player position to be just above the detected ground
-			player_instance.position.y = result.position.y - 10 # 10 pixels above ground
-		
-		# Wait a few frames for physics to settle
-		var max_wait_frames = 10
-		var frames_waited = 0
-		
-		while not player_instance.is_on_floor() and frames_waited < max_wait_frames:
-			await get_tree().process_frame
-			frames_waited += 1
-			
-			# Apply small downward velocity to ensure player moves toward ground
-			if player_instance is CharacterBody2D and not player_instance.is_on_floor():
-				player_instance.velocity.y = min(player_instance.velocity.y + 10, 100)
-				player_instance.move_and_slide()
+	# Wait one frame to ensure the player is properly added to the scene tree and physics state is available
+	await get_tree().process_frame 
 	
 	# Launch the player using LaunchSystem
+	# Rely on initial spawn position and normal physics process to handle ground placement.
 	if launch_system and player_instance:
 		var entity_id = player_instance.get_instance_id()
 		

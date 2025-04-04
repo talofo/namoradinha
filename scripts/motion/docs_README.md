@@ -11,26 +11,39 @@ The MotionSystem provides a centralized architecture for handling all aspects of
 ### Core Components
 
 - **MotionSystem**: The main coordinator that manages subsystems and resolves motion.
-- **MotionResolver**: Handles the resolution of motion modifiers based on priority and type.
-- **MotionModifier**: Data class representing a single motion influence.
+- **MotionResolver**: Handles the resolution of motion modifiers (both vector and scalar) based on priority and type.
+- **MotionModifier**: Data class representing a single motion influence (vector or scalar).
 
 ### Subsystems
 
-- **BoostSystem**: Handles manual boosts, mega boosts, and environmental boosts.
-- **ObstacleSystem**: Manages collision-based motion penalties or interruptions.
-- **EquipmentSystem**: Provides gear-based passive modifiers to motion and bounce.
-- **TraitSystem**: Manages character-specific always-on motion modifiers.
-- **EnvironmentalForceSystem**: Controls wind zones, gravity shifts, and turbulence.
-- **StatusEffectSystem**: Handles timed or conditional buffs/debuffs that affect motion.
-- **CollisionMaterialSystem**: Provides surface-based bounce and friction adjustments.
+- **LaunchSystem**: Handles entity launching (setting initial parameters, calculating vectors) and trajectory prediction.
+- **BounceSystem**: Handles bounce physics calculations, including energy loss per bounce and determining the transition from bouncing to sliding based on thresholds.
+- **CollisionMaterialSystem**: Provides surface-specific properties like friction coefficients and bounce ratios based on the material the entity collides with.
+- **BoostSystem**: Handles manual boosts, mega boosts, and environmental boosts. (Assumed functionality)
+- **ObstacleSystem**: Manages collision-based motion penalties or interruptions. (Assumed functionality)
+- **EquipmentSystem**: Provides gear-based passive modifiers to motion and bounce. (Assumed functionality)
+- **TraitSystem**: Manages character-specific always-on motion modifiers. (Assumed functionality)
+- **EnvironmentalForceSystem**: Controls wind zones, gravity shifts, and turbulence. (Assumed functionality)
+- **StatusEffectSystem**: Handles timed or conditional buffs/debuffs that affect motion. (Assumed functionality)
 
-## Motion Flow
+## Motion Flow (Simplified Example - Player Character)
 
-1. Raw motion vector is generated (e.g., from player input)
-2. `MotionSystem.resolve_motion()` is called
-3. All active subsystems contribute their modifiers
-4. MotionResolver applies modifiers based on priority and type
-5. Final resulting motion vector is returned
+1.  **Player Input/AI:** Determines intended movement direction/actions (not handled by MotionSystem).
+2.  **`PlayerCharacter._physics_process`:**
+    *   Gathers current state (`position`, `velocity`, `is_on_floor`, `is_sliding`, `has_launched`, `delta`, `material`).
+    *   Calls `MotionSystem.resolve_frame_motion(context)` if launched/sliding. This applies gravity and continuous modifiers (like wind). Updates `velocity`, `has_launched`, `is_sliding`.
+    *   Calls `move_and_slide()`.
+    *   If `is_on_floor()` after `move_and_slide()`:
+        *   Calls `_handle_floor_collision()`.
+3.  **`PlayerCharacter._handle_floor_collision`:**
+    *   Gathers collision context (`position`, `velocity`, `normal`, state flags, `material`).
+    *   Calls `MotionSystem.resolve_collision(collision_info)`.
+4.  **`MotionSystem.resolve_collision`:**
+    *   Determines if it's a bounce or slide scenario based on state (`has_launched`, `is_sliding`).
+    *   **If Bouncing:** Calls `resolve_collision_motion()` which collects modifiers (primarily from `BounceSystem`) and resolves them via `MotionResolver` to get the bounce velocity. Updates state (`velocity`, `has_launched`, `is_sliding`) based on whether the bounce continues or transitions to sliding.
+    *   **If Sliding:** Calculates deceleration based on effective friction (base friction from `CollisionMaterialSystem` or config, potentially modified by future subsystems) and gravity. Applies deceleration to velocity. Checks against `stop_threshold` and updates state (`velocity`, `is_sliding`).
+    *   Returns the resulting state dictionary (`velocity`, `has_launched`, `is_sliding`, etc.).
+5.  **`PlayerCharacter`:** Applies the state updates received from `MotionSystem.resolve_collision`.
 
 ## Usage
 
@@ -56,24 +69,29 @@ motion_system.register_subsystem(obstacle_system)
 
 ```gdscript
 func _physics_process(delta):
-    # Start with a base velocity (e.g., from player input)
-    var velocity = Vector2(100, 0)  # Example: moving right
-    
-    # Resolve continuous motion using the motion system
-    var motion_delta = motion_system.resolve_continuous_motion(delta)
-    
-    # Apply the motion delta to the velocity
-    velocity += motion_delta
-    
-    # Move the character
-    move_and_slide(velocity)
+func _physics_process(delta: float):
+    # --- Simplified Example ---
+    if not has_launched and not is_sliding: return
 
-func _on_collision(collision_info):
-    # Resolve collision motion using the motion system
-    var collision_motion = motion_system.resolve_collision_motion(collision_info)
+    var motion_context = { "entity_id": entity_id, "velocity": velocity, "delta": delta, ... } # Gather context
     
-    # Apply the collision motion to the velocity
-    velocity = collision_motion
+    # Apply gravity / continuous forces
+    var motion_result = motion_system.resolve_frame_motion(motion_context)
+    velocity = motion_result.get("velocity", velocity)
+    # Update other state flags from motion_result...
+
+    move_and_slide()
+
+    if is_on_floor():
+        _handle_floor_collision()
+
+func _handle_floor_collision():
+    var collision_info = { "entity_id": entity_id, "velocity": velocity, "normal": get_floor_normal(), ... } # Gather context
+    
+    # Handle bounce / friction / stopping
+    var collision_result = motion_system.resolve_collision(collision_info)
+    velocity = collision_result.get("velocity", velocity)
+    # Update other state flags from collision_result...
 ```
 
 ### Interacting with Subsystems
@@ -93,8 +111,9 @@ status_system.apply_effect("slow", 3.0, 0.5)  # 50% slow for 3 seconds
 The system includes a comprehensive test suite to validate its functionality:
 
 ```bash
-# Run the tests
-godot --headless --script scripts/motion/tests/run_motion_tests.gd
+# Run the LaunchSystem tests (example)
+godot --script scripts/motion/tests/run_launch_test.gd 
+# Note: A comprehensive test runner for all subsystems might be needed.
 ```
 
 ## Extending the System

@@ -57,6 +57,8 @@ var launch_vector = launch_system.launch_entity(entity_id)
 var launch_vector = launch_system.launch_entity_with_parameters(entity_id, 45.0, 0.8, 1500.0)
 
 # Apply the launch vector to the entity
+# Note: PlayerSpawner currently applies this directly. Ideally, velocity changes
+# would be handled via MotionModifiers resolved by the MotionSystem for consistency.
 my_entity.velocity = launch_vector
 ```
 
