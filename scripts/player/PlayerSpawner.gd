@@ -10,6 +10,26 @@ extends Node2D
 @export var launch_angle_degrees: float = 45.0  # Current angle in degrees (0-90)
 
 var player_instance: Node = null
+var launch_system = null  # Reference to the LaunchSystem
+
+func _exit_tree():
+	# Clean up when the PlayerSpawner is removed from the scene
+	if player_instance and launch_system:
+		var entity_id = player_instance.get_instance_id()
+		launch_system.unregister_entity(entity_id)
+		print("PlayerSpawner: Player unregistered from LaunchSystem on exit")
+
+func _ready():
+	# Get reference to the LaunchSystem
+	var motion_system = get_node_or_null("/root/Game/MotionSystem")
+	if motion_system:
+		launch_system = motion_system.get_subsystem("LaunchSystem")
+		if launch_system:
+			print("PlayerSpawner: LaunchSystem found")
+		else:
+			print("PlayerSpawner: LaunchSystem not found in MotionSystem")
+	else:
+		print("PlayerSpawner: MotionSystem not found")
 
 #func _ready():
 	# Force the launch_strength to our desired value, overriding any editor settings
@@ -17,6 +37,12 @@ var player_instance: Node = null
 
 func spawn_player():
 	if player_instance:
+		# Unregister player from LaunchSystem if available
+		if launch_system:
+			var entity_id = player_instance.get_instance_id()
+			launch_system.unregister_entity(entity_id)
+			print("PlayerSpawner: Player unregistered from LaunchSystem")
+		
 		player_instance.queue_free()
 	
 	print("PlayerSpawner: Spawning player at position ", spawn_position)
@@ -38,28 +64,55 @@ func spawn_player():
 	
 	print("PlayerSpawner: Player added to scene")
 	
+	# Register player with LaunchSystem if available
+	if launch_system and player_instance:
+		var entity_id = player_instance.get_instance_id()
+		launch_system.register_entity(entity_id)
+		
+		# Set initial launch parameters
+		launch_system.set_launch_parameters(
+			entity_id, launch_angle_degrees, launch_power, launch_strength)
+		print("PlayerSpawner: Player registered with LaunchSystem")
+	
 	# Wait for the player to be properly positioned on the ground before launching
 	# This ensures the player starts from the ground
 	call_deferred("_check_and_launch_player")
 
 func launch_player(angle_degrees: float, power: float):
-	# Convert angle to radians
-	var angle_radians = deg_to_rad(angle_degrees)
-	
-	# Calculate direction vector based on angle
-	# In Godot, 0 degrees is right, 90 is up, 180 is left, 270 is down
-	var direction = Vector2(
-		cos(angle_radians),  # X component
-		-sin(angle_radians)  # Y component (negative since Y increases downward)
-	)
-	
-	# Calculate final launch vector
-	var launch_magnitude = launch_strength * power
-	var launch_vector = direction * launch_magnitude
+	var launch_vector: Vector2
 	
 	# Debug output for launch parameters
 	print("PlayerSpawner: Launch parameters - angle=", angle_degrees, " power=", power)
-	print("PlayerSpawner: Launch magnitude=", launch_magnitude, " vector=", launch_vector)
+	
+	# Use LaunchSystem if available
+	if launch_system and player_instance:
+		var entity_id = player_instance.get_instance_id()
+		
+		# Register entity if not already registered
+		launch_system.register_entity(entity_id)
+		
+		# Set launch parameters and launch
+		launch_vector = launch_system.launch_entity_with_parameters(
+			entity_id, angle_degrees, power, launch_strength)
+			
+		print("PlayerSpawner: Using LaunchSystem - vector=", launch_vector)
+	else:
+		# Fallback to original implementation if LaunchSystem not available
+		# Convert angle to radians
+		var angle_radians = deg_to_rad(angle_degrees)
+		
+		# Calculate direction vector based on angle
+		# In Godot, 0 degrees is right, 90 is up, 180 is left, 270 is down
+		var direction = Vector2(
+			cos(angle_radians),  # X component
+			-sin(angle_radians)  # Y component (negative since Y increases downward)
+		)
+		
+		# Calculate final launch vector
+		var launch_magnitude = launch_strength * power
+		launch_vector = direction * launch_magnitude
+		
+		print("PlayerSpawner: Using original implementation - magnitude=", launch_magnitude, " vector=", launch_vector)
 	
 	# Apply launch to player
 	if player_instance.has_method("launch"):
@@ -117,34 +170,75 @@ func _check_and_launch_player():
 # Helper methods for UI integration
 func set_launch_angle(degrees: float):
 	launch_angle_degrees = clamp(degrees, 0, 90)  # Restrict to 0-90 degrees (forward only)
+	
+	# Update LaunchSystem if available
+	if launch_system and player_instance:
+		var entity_id = player_instance.get_instance_id()
+		
+		# Register entity if not already registered
+		if not launch_system.get_launch_parameters(entity_id).size() > 0:
+			launch_system.register_entity(entity_id)
+		
+		# Update launch angle
+		launch_system.set_launch_parameters(
+			entity_id, launch_angle_degrees, launch_power, launch_strength)
 
 func set_launch_power(power_percentage: float):
 	launch_power = clamp(power_percentage, 0.1, 1.0)  # 10% to 100% power
+	
+	# Update LaunchSystem if available
+	if launch_system and player_instance:
+		var entity_id = player_instance.get_instance_id()
+		
+		# Register entity if not already registered
+		if not launch_system.get_launch_parameters(entity_id).size() > 0:
+			launch_system.register_entity(entity_id)
+		
+		# Update launch power
+		launch_system.set_launch_parameters(
+			entity_id, launch_angle_degrees, launch_power, launch_strength)
 
 # Method to get trajectory preview points for UI
 func get_preview_trajectory() -> Array:
-	var points = []
-	var angle_radians = deg_to_rad(launch_angle_degrees)
-	var initial_velocity = Vector2(
-		cos(angle_radians) * launch_strength * launch_power,
-		-sin(angle_radians) * launch_strength * launch_power
-	)
-	
-	# Simple physics simulation to get trajectory points
-	var pos = Vector2.ZERO
-	var vel = initial_velocity
-	var gravity = 1200  # Match the gravity in CharacterPlayer
-	var time_step = 0.1
-	var max_steps = 20
-	
-	for i in range(max_steps):
-		points.append(pos)
-		vel.y += gravity * time_step
-		pos += vel * time_step
+	# Use LaunchSystem if available
+	if launch_system and player_instance:
+		var entity_id = player_instance.get_instance_id()
 		
-		# Stop if we hit the ground
-		if pos.y > 0:
-			points.append(Vector2(pos.x, 0))
-			break
-	
-	return points
+		# Register entity if not already registered
+		if not launch_system.get_launch_parameters(entity_id).size() > 0:
+			launch_system.register_entity(entity_id)
+		
+		# Set current launch parameters
+		launch_system.set_launch_parameters(
+			entity_id, launch_angle_degrees, launch_power, launch_strength)
+			
+		print("PlayerSpawner: Using LaunchSystem for trajectory preview")
+		return launch_system.get_preview_trajectory(entity_id)
+	else:
+		# Fallback to original implementation if LaunchSystem not available
+		print("PlayerSpawner: Using original implementation for trajectory preview")
+		var points = []
+		var angle_radians = deg_to_rad(launch_angle_degrees)
+		var initial_velocity = Vector2(
+			cos(angle_radians) * launch_strength * launch_power,
+			-sin(angle_radians) * launch_strength * launch_power
+		)
+		
+		# Simple physics simulation to get trajectory points
+		var pos = Vector2.ZERO
+		var vel = initial_velocity
+		var gravity = 1200  # Match the gravity in CharacterPlayer
+		var time_step = 0.1
+		var max_steps = 20
+		
+		for i in range(max_steps):
+			points.append(pos)
+			vel.y += gravity * time_step
+			pos += vel * time_step
+			
+			# Stop if we hit the ground
+			if pos.y > 0:
+				points.append(Vector2(pos.x, 0))
+				break
+		
+		return points

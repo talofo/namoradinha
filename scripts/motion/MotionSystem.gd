@@ -7,6 +7,7 @@ const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
 
 signal subsystem_registered(subsystem_name: String)
 signal subsystem_unregistered(subsystem_name: String)
+signal entity_launched(entity_id: int, launch_vector: Vector2)
 
 # === PHYSICS CONFIGURATION ===
 # Physics configuration resource

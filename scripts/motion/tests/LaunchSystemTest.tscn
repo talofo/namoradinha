@@ -1,0 +1,77 @@
+[gd_scene load_steps=2 format=3 uid="uid://c8q5yjxg7yvnx"]
+
+[ext_resource type="Script" path="res://scripts/motion/tests/LaunchSystemTest.gd" id="1_yvnkj"]
+
+[node name="LaunchSystemTest" type="Node2D"]
+script = ExtResource("1_yvnkj")
+
+[node name="TestObject" type="CharacterBody2D" parent="."]
+position = Vector2(100, 500)
+
+[node name="ColorRect" type="ColorRect" parent="TestObject"]
+offset_left = -10.0
+offset_top = -10.0
+offset_right = 10.0
+offset_bottom = 10.0
+color = Color(1, 0, 0, 1)
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="Panel" parent="UI"]
+offset_right = 300.0
+offset_bottom = 200.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/Panel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 290.0
+offset_bottom = 190.0
+
+[node name="Label" type="Label" parent="UI/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Launch System Test"
+horizontal_alignment = 1
+
+[node name="AngleLabel" type="Label" parent="UI/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Angle: 45°"
+
+[node name="AngleSlider" type="HSlider" parent="UI/Panel/VBoxContainer"]
+layout_mode = 2
+min_value = 1.0
+max_value = 89.0
+value = 45.0
+
+[node name="PowerLabel" type="Label" parent="UI/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Power: 100%"
+
+[node name="PowerSlider" type="HSlider" parent="UI/Panel/VBoxContainer"]
+layout_mode = 2
+min_value = 10.0
+max_value = 100.0
+value = 100.0
+
+[node name="LaunchButton" type="Button" parent="UI/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Launch"
+
+[node name="ResetButton" type="Button" parent="UI/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Reset"
+
+[node name="StatusLabel" type="Label" parent="UI/Panel/VBoxContainer"]
+layout_mode = 2
+text = "Ready"
+
+[node name="Ground" type="StaticBody2D" parent="."]
+position = Vector2(0, 550)
+
+[node name="ColorRect" type="ColorRect" parent="Ground"]
+offset_right = 1024.0
+offset_bottom = 50.0
+color = Color(0.2, 0.2, 0.2, 1)
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Ground"]
+polygon = PackedVector2Array(0, 0, 1024, 0, 1024, 50, 0, 50)

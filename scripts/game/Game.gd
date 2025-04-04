@@ -42,6 +42,7 @@ func initialize_motion_system() -> void:
 	var environmental_force_system = load("res://scripts/motion/subsystems/EnvironmentalForceSystem.gd").new()
 	var status_effect_system = load("res://scripts/motion/subsystems/StatusEffectSystem.gd").new()
 	var collision_material_system = load("res://scripts/motion/subsystems/CollisionMaterialSystem.gd").new()
+	var launch_system = load("res://scripts/motion/subsystems/LaunchSystem.gd").new()
 	
 	# Register all subsystems
 	motion_system.register_subsystem(bounce_system)
@@ -51,5 +52,6 @@ func initialize_motion_system() -> void:
 	motion_system.register_subsystem(environmental_force_system)
 	motion_system.register_subsystem(status_effect_system)
 	motion_system.register_subsystem(collision_material_system)
+	motion_system.register_subsystem(launch_system)
 	
 	print("MotionSystem initialized with all subsystems")
