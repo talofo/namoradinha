@@ -273,7 +273,7 @@ func resolve_collision(collision_info: Dictionary) -> Dictionary:
 		# Get necessary context
 		var delta = collision_info.get("delta", get_process_delta_time()) # Use delta from context or physics process
 		var stop_threshold = physics_config.default_stop_threshold if physics_config else default_stop_threshold
-		var frame_rate_adj = physics_config.frame_rate_adjustment if physics_config else 60.0
+		# var frame_rate_adj = physics_config.frame_rate_adjustment if physics_config else 60.0 # Removed - Unused after physics-based friction refactor
 
 		# 1. Get base friction
 		var base_friction = physics_config.default_ground_friction if physics_config else default_ground_friction
