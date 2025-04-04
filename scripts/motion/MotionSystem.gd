@@ -267,107 +267,63 @@ func resolve_collision(collision_info: Dictionary) -> Dictionary:
 			print("MotionSystem: Continuing bounce.")
 
 	elif is_sliding:
-		# We're sliding, apply material-specific friction
+		# --- REFACTORED SLIDING LOGIC ---
 		print("MotionSystem: Entity is sliding with velocity=", velocity)
-		
-		# Get entity properties
-		var _entity_type = collision_info.get("entity_type", "default") # Underscore prefix as it's not yet used
-		var entity_mass = collision_info.get("mass", physics_config.default_mass if physics_config else 1.0)
-		var entity_size = collision_info.get("size_factor", physics_config.default_size_factor if physics_config else 1.0)
-		
-		# Get threshold from config or fallback
+
+		# Get necessary context
+		var delta = collision_info.get("delta", get_process_delta_time()) # Use delta from context or physics process
 		var stop_threshold = physics_config.default_stop_threshold if physics_config else default_stop_threshold
-		
-		if collision_material_system:
-			# Get material properties
+		var frame_rate_adj = physics_config.frame_rate_adjustment if physics_config else 60.0
+
+		# 1. Get base friction
+		var base_friction = physics_config.default_ground_friction if physics_config else default_ground_friction
+		# Use the existing collision_material_system variable declared earlier in the function
+		if collision_material_system: 
 			var material_properties = collision_material_system.get_material_properties(material_type)
-			var friction = material_properties.get("friction", default_ground_friction)
-			
-			# Calculate speed and direction
-			var speed = abs(velocity.x)
-			var direction = sign(velocity.x)
-			
-			# Handle very low speeds with a more gradual approach
-			if speed < stop_threshold * 2.0: # Expanded threshold zone for gradual slowdown
-				# Instead of abrupt stop, use exponential decay
-				var decay_rate = 0.7 # Higher = more gradual (0.9 = very slow, 0.1 = very fast)
-				
-				# Calculate new speed with decay
-				var decayed_speed = speed * decay_rate
-				
-				# Never stop completely - allow for continuous sliding with very low speeds
-				# Initialize final_speed outside the conditional so it's available in all scopes
-				var final_speed = decayed_speed
-				
-				if decayed_speed < 0.1:
-					# Finally come to a complete stop
-					result["velocity"] = Vector2.ZERO
-					result["is_sliding"] = false
-					print("MotionSystem: Sliding stopped naturally")
-				else:
-					# Continue with gradual decay
-					result["velocity"] = Vector2(direction * final_speed, 0.0)
-					print("MotionSystem: Sliding with decayed speed=", final_speed)
-			else:
-				# Get physics parameters from config or use defaults
-				var frame_rate_adj = physics_config.frame_rate_adjustment if physics_config else 60.0
-				var decel_base = physics_config.deceleration_base if physics_config else 0.1
-				var decel_speed_factor = physics_config.deceleration_speed_factor if physics_config else 0.0005
-				var max_decel_factor = physics_config.max_deceleration_factor if physics_config else 0.15
-			
-				# Calculate friction force with material and entity properties
-				var friction_force = friction * frame_rate_adj * (entity_mass * 0.8 + 0.2) # Mass affects friction but not linearly
-				
-				# Calculate deceleration based on physics properties
-				var deceleration = friction_force * (decel_base + speed * decel_speed_factor)
-				
-				# Entity size affects maximum deceleration (smaller entities slow down faster)
-				var size_adjusted_max_factor = max_decel_factor * (1.2 - entity_size * 0.2)
-				deceleration = min(deceleration, speed * size_adjusted_max_factor)
-				
-				# Calculate new speed after applying friction
-				var new_speed = max(0, speed - deceleration)
-				
-				# Set new velocity
-				var new_velocity = Vector2(direction * new_speed, 0.0)
-				result["velocity"] = new_velocity
-				
-				print("MotionSystem: Sliding with speed=", new_speed, ", deceleration=", deceleration, ", entity_mass=", entity_mass)
+			base_friction = material_properties.get("friction", base_friction) # Use material friction if available
+
+		# 2. Collect friction modifiers (Placeholder for future extension)
+		var friction_modifiers = []
+		# Example: Iterate subsystems and call a hypothetical get_friction_modifiers method
+		# for subsystem in _subsystems.values():
+		#     if subsystem.has_method("get_friction_modifiers"):
+		#         friction_modifiers.append_array(subsystem.get_friction_modifiers(collision_info))
+
+		# 3. Resolve effective friction (Placeholder for future extension)
+		var effective_friction = base_friction
+		if resolver and resolver.has_method("resolve_scalar_modifiers") and not friction_modifiers.is_empty():
+			# If resolver and modifiers exist, use them
+			effective_friction = resolver.resolve_scalar_modifiers(friction_modifiers, base_friction)
+		# else: # For now, effective_friction remains base_friction
+
+		# 4. Calculate consistent deceleration
+		var speed = abs(velocity.x)
+		var direction = sign(velocity.x)
+		
+		# Get gravity from config or use default
+		var gravity = physics_config.gravity if physics_config else default_gravity
+
+		# Physics-based deceleration model: proportional to effective friction and gravity
+		var deceleration = effective_friction * gravity * delta
+
+		# Ensure deceleration doesn't reverse velocity direction in one frame
+		deceleration = min(deceleration, speed) # Deceleration cannot be greater than current speed
+
+		# Calculate new speed
+		var new_speed = speed - deceleration
+
+		# 5. Apply results and check stop condition
+		if new_speed < stop_threshold:
+			# Stop completely
+			result["velocity"] = Vector2.ZERO
+			result["is_sliding"] = false
+			print("MotionSystem: Sliding stopped (speed ", new_speed, " < threshold ", stop_threshold, ")")
 		else:
-			# No collision material system, use default friction
-			var speed = abs(velocity.x)
-			var direction = sign(velocity.x)
-			
-			# We could use entity type here in the future for type-specific friction
-			# var entity_type_for_friction = collision_info.get("entity_type", "default")
-			var friction = physics_config.default_ground_friction if physics_config else default_ground_friction
-			
-			# Apply a physics-based deceleration
-			var deceleration = friction * 2.5 * (entity_mass * 0.7 + 0.3) # Consider mass but not linearly
-			var new_speed = max(0, speed - deceleration)
-			
-			if new_speed < stop_threshold * 2.0:
-				# Use the same gradual decay approach for consistency
-				var decay_rate = 0.7
-				
-				# Apply decay
-				var decayed_speed = speed * decay_rate
-				
-				# Initialize final_speed variable
-				var final_speed = decayed_speed
-				
-				if decayed_speed < 0.1:
-					# Finally come to a complete stop
-					result["velocity"] = Vector2.ZERO
-					result["is_sliding"] = false
-					print("MotionSystem: Sliding stopped naturally")
-				else:
-					# Continue with gradual decay
-					result["velocity"] = Vector2(direction * final_speed, 0.0)
-					print("MotionSystem: Sliding with decayed speed=", final_speed)
-			else:
-				result["velocity"] = Vector2(direction * new_speed, 0.0) # Ensure Y velocity is zero
-				print("MotionSystem: Sliding with new_speed=", new_speed)
+			# Continue sliding
+			result["velocity"] = Vector2(direction * new_speed, 0.0)
+			result["is_sliding"] = true # Ensure state remains sliding
+			print("MotionSystem: Sliding with speed=", new_speed, ", deceleration=", deceleration, ", effective_friction=", effective_friction)
+		# --- END REFACTORED SLIDING LOGIC ---
 	
 	return result
 

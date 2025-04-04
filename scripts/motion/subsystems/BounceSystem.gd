@@ -255,27 +255,10 @@ func calculate_bounce_vector(entity_id: int, collision_info: Dictionary) -> Vect
 		# Below minimum bounce threshold - stop bouncing and start sliding
 		bounce_velocity_y = 0.0  # Ensure y velocity is exactly zero for sliding
 		
-		# When transitioning to sliding, use the CURRENT horizontal velocity
-		# This ensures a smooth transition from bouncing to sliding
-		bounce_velocity_x = bounce_velocity_x  # Keep the current reduced horizontal velocity
-		print("BounceSystem: Stopping bounce, transitioning to slide with velocity_x=", bounce_velocity_x) # Restored original print
-
-		# Get minimum slide speed from physics config
-		var current_min_slide_speed = current_physics_config.min_slide_speed
-		
-		# Entity mass affects minimum slide speed (heavier entities need more speed)
-		var mass_adjusted_min_speed = current_min_slide_speed * (0.8 + entity_mass * 0.2)
-		
-		if abs(bounce_velocity_x) < mass_adjusted_min_speed and bounce_velocity_x != 0.0:
-			# Preserve direction but ensure minimum sliding speed
-			bounce_velocity_x = sign(bounce_velocity_x) * mass_adjusted_min_speed
-			print("BounceSystem: Boosting slide velocity to ", bounce_velocity_x) # Restored original print
-		
-		# Apply an initial velocity adjustment based on mass
-		# Lighter entities get more initial speed boost
-		var boost_factor = 1.5 * (1.1 - entity_mass * 0.1) # Range 1.0-1.1 based on mass
-		bounce_velocity_x *= boost_factor
-		print("BounceSystem: Applied mass-adjusted boost factor ", boost_factor) # Restored original print
+		# Keep the correctly calculated horizontal velocity (original launch X reduced by preservation factor over bounces)
+		# No minimum speed enforcement or boosts applied here.
+		# bounce_velocity_x is already calculated correctly above based on launch_velocity and preservation.
+		print("BounceSystem: Stopping bounce, transitioning to slide with velocity_x=", bounce_velocity_x)
 	
 	var bounce_vector = Vector2(bounce_velocity_x, bounce_velocity_y)
 	print("BounceSystem: Final bounce vector=", bounce_vector) # Restored original print
