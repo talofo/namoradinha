@@ -2,16 +2,16 @@ class_name IMotionSubsystem
 extends RefCounted
 
 # Returns modifiers for frame-based updates
-# delta: Time since last frame
+# _delta: Time since last frame
 # Returns: Array of MotionModifier objects
-func get_continuous_modifiers(delta: float) -> Array:
+func get_continuous_modifiers(_delta: float) -> Array:
 	push_error("IMotionSubsystem.get_continuous_modifiers: Method not implemented")
 	return []
 
 # Returns modifiers for collision events
-# collision_info: Information about the collision
+# _collision_info: Information about the collision
 # Returns: Array of MotionModifier objects
-func get_collision_modifiers(collision_info: Dictionary) -> Array:
+func get_collision_modifiers(_collision_info: Dictionary) -> Array:
 	push_error("IMotionSubsystem.get_collision_modifiers: Method not implemented")
 	return []
 

@@ -2,11 +2,11 @@ class_name EnvironmentalForceSystem
 extends RefCounted
 
 # Implement the IMotionSubsystem interface
-var _motion_system = null
+# No need for _motion_system variable as it's not used
 var _active_zones = {}
 
 func _init() -> void:
-	print("[EnvironmentalForceSystem] Initialized")
+	pass
 
 # Returns the subsystem name for debugging
 func get_name() -> String:
@@ -14,17 +14,16 @@ func get_name() -> String:
 
 # Called when the subsystem is registered with the MotionSystem
 func on_register() -> void:
-	print("[EnvironmentalForceSystem] Registered with MotionSystem")
+	pass
 
 # Called when the subsystem is unregistered from the MotionSystem
 func on_unregister() -> void:
-	print("[EnvironmentalForceSystem] Unregistered from MotionSystem")
+	pass
 
 # Returns modifiers for frame-based updates
 # delta: Time since last frame
 # Returns: Array of MotionModifier objects
-func get_continuous_modifiers(delta: float) -> Array:
-	print("[EnvironmentalForceSystem] Getting continuous modifiers (delta: %.3f)" % delta)
+func get_continuous_modifiers(_delta: float) -> Array:
 	
 	# In a real implementation, this would check active environmental zones and return appropriate modifiers
 	# For now, just return a placeholder modifier
@@ -59,10 +58,9 @@ func get_continuous_modifiers(delta: float) -> Array:
 	return modifiers
 
 # Returns modifiers for collision events
-# collision_info: Information about the collision
+# _collision_info: Information about the collision (unused)
 # Returns: Array of MotionModifier objects
-func get_collision_modifiers(collision_info: Dictionary) -> Array:
-	print("[EnvironmentalForceSystem] Getting collision modifiers")
+func get_collision_modifiers(_collision_info: Dictionary) -> Array:
 	
 	# In a real implementation, this would check for environmental effects on collisions
 	# For now, just return an empty array
@@ -75,9 +73,6 @@ func get_collision_modifiers(collision_info: Dictionary) -> Array:
 # force: Force vector of the zone
 func add_zone(zone_type: String, position: Vector2, size: Vector2, force: Vector2) -> String:
 	var zone_id = "zone_" + str(_active_zones.size())
-	print("[EnvironmentalForceSystem] Adding zone: id=%s, type=%s, position=%s, force=%s" % [
-		zone_id, zone_type, position, force
-	])
 	
 	_active_zones[zone_id] = {
 		"type": zone_type,
@@ -94,7 +89,6 @@ func add_zone(zone_type: String, position: Vector2, size: Vector2, force: Vector
 # zone_id: ID of the zone to remove
 func remove_zone(zone_id: String) -> bool:
 	if _active_zones.has(zone_id):
-		print("[EnvironmentalForceSystem] Removing zone: %s" % zone_id)
 		_active_zones.erase(zone_id)
 		# In a real implementation, this would update the environmental forces
 		return true
@@ -105,7 +99,6 @@ func remove_zone(zone_id: String) -> bool:
 # force: New force vector for the zone
 func update_zone_force(zone_id: String, force: Vector2) -> bool:
 	if _active_zones.has(zone_id):
-		print("[EnvironmentalForceSystem] Updating zone force: %s -> %s" % [zone_id, force])
 		_active_zones[zone_id].force = force
 		# In a real implementation, this would update the environmental forces
 		return true

@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://vd7j71qvqcph" path="res://camera/CameraManager.tscn" id="1_m71xk"]
 [ext_resource type="PackedScene" uid="uid://d1ff87wiwwdx7" path="res://player/PlayerSpawner.tscn" id="2_i75et"]
 [ext_resource type="PackedScene" uid="uid://bu1h5sc0hr3qp" path="res://stages/StageManager.tscn" id="3_adwu5"]
-[ext_resource type="PackedScene" uid="uid://bmg5xnxjwgrya" path="res://player/CharacterPlayer.tscn" id="4_adwu5"]
+[ext_resource type="PackedScene" path="res://scripts/motion/MotionSystemNode.tscn" id="6_knu3h"]
 
 [node name="Game" type="Node2D"]
 script = ExtResource("1_i75et")
@@ -12,6 +12,7 @@ script = ExtResource("1_i75et")
 [node name="CameraManager" parent="." instance=ExtResource("1_m71xk")]
 
 [node name="PlayerSpawner" parent="." instance=ExtResource("2_i75et")]
-player_scene = ExtResource("4_adwu5")
 
 [node name="StageManager" parent="." instance=ExtResource("3_adwu5")]
+
+[node name="MotionSystem" parent="." instance=ExtResource("6_knu3h")]

@@ -2,11 +2,11 @@ class_name EquipmentSystem
 extends RefCounted
 
 # Implement the IMotionSubsystem interface
-var _motion_system = null
+# No need for _motion_system variable as it's not used
 var _equipped_items = {}
 
 func _init() -> void:
-	print("[EquipmentSystem] Initialized")
+	pass
 
 # Returns the subsystem name for debugging
 func get_name() -> String:
@@ -14,17 +14,16 @@ func get_name() -> String:
 
 # Called when the subsystem is registered with the MotionSystem
 func on_register() -> void:
-	print("[EquipmentSystem] Registered with MotionSystem")
+	pass
 
 # Called when the subsystem is unregistered from the MotionSystem
 func on_unregister() -> void:
-	print("[EquipmentSystem] Unregistered from MotionSystem")
+	pass
 
 # Returns modifiers for frame-based updates
 # delta: Time since last frame
 # Returns: Array of MotionModifier objects
-func get_continuous_modifiers(delta: float) -> Array:
-	print("[EquipmentSystem] Getting continuous modifiers (delta: %.3f)" % delta)
+func get_continuous_modifiers(_delta: float) -> Array:
 	
 	# In a real implementation, this would check equipped items and return appropriate modifiers
 	# For now, just return a placeholder modifier
@@ -46,10 +45,9 @@ func get_continuous_modifiers(delta: float) -> Array:
 	return modifiers
 
 # Returns modifiers for collision events
-# collision_info: Information about the collision
+# _collision_info: Information about the collision (unused)
 # Returns: Array of MotionModifier objects
-func get_collision_modifiers(collision_info: Dictionary) -> Array:
-	print("[EquipmentSystem] Getting collision modifiers")
+func get_collision_modifiers(_collision_info: Dictionary) -> Array:
 	
 	# In a real implementation, this would check for equipment that affects collisions
 	# For now, just return a placeholder modifier
@@ -74,7 +72,6 @@ func get_collision_modifiers(collision_info: Dictionary) -> Array:
 # item_id: ID of the item to equip
 # slot: Slot to equip the item in
 func equip_item(item_id: String, slot: String) -> void:
-	print("[EquipmentSystem] Equipping item: id=%s, slot=%s" % [item_id, slot])
 	_equipped_items[slot] = item_id
 	# In a real implementation, this would update the player's equipment and modifiers
 
@@ -82,6 +79,5 @@ func equip_item(item_id: String, slot: String) -> void:
 # slot: Slot to unequip
 func unequip_item(slot: String) -> void:
 	if _equipped_items.has(slot):
-		print("[EquipmentSystem] Unequipping item from slot: %s" % slot)
 		_equipped_items.erase(slot)
 		# In a real implementation, this would update the player's equipment and modifiers

@@ -2,18 +2,17 @@ class_name CollisionMaterialSystem
 extends RefCounted
 
 # Implement the IMotionSubsystem interface
-var _motion_system = null
+# No need for _motion_system variable as it's not used
 var _registered_materials = {}
 
 func _init() -> void:
-	print("[CollisionMaterialSystem] Initialized")
 	_register_default_materials()
 
 # Register default material types
 func _register_default_materials() -> void:
 	_registered_materials = {
 		"default": {
-			"friction": 1.0,
+			"friction": 0.5,  # Reduced friction to make sliding last longer
 			"bounce": 0.5,
 			"sound": "default_impact"
 		},
@@ -40,18 +39,16 @@ func get_name() -> String:
 
 # Called when the subsystem is registered with the MotionSystem
 func on_register() -> void:
-	print("[CollisionMaterialSystem] Registered with MotionSystem")
+	pass
 
 # Called when the subsystem is unregistered from the MotionSystem
 func on_unregister() -> void:
-	print("[CollisionMaterialSystem] Unregistered from MotionSystem")
+	pass
 
 # Returns modifiers for frame-based updates
 # delta: Time since last frame
 # Returns: Array of MotionModifier objects
-func get_continuous_modifiers(delta: float) -> Array:
-	print("[CollisionMaterialSystem] Getting continuous modifiers (delta: %.3f)" % delta)
-	
+func get_continuous_modifiers(_delta: float) -> Array:
 	# In a real implementation, this would check for continuous material effects
 	# For now, just return an empty array
 	return []
@@ -60,17 +57,16 @@ func get_continuous_modifiers(delta: float) -> Array:
 # collision_info: Information about the collision
 # Returns: Array of MotionModifier objects
 func get_collision_modifiers(collision_info: Dictionary) -> Array:
-	print("[CollisionMaterialSystem] Getting collision modifiers")
 	
-	# In a real implementation, this would check the collision material and return appropriate modifiers
-	# For now, just return placeholder modifiers
 	var modifiers = []
 	
 	# Get material type from collision info (default if not specified)
 	var material_type = collision_info.get("material", "default")
 	var material = _registered_materials.get(material_type, _registered_materials["default"])
 	
-	# Example: Add a placeholder friction modifier
+	# Get material properties
+	
+	# Add a friction modifier
 	var friction_modifier = load("res://scripts/motion/MotionModifier.gd").new(
 		"CollisionMaterialSystem",  # source
 		"friction",                 # type
@@ -83,7 +79,7 @@ func get_collision_modifiers(collision_info: Dictionary) -> Array:
 	
 	modifiers.append(friction_modifier)
 	
-	# Example: Add a placeholder bounce modifier
+	# Add a bounce modifier
 	var bounce_modifier = load("res://scripts/motion/MotionModifier.gd").new(
 		"CollisionMaterialSystem",  # source
 		"bounce",                   # type
@@ -96,26 +92,53 @@ func get_collision_modifiers(collision_info: Dictionary) -> Array:
 	
 	modifiers.append(bounce_modifier)
 	
+	# Add a sound effect modifier (for playing material-specific sounds)
+	var sound_modifier = load("res://scripts/motion/MotionModifier.gd").new(
+		"CollisionMaterialSystem",  # source
+		"sound",                    # type
+		5,                          # priority
+		Vector2(0, 0),              # vector (no direction change)
+		1.0,                        # scalar
+		true,                       # is_additive
+		0.1                         # duration (short)
+	)
+	
+	modifiers.append(sound_modifier)
+	
 	return modifiers
 
 # Register a new material type
 # material_type: Type of material
 # properties: Dictionary of material properties
 func register_material(material_type: String, properties: Dictionary) -> void:
-	print("[CollisionMaterialSystem] Registering material: type=%s, properties=%s" % [
-		material_type, properties
-	])
 	
-	_registered_materials[material_type] = properties
-	# In a real implementation, this would update the material registry
+	# Ensure all required properties are present
+	var default_material = _registered_materials["default"]
+	var complete_properties = default_material.duplicate()
+	
+	# Override with provided properties
+	for key in properties:
+		complete_properties[key] = properties[key]
+	
+	_registered_materials[material_type] = complete_properties
 
 # Get material properties
 # material_type: Type of material
-# Returns: Dictionary of material properties, or null if not found
+# Returns: Dictionary of material properties, or default if not found
 func get_material_properties(material_type: String) -> Dictionary:
 	if _registered_materials.has(material_type):
 		return _registered_materials[material_type].duplicate()
-	return {}
+	
+	# Material not found, using default
+	return _registered_materials["default"].duplicate()
+
+# Detect material from a collision
+# collision_info: Information about the collision
+# Returns: The material type as a string
+func detect_material_from_collision(collision_info: Dictionary) -> String:
+	# In a real implementation, this would check the collision object's properties
+	# For now, just return the material from collision_info or "default"
+	return collision_info.get("material", "default")
 
 # Update material properties
 # material_type: Type of material
@@ -123,9 +146,7 @@ func get_material_properties(material_type: String) -> Dictionary:
 # Returns: True if successful, false if material not found
 func update_material(material_type: String, properties: Dictionary) -> bool:
 	if _registered_materials.has(material_type):
-		print("[CollisionMaterialSystem] Updating material: type=%s, properties=%s" % [
-			material_type, properties
-		])
+		# Update material properties
 		
 		for key in properties:
 			_registered_materials[material_type][key] = properties[key]

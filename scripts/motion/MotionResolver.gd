@@ -8,10 +8,7 @@ var debug_enabled: bool = false
 # modifiers: Array of MotionModifier objects
 # Returns: The final resolved Vector2
 func resolve_modifiers(modifiers: Array) -> Vector2:
-	if debug_enabled:
-		print("[MotionResolver] Resolving %d modifiers" % modifiers.size())
-		for mod in modifiers:
-			print("  - %s" % mod)
+	# Resolve modifiers
 	
 	# Sort modifiers by priority (highest first)
 	modifiers.sort_custom(func(a, b): return a.priority > b.priority)
@@ -23,8 +20,7 @@ func resolve_modifiers(modifiers: Array) -> Vector2:
 	for mod in modifiers:
 		if not mod.is_additive:
 			if not replacement_applied:
-				if debug_enabled:
-					print("[MotionResolver] Applying replacement modifier: %s" % mod)
+				# Apply replacement modifier
 				final_vector = mod.vector
 				replacement_applied = true
 			# Skip lower priority replacement modifiers
@@ -32,12 +28,10 @@ func resolve_modifiers(modifiers: Array) -> Vector2:
 	# Then process additive modifiers
 	for mod in modifiers:
 		if mod.is_additive:
-			if debug_enabled:
-				print("[MotionResolver] Applying additive modifier: %s" % mod)
+			# Apply additive modifier
 			final_vector += mod.vector
 	
-	if debug_enabled:
-		print("[MotionResolver] Final resolved vector: %s" % final_vector)
+	# Return final vector
 	
 	return final_vector
 
@@ -46,8 +40,7 @@ func resolve_modifiers(modifiers: Array) -> Vector2:
 # base_value: The base value to modify
 # Returns: The final scalar value
 func resolve_scalar_modifiers(modifiers: Array, base_value: float) -> float:
-	if debug_enabled:
-		print("[MotionResolver] Resolving %d scalar modifiers with base value %.2f" % [modifiers.size(), base_value])
+	# Resolve scalar modifiers
 	
 	# Sort modifiers by priority (highest first)
 	modifiers.sort_custom(func(a, b): return a.priority > b.priority)
@@ -59,8 +52,7 @@ func resolve_scalar_modifiers(modifiers: Array, base_value: float) -> float:
 	for mod in modifiers:
 		if not mod.is_additive:
 			if not replacement_applied:
-				if debug_enabled:
-					print("[MotionResolver] Applying replacement scalar modifier: %s" % mod)
+				# Apply replacement scalar modifier
 				final_value = mod.scalar
 				replacement_applied = true
 			# Skip lower priority replacement modifiers
@@ -68,11 +60,9 @@ func resolve_scalar_modifiers(modifiers: Array, base_value: float) -> float:
 	# Then process multiplicative modifiers
 	for mod in modifiers:
 		if mod.is_additive:
-			if debug_enabled:
-				print("[MotionResolver] Applying multiplicative scalar modifier: %s" % mod)
+			# Apply multiplicative scalar modifier
 			final_value *= mod.scalar
 	
-	if debug_enabled:
-		print("[MotionResolver] Final resolved scalar: %.2f" % final_value)
+	# Return final scalar value
 	
 	return final_value
