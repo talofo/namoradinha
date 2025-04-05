@@ -73,10 +73,14 @@ func _physics_process(delta: float) -> void:
 	# Perform the actual movement
 	move_and_slide()
 	
+	# --- ADDED DEBUG LOG ---
+	print("[PlayerCharacter] Frame Position X: ", position.x) 
+	# --- END ADDED DEBUG LOG ---
+	
 	# Removed problematic velocity preservation logic that was overriding physics results.
 	
 	# Round position to integer pixels to prevent subpixel flickering
-	position = position.round()
+	position = position.round() # Re-enabled for testing abrupt stop issue
 
 # Handle floor collision with MotionSystem integration
 func _handle_floor_collision() -> void:
@@ -108,16 +112,11 @@ func _handle_floor_collision() -> void:
 			max_height_y = collision_result.max_height_y
 
 # Detect the material of the floor at the current position
+# TODO: Implement logic to detect material based on the actual floor collider.
+#       This will likely involve getting the collider via get_floor_collider(),
+#       finding an attached script (e.g., GroundMaterialInfo.gd) on it or its owner,
+#       and reading a 'material_name' property from that script.
+#       The returned name should correspond to a key in PhysicsConfig.material_properties.
+# For now, always return "default" to ensure consistent floor physics.
 func _detect_floor_material() -> String:
-	# Default material
-	var floor_material = "default"
-	
-	# Simple position-based detection
-	if position.x < -1000:
-		floor_material = "ice"
-	elif position.x > 1000:
-		floor_material = "mud"
-	elif position.x > -200 and position.x < 200:
-		floor_material = "rubber"
-	
-	return floor_material
+	return "default"
