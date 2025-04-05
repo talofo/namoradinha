@@ -111,6 +111,7 @@ func _handle_floor_collision() -> void:
 		if collision_result.has("max_height_y"):
 			max_height_y = collision_result.max_height_y
 
+
 # Detect the material of the floor at the current position
 # TODO: Implement logic to detect material based on the actual floor collider.
 #       This will likely involve getting the collider via get_floor_collider(),

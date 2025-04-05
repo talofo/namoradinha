@@ -317,6 +317,7 @@ func resolve_collision(collision_info: Dictionary) -> Dictionary:
 			# Stop completely
 			result["velocity"] = Vector2.ZERO
 			result["is_sliding"] = false
+			result["just_stopped_sliding"] = true # Flag that we just stopped
 			print("MotionSystem: Sliding stopped (speed ", new_speed, " < threshold ", stop_threshold, ")")
 		else:
 			# Continue sliding
