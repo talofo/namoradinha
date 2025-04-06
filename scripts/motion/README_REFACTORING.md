@@ -91,7 +91,7 @@ scripts/motion/
 
 1. **Automatic Subsystem Registration**: MotionSystemCore now automatically registers all subsystems from a predefined list, eliminating the need for manual registration in Game.gd.
 2. **Centralized Physics Config Access**: Removed duplicate physics_config variables from subsystems, ensuring all subsystems access the physics configuration through MotionSystemCore.
-3. **Standardized Error Handling**: Improved how subsystems handle missing physics configuration with consistent error messages and fallback behavior.
+3. **Standardized Error Handling**: Improved how subsystems handle missing physics configuration with consistent error messages and fallback behavior. All subsystems now use the centralized ErrorHandler for logging instead of direct push_error/push_warning calls.
 4. **Reduced Code Duplication**: Eliminated redundant code for loading and accessing physics configuration.
 5. **Simplified Game Initialization**: Game.gd no longer needs to manually create and register each subsystem, making it more maintainable.
 6. **Improved Signal Handling**: Fixed signal connections between subsystems by:
@@ -110,11 +110,11 @@ Subsystems now follow a consistent pattern for accessing physics configuration:
 ```gdscript
 # Ensure motion system and config are available
 if not _motion_system or not _motion_system.has_method("get_physics_config"):
-    push_error("[SubsystemName] MotionSystem or get_physics_config method not available.")
+    ErrorHandler.error("SubsystemName", "MotionSystem or get_physics_config method not available.")
     return fallback_value
 var current_physics_config = _motion_system.get_physics_config()
 if not current_physics_config:
-    push_error("[SubsystemName] Physics config not available from MotionSystem.")
+    ErrorHandler.error("SubsystemName", "Physics config not available from MotionSystem.")
     return fallback_value
     
 # Now use current_physics_config to access physics parameters

@@ -7,8 +7,6 @@ var _core = null
 # Forward signals from core
 signal subsystem_registered(subsystem_name: String)
 signal subsystem_unregistered(subsystem_name: String)
-@warning_ignore("unused_signal")
-signal entity_launched(entity_id: int, launch_vector: Vector2, position: Vector2)
 
 func _init() -> void:
 	_core = load("res://scripts/motion/core/MotionSystemCore.gd").new()
@@ -16,7 +14,6 @@ func _init() -> void:
 	# Connect signals from core to this node
 	_core.subsystem_registered.connect(func(subsystem_name): subsystem_registered.emit(subsystem_name))
 	_core.subsystem_unregistered.connect(func(subsystem_name): subsystem_unregistered.emit(subsystem_name))
-	_core.entity_launched.connect(func(entity_id, launch_vector, position): entity_launched.emit(entity_id, launch_vector, position))
 
 func _ready() -> void:
 	# Initialize with debug mode off by default

@@ -30,14 +30,14 @@ func get_name() -> String:
 
 # Called when the subsystem is registered with the MotionSystem
 func on_register() -> void:
-	print("[LaunchSystem] Registered with MotionSystem")
+	ErrorHandler.info("LaunchSystem", "Registered with MotionSystem")
 	# _motion_system reference is set by MotionSystem just before calling this.
 	# Config and defaults are handled dynamically later.
 	pass # No action needed here now
 
 # Called when the subsystem is unregistered from the MotionSystem
 func on_unregister() -> void:
-	print("[LaunchSystem] Unregistered from MotionSystem")
+	ErrorHandler.info("LaunchSystem", "Unregistered from MotionSystem")
 	_motion_system = null
 
 # Returns modifiers for frame-based updates
@@ -117,7 +117,7 @@ func set_launch_parameters(entity_id: int, angle_degrees: float, power: float, s
 # Returns: The calculated launch vector
 func calculate_launch_vector(entity_id: int) -> Vector2:
 	if not _entity_launch_data.has(entity_id):
-		push_warning("[LaunchSystem] Entity not registered: " + str(entity_id))
+		ErrorHandler.warning("LaunchSystem", "Entity not registered: " + str(entity_id))
 		return Vector2.ZERO
 	
 	var launch_data = _entity_launch_data[entity_id]
@@ -149,7 +149,7 @@ func calculate_launch_vector(entity_id: int) -> Vector2:
 func launch_entity(entity_id: int, position: Vector2) -> Vector2:
 	var launch_vector = calculate_launch_vector(entity_id)
 	
-	print("[LaunchSystem] Launching entity ", entity_id, " at position ", position, " with vector ", launch_vector)
+	ErrorHandler.info("LaunchSystem", "Launching entity " + str(entity_id) + " at position " + str(position) + " with vector " + str(launch_vector))
 	
 	# Emit a signal that the entity was launched
 	# This could be used by other systems to react to the launch
@@ -176,7 +176,7 @@ func launch_entity_with_parameters(entity_id: int, angle_degrees: float, power: 
 # Returns: Array of Vector2 points representing the trajectory
 func get_preview_trajectory(entity_id: int, num_points: int = 20, time_step: float = 0.1) -> Array:
 	if not _entity_launch_data.has(entity_id):
-		push_warning("[LaunchSystem] Entity not registered for trajectory preview: " + str(entity_id))
+		ErrorHandler.warning("LaunchSystem", "Entity not registered for trajectory preview: " + str(entity_id))
 		return []
 	
 	var launch_data = _entity_launch_data[entity_id]
@@ -191,11 +191,11 @@ func get_preview_trajectory(entity_id: int, num_points: int = 20, time_step: flo
 	
 	# Ensure motion system and config are available
 	if not _motion_system or not _motion_system.has_method("get_physics_config"):
-		push_error("[LaunchSystem] MotionSystem or get_physics_config method not available.")
+		ErrorHandler.error("LaunchSystem", "MotionSystem or get_physics_config method not available.")
 		return []
 	var current_physics_config = _motion_system.get_physics_config()
 	if not current_physics_config:
-		push_error("[LaunchSystem] Physics config not available from MotionSystem.")
+		ErrorHandler.error("LaunchSystem", "Physics config not available from MotionSystem.")
 		return []
 		
 	# Get gravity from config
@@ -235,3 +235,23 @@ func get_launch_parameters(entity_id: int) -> Dictionary:
 		return {}
 	
 	return _entity_launch_data[entity_id].duplicate()
+
+# Returns a dictionary of signals this subsystem provides
+# The dictionary keys are signal names, values are signal parameter types
+# Example: { "entity_launched": ["int", "Vector2", "Vector2"] }
+# Returns: Dictionary of provided signals
+func get_provided_signals() -> Dictionary:
+	return {
+		"entity_launched": ["int", "Vector2", "Vector2"]
+	}
+
+# Returns an array of signal dependencies this subsystem needs
+# Each entry is a dictionary with:
+# - "provider": The name of the subsystem providing the signal
+# - "signal_name": The name of the signal to connect to
+# - "method": The method in this subsystem to connect to the signal
+# Example: [{ "provider": "LaunchSystem", "signal_name": "entity_launched", "method": "record_launch" }]
+# Returns: Array of signal dependencies
+func get_signal_dependencies() -> Array:
+	# LaunchSystem doesn't depend on signals from other subsystems
+	return []
