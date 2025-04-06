@@ -64,9 +64,9 @@ func _init() -> void:
 			default_ground_friction = physics_config.default_ground_friction
 			default_stop_threshold = physics_config.default_stop_threshold
 		else:
-			ErrorHandler.warning("MotionSystemCore", "Failed to load physics config as PhysicsConfig resource")
+			pass # Logging removed
 	else:
-		ErrorHandler.warning("MotionSystemCore", "Physics config not found at " + config_path)
+		pass # Logging removed
 
 	# Initialize components
 	physics_calculator = load("res://scripts/motion/core/PhysicsCalculator.gd").new(self)
@@ -99,7 +99,7 @@ func register_subsystem(subsystem) -> bool:
 	var subsystem_name = subsystem.get_name()
 
 	if _subsystems.has(subsystem_name):
-		ErrorHandler.warning("MotionSystemCore", "Subsystem '%s' is already registered" % subsystem_name)
+		# Logging removed
 		return false
 
 	# Set the motion_system reference in the subsystem IF it has the variable
@@ -108,7 +108,7 @@ func register_subsystem(subsystem) -> bool:
 	else:
 		# Optional: Warn if a subsystem doesn't have the expected variable, 
 		# if it's intended for all subsystems needing the reference.
-		# ErrorHandler.warning("MotionSystemCore", "Subsystem '%s' does not have a '_motion_system' variable." % subsystem_name)
+		# # Logging removed
 		pass
 
 	_subsystems[subsystem_name] = subsystem
@@ -134,7 +134,7 @@ func _process_pending_connections(subsystem_name: String) -> void:
 	var provider = _subsystems[subsystem_name]
 	var pending = _pending_connections[subsystem_name]
 
-	ErrorHandler.info("MotionSystemCore", "Processing %d pending connections for '%s'" % [pending.size(), subsystem_name])
+	# Logging removed, subsystem_name])
 
 	# Process each pending connection
 	for connection in pending:
@@ -144,19 +144,18 @@ func _process_pending_connections(subsystem_name: String) -> void:
 
 		# Skip if provider doesn't have the signal
 		if not provider.has_signal(signal_name):
-			ErrorHandler.warning("MotionSystemCore", "Signal '%s' not found in provider '%s'" % [signal_name, subsystem_name])
+			# Logging removed
 			continue
 
 		# Skip if dependent doesn't have the method
 		if not dependent.has_method(method_name):
-			ErrorHandler.warning("MotionSystemCore", "Method '%s' not found in subsystem '%s'" % [method_name, dependent.get_name()])
+			# Logging removed])
 			continue
 
 		# Connect the signal
 		if not provider.is_connected(signal_name, Callable(dependent, method_name)):
 			provider.connect(signal_name, Callable(dependent, method_name))
-			ErrorHandler.info("MotionSystemCore", "Connected pending signal '%s' from '%s' to '%s.%s'" % 
-				[signal_name, subsystem_name, dependent.get_name(), method_name])
+			# Connected pending signal
 
 	# Clear the pending connections for this subsystem
 	_pending_connections.erase(subsystem_name)
@@ -181,12 +180,12 @@ func _connect_subsystem_signals(subsystem) -> void:
 
 		# Skip if any required field is missing
 		if provider_name.is_empty() or signal_name.is_empty() or method_name.is_empty():
-			ErrorHandler.warning("MotionSystemCore", "Invalid signal dependency in subsystem '%s'" % subsystem.get_name())
+			# Logging removed)
 			continue
 
 		# If provider doesn't exist yet, store the connection request for later
 		if not _subsystems.has(provider_name):
-			ErrorHandler.info("MotionSystemCore", "Signal provider '%s' not found for subsystem '%s', storing for later connection" % [provider_name, subsystem.get_name()])
+			# Logging removed])
 
 			# Initialize the pending connections array for this provider if it doesn't exist
 			if not _pending_connections.has(provider_name):
@@ -204,26 +203,25 @@ func _connect_subsystem_signals(subsystem) -> void:
 
 		# Skip if provider doesn't have the signal
 		if not provider.has_signal(signal_name):
-			ErrorHandler.warning("MotionSystemCore", "Signal '%s' not found in provider '%s'" % [signal_name, provider_name])
+			# Logging removed
 			continue
 
 		# Skip if subsystem doesn't have the method
 		if not subsystem.has_method(method_name):
-			ErrorHandler.warning("MotionSystemCore", "Method '%s' not found in subsystem '%s'" % [method_name, subsystem.get_name()])
+			# Logging removed])
 			continue
 
 		# Connect the signal
 		if not provider.is_connected(signal_name, Callable(subsystem, method_name)):
 			provider.connect(signal_name, Callable(subsystem, method_name))
-			ErrorHandler.info("MotionSystemCore", "Connected signal '%s' from '%s' to '%s.%s'" % 
-				[signal_name, provider_name, subsystem.get_name(), method_name])
+			# Connected signal
 
 # Unregister a subsystem from the motion system
 # subsystem_name: The name of the subsystem to unregister
 # Returns: True if unregistration was successful, false otherwise
 func unregister_subsystem(subsystem_name: String) -> bool:
 	if not _subsystems.has(subsystem_name):
-		ErrorHandler.warning("MotionSystemCore", "Subsystem '%s' is not registered" % subsystem_name)
+		# Logging removed
 		return false
 
 	var subsystem = _subsystems[subsystem_name]
@@ -276,7 +274,7 @@ func resolve_scalar(type: String, base_value: float) -> float:
 func register_all_subsystems() -> int:
 	var success_count = 0
 
-	ErrorHandler.info("MotionSystemCore", "Auto-registering subsystems...")
+	# Logging removed
 
 	for path in _subsystem_paths:
 		if ResourceLoader.exists(path):
@@ -287,20 +285,20 @@ func register_all_subsystems() -> int:
 				# Special case for BounceSystem - use ModularBounceSystem class
 				if path == "res://scripts/motion/subsystems/bounce_system/BounceSystem.gd":
 					subsystem = ModularBounceSystem.new()
-					ErrorHandler.info("MotionSystemCore", "Using ModularBounceSystem class for BounceSystem")
+					# Logging removed
 				else:
 					subsystem = subsystem_script.new()
 				
 				if register_subsystem(subsystem):
 					success_count += 1
-					ErrorHandler.info("MotionSystemCore", "Successfully registered subsystem: %s" % subsystem.get_name())
+					# Logging removed)
 				else:
-					ErrorHandler.warning("MotionSystemCore", "Failed to register subsystem from path: %s" % path)
+					pass # Logging removed
 			else:
-				ErrorHandler.warning("MotionSystemCore", "Failed to load subsystem script: %s" % path)
+				pass # Logging removed
 		else:
-			ErrorHandler.warning("MotionSystemCore", "Subsystem script not found: %s" % path)
+			pass # Logging removed
 
-	ErrorHandler.info("MotionSystemCore", "Auto-registered %d/%d subsystems" % [success_count, _subsystem_paths.size()])
+	# Logging removed])
 
 	return success_count

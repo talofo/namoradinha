@@ -12,7 +12,7 @@ func set_motion_system(motion_system) -> void:
 # Returns: The calculated launch vector
 func calculate_launch_vector(entity_data: Dictionary) -> Vector2:
     if entity_data.is_empty():
-        ErrorHandler.warning("LaunchCalculator", "Empty entity data provided")
+        # Logging removed
         return Vector2.ZERO
     
     # Convert angle to radians

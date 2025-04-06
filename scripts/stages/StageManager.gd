@@ -10,7 +10,7 @@ func load_stage(stage_number: int) -> void:
 	var stage_resource = load(stage_path)
 
 	if not stage_resource:
-		ErrorHandler.error("StageManager", "Could not load stage: %s" % stage_path)
+		# Logging removed
 		return
 
 	current_stage = stage_resource.instantiate()
@@ -22,4 +22,5 @@ func load_stage(stage_number: int) -> void:
 	if ground_manager and ground_manager.has_method("set_stage_number"):
 		ground_manager.set_stage_number(stage_number)
 	else:
-		ErrorHandler.warning("StageManager", "Could not find GroundManager node or set_stage_number method in stage %d" % stage_number)
+		# Logging removed
+		pass

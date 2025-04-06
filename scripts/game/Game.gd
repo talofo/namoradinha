@@ -22,10 +22,10 @@ func _ready():
 # Initialize the MotionSystem
 func initialize_motion_system() -> void:
 	if not motion_system:
-		ErrorHandler.error("Game", "MotionSystem node not found!")
+		# Logging removed
 		return
 	
-	ErrorHandler.info("Game", "Initializing MotionSystem...")
+	# Logging removed
 	
 	# Explicitly register all subsystems
 	# This allows for more dynamic control over when subsystems are loaded
@@ -33,7 +33,7 @@ func initialize_motion_system() -> void:
 	if core:
 		core.register_all_subsystems()
 	else:
-		ErrorHandler.error("Game", "MotionSystemCore not found!")
+		# Logging removed
 		return
 	
-	ErrorHandler.info("Game", "MotionSystem initialized")
+	# Logging removed

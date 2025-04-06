@@ -16,21 +16,21 @@ var _motion_system = null
 
 func set_motion_system(motion_system) -> void:
     _motion_system = motion_system
-    ErrorHandler.debug("BoostEntityData", "Motion system reference set")
+    # Logging removed
 
 # Register an entity with the boost system
 # entity_id: Unique identifier for the entity
 # Returns: True if registration was successful
 func register_entity(entity_id: int) -> bool:
     if _entity_data.has(entity_id):
-        ErrorHandler.info("BoostEntityData", "Entity already registered: " + str(entity_id))
+        # Logging removed)
         return false
     
     _entity_data[entity_id] = {
         "active_boosts": [],
         "boost_history": []
     }
-    ErrorHandler.info("BoostEntityData", "Entity registered: " + str(entity_id))
+    # Logging removed)
     return true
 
 # Unregister an entity from the boost system
@@ -38,11 +38,11 @@ func register_entity(entity_id: int) -> bool:
 # Returns: True if unregistration was successful
 func unregister_entity(entity_id: int) -> bool:
     if not _entity_data.has(entity_id):
-        ErrorHandler.info("BoostEntityData", "Entity not registered: " + str(entity_id))
+        # Logging removed)
         return false
     
     _entity_data.erase(entity_id)
-    ErrorHandler.info("BoostEntityData", "Entity unregistered: " + str(entity_id))
+    # Logging removed)
     return true
 
 # Add a boost to an entity
@@ -68,8 +68,7 @@ func add_boost(entity_id: int, direction: Vector2, strength: float, duration: fl
     }
     
     entity_boosts.active_boosts.append(boost)
-    ErrorHandler.info("BoostEntityData", "Boost added: " + boost_id + " for entity " + str(entity_id) + 
-        " with direction " + str(direction) + ", strength " + str(strength) + ", duration " + str(duration))
+    # Logging removed
     
     return boost_id
 
@@ -79,7 +78,7 @@ func add_boost(entity_id: int, direction: Vector2, strength: float, duration: fl
 # Returns: True if removal was successful
 func remove_boost(entity_id: int, boost_id: String) -> bool:
     if not _entity_data.has(entity_id):
-        ErrorHandler.info("BoostEntityData", "Entity not registered: " + str(entity_id))
+        # Logging removed)
         return false
     
     var entity_boosts = _entity_data[entity_id]
@@ -91,7 +90,7 @@ func remove_boost(entity_id: int, boost_id: String) -> bool:
             break
     
     if boost_index == -1:
-        ErrorHandler.info("BoostEntityData", "Boost not found: " + boost_id + " for entity " + str(entity_id))
+        # Logging removed)
         return false
     
     # Move the boost to history before removing
@@ -101,7 +100,7 @@ func remove_boost(entity_id: int, boost_id: String) -> bool:
     
     # Remove the boost from active boosts
     entity_boosts.active_boosts.remove_at(boost_index)
-    ErrorHandler.info("BoostEntityData", "Boost removed: " + boost_id + " for entity " + str(entity_id))
+    # Logging removed)
     
     return true
 
@@ -140,7 +139,7 @@ func update_boosts(delta: float) -> Array:
 # Returns: Array of active boosts, or empty array if entity not found
 func get_active_boosts(entity_id: int) -> Array:
     if not _entity_data.has(entity_id):
-        ErrorHandler.info("BoostEntityData", "Entity not registered: " + str(entity_id))
+        # Logging removed)
         return []
     
     return _entity_data[entity_id].active_boosts.duplicate()
@@ -150,7 +149,7 @@ func get_active_boosts(entity_id: int) -> Array:
 # Returns: Array of boost history, or empty array if entity not found
 func get_boost_history(entity_id: int) -> Array:
     if not _entity_data.has(entity_id):
-        ErrorHandler.info("BoostEntityData", "Entity not registered: " + str(entity_id))
+        # Logging removed)
         return []
     
     return _entity_data[entity_id].boost_history.duplicate()
@@ -166,7 +165,7 @@ func has_entity(entity_id: int) -> bool:
 # Returns: The entity data, or an empty dictionary if not found
 func get_data(entity_id: int) -> Dictionary:
     if not _entity_data.has(entity_id):
-        ErrorHandler.warning("BoostEntityData", "Entity not registered: " + str(entity_id))
+        # Logging removed)
         return {}
     
     return _entity_data[entity_id]

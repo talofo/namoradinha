@@ -14,7 +14,7 @@ func set_motion_system(motion_system) -> void:
 # Returns: Array of Vector2 points representing the trajectory
 func calculate_trajectory(entity_data: Dictionary, num_points: int = 20, time_step: float = 0.1) -> Array:
     if entity_data.is_empty():
-        ErrorHandler.warning("TrajectoryPredictor", "Empty entity data provided")
+        # Logging removed
         return []
     
     var points = []
@@ -28,11 +28,11 @@ func calculate_trajectory(entity_data: Dictionary, num_points: int = 20, time_st
     
     # Ensure motion system and config are available
     if not _motion_system or not _motion_system.has_method("get_physics_config"):
-        ErrorHandler.error("TrajectoryPredictor", "MotionSystem or get_physics_config method not available.")
+        # Logging removed
         return []
     var current_physics_config = _motion_system.get_physics_config()
     if not current_physics_config:
-        ErrorHandler.error("TrajectoryPredictor", "Physics config not available from MotionSystem.")
+        # Logging removed
         return []
         
     # Get gravity from config

@@ -50,23 +50,23 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 	if has_launched and velocity.y >= 0:
 		# We're moving downward and have been launched, resolve collision motion (bounce or stop)
 		# Get the bounce count from the BounceSystem if available
-		var bounce_count = -1
+		var _bounce_count = -1
 		var entity_id = collision_info.get("entity_id", 0)
 		if subsystems.has("BounceSystem") and subsystems["BounceSystem"].has_method("get_bounce_count"):
-			bounce_count = subsystems["BounceSystem"].get_bounce_count(entity_id)
+			_bounce_count = subsystems["BounceSystem"].get_bounce_count(entity_id)
 		
-		ErrorHandler.info("CollisionMotionResolver", "Entity " + str(entity_id) + " is launched and moving downward, bounce_count=" + str(bounce_count))
+		# Logging removed + " is launched and moving downward, bounce_count=" + str(bounce_count))
 
 		# Get collision motion from subsystems (primarily BounceSystem)
 		var collision_motion = resolve_collision_motion(collision_info, subsystems)
 		result["velocity"] = collision_motion
 		
-		ErrorHandler.info("CollisionMotionResolver", "Collision motion resolved to: " + str(collision_motion))
+		# Logging removed)
 
 		# Determine state based on resolved motion
 		if is_zero_approx(collision_motion.y):
 			# Bounce stopped, transition to slide
-			ErrorHandler.info("CollisionMotionResolver", "Bounce stopped (y velocity is zero), transitioning to slide")
+			# Logging removed, transitioning to slide")
 			result = _core.state_manager.transition_to_sliding(collision_motion)
 		else:
 			# Still bouncing
@@ -75,10 +75,10 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 			# Update max_height_y only when bouncing continues upwards
 			if collision_motion.y < 0:
 				result["max_height_y"] = collision_info.get("position", Vector2.ZERO).y
-				ErrorHandler.info("CollisionMotionResolver", "Continuing bounce with upward velocity " + str(collision_motion.y) + 
-					", updated max_height_y to " + str(result["max_height_y"]))
+				# Logging removed
 			else:
-				ErrorHandler.info("CollisionMotionResolver", "Continuing bounce with downward velocity " + str(collision_motion.y))
+				# Logging removed
+				pass  # No action needed when moving downward
 
 	elif is_sliding:
 		# Entity is sliding, update sliding state

@@ -53,7 +53,7 @@ func spawn_player():
 		# Fallback to original player scene if needed
 		scene_to_use = player_scene
 		if not scene_to_use:
-			ErrorHandler.error("PlayerSpawner", "No player scene assigned.")
+			pass # No player scene assigned
 			return
 	
 	# Spawn player instance
@@ -84,7 +84,7 @@ func spawn_player():
 		# Wait for the player to be properly positioned before launching
 		call_deferred("_prepare_and_launch_player")
 	else:
-		ErrorHandler.warning("PlayerSpawner", "Could not register player with LaunchSystem - system not available")
+		pass # Could not register player with LaunchSystem
 
 # Prepare the player for launch by ensuring it's on the ground
 # Prepare the player for launch (Simplified)

@@ -53,7 +53,7 @@ func get_collision_modifiers(collision_info: Dictionary) -> Array:
 	# Reset max height tracking for this bounce cycle if this is a new bounce
 	# This ensures we start tracking from the floor position
 	if bounce_data.bounce_count > 0:
-		ErrorHandler.debug("BounceSystem", "Resetting max height tracking for bounce " + str(bounce_data.bounce_count + 1))
+		# Resetting max height tracking for next bounce
 		# Force reset max height to current position
 		_entity_data.force_reset_max_height(entity_id, collision_info.get("position", Vector2.ZERO))
 	
@@ -66,9 +66,6 @@ func get_collision_modifiers(collision_info: Dictionary) -> Array:
 	# Let the bounce calculator determine the target height
 	# The bounce vector calculation already includes the target height calculation
 	# We just need to extract the target height from the bounce data after the calculation
-	
-	ErrorHandler.info("BounceSystem", "Using bounce calculator to determine target height - bounce_count=" + str(bounce_data.bounce_count) + 
-		", current_target_height=" + str(bounce_data.current_target_height))
 	
 	# The bounce calculator will update the target height internally during the calculation
 	# We don't need to manually calculate it here anymore
@@ -85,8 +82,6 @@ func get_collision_modifiers(collision_info: Dictionary) -> Array:
 	else:
 		# If not bouncing upward, set target height to 0
 		target_height = 0.0
-	
-	ErrorHandler.info("BounceSystem", "Calculated target height: " + str(target_height))
 	
 	# Update the target height in entity data
 	_entity_data.update_target_height(entity_id, target_height)

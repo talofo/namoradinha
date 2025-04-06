@@ -17,9 +17,9 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 	if context.has("has_launched") and context.get("has_launched"):
 		var velocity = context.get("velocity", Vector2.ZERO)
 		var delta = context.get("delta", 0.01) # Fallback to 0.01 if no delta
-		var entity_id = context.get("entity_id", 0)
+		var _entity_id = context.get("entity_id", 0)
 		
-		ErrorHandler.debug("MotionStateManager", "Entity " + str(entity_id) + " BEFORE gravity - velocity=" + str(velocity) + " (magnitude=" + str(velocity.length()) + ")")
+		# Logging removed + " BEFORE gravity - velocity=" + str(velocity) + " (magnitude=" + str(velocity.length()) + ")")
 		
 		# Get appropriate gravity based on entity type and mass
 		var entity_type = context.get("entity_type", "default")
@@ -29,7 +29,7 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 		velocity = _core.physics_calculator.apply_gravity(velocity, delta, entity_type, mass)
 		result["velocity"] = velocity
 		
-		ErrorHandler.debug("MotionStateManager", "Entity " + str(entity_id) + " AFTER gravity - velocity=" + str(velocity) + " (magnitude=" + str(velocity.length()) + ")")
+		# Logging removed + " AFTER gravity - velocity=" + str(velocity) + " (magnitude=" + str(velocity.length()) + ")")
 	
 	# Get continuous motion modifiers
 	var motion_delta = _core.resolve_continuous_motion(
@@ -47,7 +47,7 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 	result["velocity"] = _core.physics_calculator.round_velocity(result["velocity"])
 	
 	# Use the entity_id directly from context for the final debug message
-	ErrorHandler.debug("MotionStateManager", "Entity " + str(context.get("entity_id", 0)) + " FINAL frame motion velocity=" + str(result["velocity"]) + " (magnitude=" + str(result["velocity"].length()) + ")")
+	# Logging removed) + " FINAL frame motion velocity=" + str(result["velocity"]) + " (magnitude=" + str(result["velocity"].length()) + ")")
 	
 	return result
 
@@ -63,7 +63,7 @@ func transition_to_sliding(velocity: Vector2) -> Dictionary:
 	result["has_launched"] = false
 	result["is_sliding"] = true
 	
-	ErrorHandler.info("MotionStateManager", "Bounce stopped (y-velocity near zero). Transitioning to slide with velocity_x=" + str(preserved_x_velocity))
+	# Logging removed. Transitioning to slide with velocity_x=" + str(preserved_x_velocity))
 	
 	return result
 
@@ -76,7 +76,7 @@ func transition_to_stopped() -> Dictionary:
 	result["is_sliding"] = false
 	result["just_stopped_sliding"] = true # Flag that we just stopped
 	
-	ErrorHandler.info("MotionStateManager", "Sliding stopped")
+	# Logging removed
 	
 	return result
 
@@ -111,8 +111,6 @@ func update_sliding_state(velocity: Vector2, delta: float, material_type: String
 		result["velocity"] = Vector2(direction * new_speed, 0.0)
 		result["is_sliding"] = true
 		
-		ErrorHandler.debug("MotionStateManager", "Sliding with speed=" + str(new_speed) + 
-			", deceleration=" + str(deceleration) + 
-			", effective_friction=" + str(effective_friction))
+		# Logging removed: "..., deceleration=" + str(deceleration) + ", effective_friction=" + str(effective_friction)
 		
 		return result

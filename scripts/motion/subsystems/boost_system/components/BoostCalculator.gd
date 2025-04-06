@@ -6,7 +6,7 @@ var _motion_system = null
 
 func set_motion_system(motion_system) -> void:
     _motion_system = motion_system
-    ErrorHandler.debug("BoostCalculator", "Motion system reference set")
+    # Logging removed
 
 # Calculate the combined boost vector for an entity
 # entity_data: Dictionary containing boost data for the entity
@@ -22,8 +22,7 @@ func calculate_boost_vector(entity_data: Dictionary) -> Vector2:
         var boost_vector = boost.direction.normalized() * boost.strength
         combined_vector += boost_vector
     
-    ErrorHandler.debug("BoostCalculator", "Calculated boost vector: " + str(combined_vector) + 
-        " from " + str(entity_data.active_boosts.size()) + " active boosts")
+    # Logging removed - active boosts count
     
     return combined_vector
 
@@ -32,13 +31,12 @@ func calculate_boost_vector(entity_data: Dictionary) -> Vector2:
 # Returns: The boost vector
 func calculate_single_boost_vector(boost: Dictionary) -> Vector2:
     if boost.is_empty() or not boost.has("direction") or not boost.has("strength"):
-        ErrorHandler.warning("BoostCalculator", "Invalid boost data provided")
+        # Logging removed
         return Vector2.ZERO
     
     var boost_vector = boost.direction.normalized() * boost.strength
     
-    ErrorHandler.debug("BoostCalculator", "Calculated single boost vector: " + str(boost_vector) + 
-        " for boost with direction " + str(boost.direction) + " and strength " + str(boost.strength))
+    # Logging removed for boost with direction and strength
     
     return boost_vector
 
@@ -57,7 +55,7 @@ func calculate_adjusted_boost_vector(entity_data: Dictionary, entity_type: Strin
     # Get physics config for adjustments
     var physics_config = _motion_system.get_physics_config()
     if not physics_config:
-        ErrorHandler.warning("BoostCalculator", "Physics config not available")
+        # Logging removed
         return base_vector
     
     # Apply mass-based adjustment (heavier entities get less boost)
@@ -73,9 +71,7 @@ func calculate_adjusted_boost_vector(entity_data: Dictionary, entity_type: Strin
     # Apply the adjustments
     var adjusted_vector = base_vector * mass_factor * type_factor
     
-    ErrorHandler.debug("BoostCalculator", "Adjusted boost vector: " + str(adjusted_vector) + 
-        " (base: " + str(base_vector) + ", mass_factor: " + str(mass_factor) + 
-        ", type_factor: " + str(type_factor) + ")")
+    # Logging removed - adjusted vector details
     
     return adjusted_vector
 
@@ -84,7 +80,7 @@ func calculate_adjusted_boost_vector(entity_data: Dictionary, entity_type: Strin
 # Returns: The remaining duration in seconds, or -1 for permanent boosts
 func calculate_remaining_duration(boost: Dictionary) -> float:
     if boost.is_empty() or not boost.has("duration") or not boost.has("remaining_time"):
-        ErrorHandler.warning("BoostCalculator", "Invalid boost data provided")
+        # Logging removed
         return 0.0
     
     # Permanent boosts
@@ -99,7 +95,7 @@ func calculate_remaining_duration(boost: Dictionary) -> float:
 # Returns: A factor (0.0 to 1.0) representing effectiveness
 func calculate_boost_effectiveness(boost: Dictionary, velocity: Vector2) -> float:
     if boost.is_empty() or not boost.has("direction"):
-        ErrorHandler.warning("BoostCalculator", "Invalid boost data provided")
+        # Logging removed
         return 0.0
     
     # Base effectiveness
@@ -118,7 +114,6 @@ func calculate_boost_effectiveness(boost: Dictionary, velocity: Vector2) -> floa
         var speed_factor = min(1.0, speed_threshold / speed)
         effectiveness *= speed_factor
     
-    ErrorHandler.debug("BoostCalculator", "Calculated boost effectiveness: " + str(effectiveness) + 
-        " for boost with direction " + str(boost.direction) + " and velocity " + str(velocity))
+    # Logging removed - boost effectiveness details
     
     return effectiveness

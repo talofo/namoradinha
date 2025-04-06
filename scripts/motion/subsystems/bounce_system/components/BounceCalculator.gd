@@ -13,7 +13,7 @@ func set_motion_system(motion_system) -> void:
 # Returns: The bounce vector
 func calculate_bounce_vector(entity_data: Dictionary, collision_info: Dictionary) -> Vector2:
     if entity_data.is_empty():
-        ErrorHandler.warning("BounceCalculator", "Empty entity data provided")
+        # Empty entity data provided
         return Vector2.ZERO
     
     # Get entity properties
@@ -22,11 +22,11 @@ func calculate_bounce_vector(entity_data: Dictionary, collision_info: Dictionary
     
     # Ensure motion system and config are available
     if not _motion_system or not _motion_system.has_method("get_physics_config"):
-        ErrorHandler.error("BounceCalculator", "MotionSystem or get_physics_config method not available.")
+        # MotionSystem or get_physics_config method not available
         return Vector2.ZERO
     var current_physics_config = _motion_system.get_physics_config()
     if not current_physics_config:
-        ErrorHandler.error("BounceCalculator", "Physics config not available from MotionSystem.")
+        # Physics config not available from MotionSystem
         return Vector2.ZERO
         
     # Get gravity from config
@@ -36,19 +36,12 @@ func calculate_bounce_vector(entity_data: Dictionary, collision_info: Dictionary
     # Important: This calculation should always result in a positive value
     var max_height_reached = entity_data.floor_position_y - entity_data.max_height_y
     
-    # Debug the height calculation
-    ErrorHandler.debug("BounceCalculator", "Bounce #" + str(entity_data.bounce_count) + 
-          " floor_position_y=" + str(entity_data.floor_position_y) + 
-          " max_height_y=" + str(entity_data.max_height_y) + 
-          " calculated max_height_reached=" + str(max_height_reached))
-    
     # Ensure we have a sensible positive value even if position tracking had issues
     if max_height_reached <= 10:
         # If tracking gave us invalid height, use the magnitude of the original launch Y velocity
         # to estimate how high the player would have gone using basic physics formula: h = v²/2g
         var launch_velocity_y_magnitude = abs(entity_data.launch_velocity.y)
         max_height_reached = (launch_velocity_y_magnitude * launch_velocity_y_magnitude) / (2 * gravity)
-        ErrorHandler.debug("BounceCalculator", "Using velocity-based height estimate instead: " + str(max_height_reached))
     
     # Calculate bounce based on height reached using config values
     var current_first_bounce_ratio = current_physics_config.first_bounce_ratio
@@ -64,8 +57,6 @@ func calculate_bounce_vector(entity_data: Dictionary, collision_info: Dictionary
     if entity_data.bounce_count == 0:
         # First bounce - relative to max launch height
         target_height = max_height_reached * current_first_bounce_ratio
-        ErrorHandler.debug("BounceCalculator", "First bounce calculation: max_height_reached=" + str(max_height_reached) + 
-            " * first_bounce_ratio=" + str(current_first_bounce_ratio) + " = target_height=" + str(target_height))
     else:
         # Calculate theoretical target height using exponential decay
         # For subsequent bounces, we use the previous bounce's target height
@@ -82,19 +73,9 @@ func calculate_bounce_vector(entity_data: Dictionary, collision_info: Dictionary
         # Use the smaller of the two max bounce values
         var effective_max_bounces = min(theoretical_max_bounces, max_bounce_count)
         
-        ErrorHandler.debug("BounceCalculator", "Bounce limits - theoretical_max_bounces=" + str(theoretical_max_bounces) + 
-            ", config_max_bounces=" + str(max_bounce_count) + 
-            ", effective_max_bounces=" + str(effective_max_bounces))
-        
         # If we're approaching the max bounce count, force the target height below threshold
         if entity_data.bounce_count >= effective_max_bounces - 1:
             target_height = current_min_bounce_height_threshold * 0.5  # Force below threshold
-            ErrorHandler.info("BounceCalculator", "Reached max bounce count (" + str(effective_max_bounces) + 
-                "), forcing target height below threshold: " + str(target_height))
-        
-        ErrorHandler.debug("BounceCalculator", "Subsequent bounce calculation: previous_target_height=" + 
-            str(entity_data.current_target_height) + " * subsequent_bounce_ratio=" + 
-            str(current_subsequent_bounce_ratio) + " = target_height=" + str(target_height))
     
     # Calculate required velocity to reach that height
     # Using physics formula: v = sqrt(2 * g * h)
@@ -105,20 +86,10 @@ func calculate_bounce_vector(entity_data: Dictionary, collision_info: Dictionary
     var current_horizontal_preservation = current_physics_config.horizontal_preservation
     current_horizontal_preservation = pow(current_horizontal_preservation, entity_data.bounce_count)  # reduction per bounce
     var bounce_velocity_x = entity_data.launch_velocity.x * current_horizontal_preservation
-
-    ErrorHandler.debug("BounceCalculator", "target_height=" + str(target_height) + " bounce_count=" + str(entity_data.bounce_count))
-
-    # We already have current_min_bounce_height_threshold from earlier
-    
-    ErrorHandler.info("BounceCalculator", "Bounce decision - bounce_count=" + str(entity_data.bounce_count) + 
-        ", target_height=" + str(target_height) + 
-        ", min_bounce_height_threshold=" + str(current_min_bounce_height_threshold))
     
     # Continue bouncing if the target height is above the minimum threshold
     if target_height >= current_min_bounce_height_threshold:
         bounce_velocity_y = -sqrt(2 * gravity * target_height)
-        ErrorHandler.info("BounceCalculator", "Continuing to bounce with velocity_y=" + str(bounce_velocity_y) + 
-            " for bounce #" + str(entity_data.bounce_count + 1))
     else:
         # No more energy for bouncing - stop and start sliding
         bounce_velocity_y = 0.0  # Ensure y velocity is exactly zero for sliding
@@ -126,12 +97,8 @@ func calculate_bounce_vector(entity_data: Dictionary, collision_info: Dictionary
         # Keep the correctly calculated horizontal velocity (original launch X reduced by preservation factor over bounces)
         # No minimum speed enforcement or boosts applied here.
         # bounce_velocity_x is already calculated correctly above based on launch_velocity and preservation.
-        ErrorHandler.info("BounceCalculator", "Stopping bounce after " + str(entity_data.bounce_count) + 
-            " bounces, target_height=" + str(target_height) + 
-            ", transitioning to slide with velocity_x=" + str(bounce_velocity_x))
     
     var bounce_vector = Vector2(bounce_velocity_x, bounce_velocity_y)
-    ErrorHandler.debug("BounceCalculator", "Final bounce vector=" + str(bounce_vector))
     
     return bounce_vector
 
@@ -140,16 +107,16 @@ func calculate_bounce_vector(entity_data: Dictionary, collision_info: Dictionary
 # Returns: True if the entity should stop bouncing
 func should_stop_bouncing(entity_data: Dictionary) -> bool:
     if entity_data.is_empty():
-        ErrorHandler.debug("BounceCalculator", "should_stop_bouncing: Entity data is empty, stopping bounce")
+        # Entity data is empty, stopping bounce
         return true
     
     # Ensure motion system and config are available
     if not _motion_system or not _motion_system.has_method("get_physics_config"):
-        ErrorHandler.error("BounceCalculator", "MotionSystem or get_physics_config method not available.")
+        # MotionSystem or get_physics_config method not available
         return true # Assume stop if config is missing
     var current_physics_config = _motion_system.get_physics_config()
     if not current_physics_config:
-        ErrorHandler.error("BounceCalculator", "Physics config not available from MotionSystem.")
+        # Physics config not available from MotionSystem
         return true # Assume stop if config is missing
     
     # Calculate the max height achieved relative to floor
@@ -192,13 +159,7 @@ func should_stop_bouncing(entity_data: Dictionary) -> bool:
         if entity_data.bounce_count >= effective_max_bounces:
             return true
     
-    # We already have current_min_bounce_height_threshold from earlier
-    
     var should_stop = target_height < current_min_bounce_height_threshold
-    ErrorHandler.debug("BounceCalculator", "should_stop_bouncing: target_height=" + str(target_height) + 
-        " min_bounce_height_threshold=" + str(current_min_bounce_height_threshold) + 
-        " bounce_count=" + str(entity_data.bounce_count) + 
-        " should_stop=" + str(should_stop))
     
     return should_stop
 

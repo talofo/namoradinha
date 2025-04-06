@@ -23,7 +23,7 @@ func set_motion_system(system) -> void:
 func _ready():
 	# If motion_system is null here, it should be set by the parent/spawner
 	if not motion_system:
-		ErrorHandler.warning("PlayerCharacter", "No MotionSystem reference provided. Character will not have physics behavior.")
+		pass # No motion system provided
 
 # Main physics process
 func _physics_process(delta: float) -> void:
@@ -77,22 +77,15 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	
 	# --- DETAILED DEBUG LOG ---
-	var bounce_count = get_bounce_count()
+	var _bounce_count = get_bounce_count()
 	var bounce_system = motion_system.get_subsystem("BounceSystem") if motion_system else null
 	var bounce_data = bounce_system.get_data(entity_id) if bounce_system and bounce_system.has_method("get_data") else {}
 	
-	var target_height = bounce_data.get("current_target_height", 0.0) if not bounce_data.is_empty() else 0.0
-	var max_height = bounce_data.get("max_height_y", 0.0) if not bounce_data.is_empty() else 0.0
-	var floor_pos = bounce_data.get("floor_position_y", 0.0) if not bounce_data.is_empty() else 0.0
+	var _target_height = bounce_data.get("current_target_height", 0.0) if not bounce_data.is_empty() else 0.0
+	var _max_height = bounce_data.get("max_height_y", 0.0) if not bounce_data.is_empty() else 0.0
+	var _floor_pos = bounce_data.get("floor_position_y", 0.0) if not bounce_data.is_empty() else 0.0
 	
-	ErrorHandler.info("PlayerCharacter", "Frame Position X: " + str(position.x) + " Y: " + str(position.y) + 
-		" Velocity: " + str(velocity) +
-		" Bounce Count: " + str(bounce_count) + 
-		" Target Height: " + str(target_height) + 
-		" Max Height: " + str(max_height) + 
-		" Floor Position: " + str(floor_pos) +
-		" Has Launched: " + str(has_launched) +
-		" Is Sliding: " + str(is_sliding))
+	# Debug logging removed
 	# --- END DETAILED DEBUG LOG ---
 	
 	# Removed problematic velocity preservation logic that was overriding physics results.

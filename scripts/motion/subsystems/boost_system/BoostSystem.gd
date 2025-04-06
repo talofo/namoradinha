@@ -12,7 +12,7 @@ func _init() -> void:
     # Initialize components
     _entity_data = load("res://scripts/motion/subsystems/boost_system/data/BoostEntityData.gd").new()
     _calculator = load("res://scripts/motion/subsystems/boost_system/components/BoostCalculator.gd").new()
-    ErrorHandler.info("BoostSystem", "Initialized")
+    # Logging removed
 
 # Returns the subsystem name for debugging
 func get_name() -> String:
@@ -23,18 +23,18 @@ func on_register() -> void:
     # Pass motion system reference to components
     _entity_data.set_motion_system(_motion_system)
     _calculator.set_motion_system(_motion_system)
-    ErrorHandler.info("BoostSystem", "Registered with MotionSystem")
+    # Logging removed
 
 # Called when the subsystem is unregistered from the MotionSystem
 func on_unregister() -> void:
     _motion_system = null
-    ErrorHandler.info("BoostSystem", "Unregistered from MotionSystem")
+    # Logging removed
 
 # Returns modifiers for frame-based updates
 # delta: Time since last frame
 # Returns: Array of MotionModifier objects
 func get_continuous_modifiers(delta: float) -> Array:
-    ErrorHandler.debug("BoostSystem", "Getting continuous modifiers (delta: %.3f)" % delta)
+    # Logging removed" % delta)
     
     # Update boost durations and remove expired boosts
     var _expired_boosts = _entity_data.update_boosts(delta)
@@ -74,7 +74,7 @@ func get_continuous_modifiers(delta: float) -> Array:
 # collision_info: Information about the collision
 # Returns: Array of MotionModifier objects
 func get_collision_modifiers(_collision_info: Dictionary) -> Array:
-    ErrorHandler.debug("BoostSystem", "Getting collision modifiers")
+    # Logging removed
     
     # In a real implementation, this would check for collision-triggered boosts
     # For now, just return an empty array
@@ -99,9 +99,7 @@ func unregister_entity(entity_id: int) -> bool:
 # duration: Duration of the boost in seconds (-1 for permanent)
 # Returns: The boost ID, or empty string if failed
 func trigger_boost(entity_id: int, direction: Vector2, strength: float, duration: float = -1) -> String:
-    ErrorHandler.info("BoostSystem", "Triggering boost: entity_id=" + str(entity_id) + 
-        ", direction=" + str(direction) + ", strength=" + str(strength) + 
-        ", duration=" + str(duration))
+    # Logging removed
     
     return _entity_data.add_boost(entity_id, direction, strength, duration)
 

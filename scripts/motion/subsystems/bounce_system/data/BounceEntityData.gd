@@ -54,7 +54,7 @@ func unregister_entity(entity_id: int) -> bool:
 # velocity: Launch velocity
 # position: Launch position
 func record_launch(entity_id: int, velocity: Vector2, position: Vector2) -> void:
-    ErrorHandler.info("BounceEntityData", "Recording launch for entity " + str(entity_id) + " with velocity " + str(velocity) + " at position " + str(position))
+    # Recording launch for entity
     
     if not _entity_data.has(entity_id):
         register_entity(entity_id, position)
@@ -66,8 +66,6 @@ func record_launch(entity_id: int, velocity: Vector2, position: Vector2) -> void
     bounce_data.floor_position_y = position.y
     bounce_data.max_height_y = position.y
     bounce_data.current_target_height = 0.0
-    
-    ErrorHandler.info("BounceEntityData", "Launch data recorded - launch_position_y=" + str(position.y))
 
 # Update the maximum height reached by an entity
 # entity_id: Unique identifier for the entity
@@ -79,7 +77,7 @@ func update_max_height(entity_id: int, position: Vector2) -> void:
     var bounce_data = _entity_data[entity_id]
     if position.y < bounce_data.max_height_y:
         bounce_data.max_height_y = position.y
-        ErrorHandler.debug("BounceEntityData", "Updated max height to " + str(position.y) + " for entity " + str(entity_id))
+        # Updated max height for entity
 
 # Force reset the maximum height for an entity
 # entity_id: Unique identifier for the entity
@@ -89,7 +87,7 @@ func force_reset_max_height(entity_id: int, position: Vector2) -> void:
         return
     
     _entity_data[entity_id].max_height_y = position.y
-    ErrorHandler.debug("BounceEntityData", "Force reset max height to " + str(position.y) + " for entity " + str(entity_id))
+    # Force reset max height for entity
 
 # Get the current bounce count for an entity
 # entity_id: Unique identifier for the entity
@@ -105,7 +103,7 @@ func get_bounce_count(entity_id: int) -> int:
 # Returns: The entity data, or an empty dictionary if not found
 func get_data(entity_id: int) -> Dictionary:
     if not _entity_data.has(entity_id):
-        ErrorHandler.warning("BounceEntityData", "Entity not registered: " + str(entity_id))
+        # Entity not registered
         return {}
     
     return _entity_data[entity_id]

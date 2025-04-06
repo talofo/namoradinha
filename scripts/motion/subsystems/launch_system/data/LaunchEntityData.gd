@@ -97,7 +97,7 @@ func update_launch_vector(entity_id: int, launch_vector: Vector2) -> void:
 # Returns: The entity data, or an empty dictionary if not found
 func get_data(entity_id: int) -> Dictionary:
     if not _entity_data.has(entity_id):
-        ErrorHandler.warning("LaunchEntityData", "Entity not registered: " + str(entity_id))
+        # Logging removed)
         return {}
     
     return _entity_data[entity_id]

@@ -24,7 +24,7 @@ func get_name() -> String:
 
 # Called when the subsystem is registered with the MotionSystem
 func on_register() -> void:
-    ErrorHandler.info("LaunchSystem", "Registered with MotionSystem")
+    # Logging removed
     # Pass motion system reference to components
     _entity_data.set_motion_system(_motion_system)
     _calculator.set_motion_system(_motion_system)
@@ -32,7 +32,7 @@ func on_register() -> void:
 
 # Called when the subsystem is unregistered from the MotionSystem
 func on_unregister() -> void:
-    ErrorHandler.info("LaunchSystem", "Unregistered from MotionSystem")
+    # Logging removed
     _motion_system = null
 
 # Returns modifiers for frame-based updates
@@ -92,7 +92,7 @@ func calculate_launch_vector(entity_id: int) -> Vector2:
 func launch_entity(entity_id: int, position: Vector2) -> Vector2:
     var launch_vector = calculate_launch_vector(entity_id)
     
-    ErrorHandler.info("LaunchSystem", "Launching entity " + str(entity_id) + " at position " + str(position) + " with vector " + str(launch_vector))
+    # Logging removed + " at position " + str(position) + " with vector " + str(launch_vector))
     
     # Emit a signal that the entity was launched
     # This could be used by other systems to react to the launch
