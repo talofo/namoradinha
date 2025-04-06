@@ -9,7 +9,8 @@ extends Resource
 # Bounce physics
 @export var first_bounce_ratio: float = 0.8  # First bounce height relative to max launch height
 @export var subsequent_bounce_ratio: float = 0.6  # Subsequent bounce height relative to previous
-@export var min_bounce_threshold: float = 5.0  # Minimum height for a bounce to occur
+@export var min_bounce_height_threshold: float = 5.0  # Minimum height for a bounce to occur
+@export var max_bounce_count: int = 10  # Maximum number of bounces allowed, regardless of height
 @export var min_slide_speed: float = 200.0  # Minimum speed for sliding
 @export var horizontal_preservation: float = 0.95  # How much horizontal velocity is preserved per bounce
 

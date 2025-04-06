@@ -76,9 +76,24 @@ func _physics_process(delta: float) -> void:
 	# Perform the actual movement
 	move_and_slide()
 	
-	# --- ADDED DEBUG LOG ---
-	print("[PlayerCharacter] Frame Position X: ", position.x) 
-	# --- END ADDED DEBUG LOG ---
+	# --- DETAILED DEBUG LOG ---
+	var bounce_count = get_bounce_count()
+	var bounce_system = motion_system.get_subsystem("BounceSystem") if motion_system else null
+	var bounce_data = bounce_system.get_data(entity_id) if bounce_system and bounce_system.has_method("get_data") else {}
+	
+	var target_height = bounce_data.get("current_target_height", 0.0) if not bounce_data.is_empty() else 0.0
+	var max_height = bounce_data.get("max_height_y", 0.0) if not bounce_data.is_empty() else 0.0
+	var floor_pos = bounce_data.get("floor_position_y", 0.0) if not bounce_data.is_empty() else 0.0
+	
+	ErrorHandler.info("PlayerCharacter", "Frame Position X: " + str(position.x) + " Y: " + str(position.y) + 
+		" Velocity: " + str(velocity) +
+		" Bounce Count: " + str(bounce_count) + 
+		" Target Height: " + str(target_height) + 
+		" Max Height: " + str(max_height) + 
+		" Floor Position: " + str(floor_pos) +
+		" Has Launched: " + str(has_launched) +
+		" Is Sliding: " + str(is_sliding))
+	# --- END DETAILED DEBUG LOG ---
 	
 	# Removed problematic velocity preservation logic that was overriding physics results.
 	
@@ -114,6 +129,14 @@ func _handle_floor_collision() -> void:
 		if collision_result.has("max_height_y"):
 			max_height_y = collision_result.max_height_y
 
+
+# Get the current bounce count from the BounceSystem
+func get_bounce_count() -> int:
+	if motion_system and motion_system.has_method("get_subsystem"):
+		var bounce_system = motion_system.get_subsystem("BounceSystem")
+		if bounce_system and bounce_system.has_method("get_bounce_count"):
+			return bounce_system.get_bounce_count(entity_id)
+	return -1
 
 # Detect the material of the floor at the current position
 # TODO: Implement logic to detect material based on the actual floor collider.

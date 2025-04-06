@@ -1,10 +1,16 @@
-# BounceSystem
+# ModularBounceSystem
 
 A subsystem for the MotionSystem that handles bounce physics calculations.
 
 ## Overview
 
 The BounceSystem calculates the resulting velocity vector when an entity collides with a surface it should bounce off (typically the floor after being launched). It manages bounce energy loss based on physics configuration and determines when an entity should stop bouncing and transition to a sliding state.
+
+## Components
+
+- **BounceSystem.gd (ModularBounceSystem)**: Main entry point that implements IMotionSubsystem
+- **BounceCalculator.gd**: Handles bounce physics calculations
+- **BounceEntityData.gd**: Manages entity-specific bounce data
 
 ## Features
 
@@ -23,13 +29,27 @@ The BounceSystem implements the `IMotionSubsystem` interface and is registered w
 
 The `MotionSystem` automatically utilizes the `BounceSystem` during collision resolution. Key interactions:
 
-1.  **Launch:** When an entity is launched, the `BounceSystem.record_launch` method is called (typically via a signal connection from `LaunchSystem` or `MotionSystem`) to store the initial launch velocity and reset bounce state.
-2.  **Collision:** When `MotionSystem.resolve_collision` is called for a launched entity hitting the floor:
-    *   `MotionSystem` calls `MotionSystem.resolve_collision_motion`.
-    *   `resolve_collision_motion` calls `BounceSystem.get_collision_modifiers`.
-    *   `BounceSystem.calculate_bounce_vector` determines the bounce response (either a new bounce velocity or zero vertical velocity if transitioning to slide).
-    *   A `MotionModifier` with the calculated bounce vector is returned.
-3.  **State Transition:** `MotionSystem` uses the resulting vector from the resolver (which includes the BounceSystem's modifier) to determine if the entity continues bouncing (`velocity.y < 0`) or transitions to sliding (`velocity.y == 0`).
+1. **Launch:** When an entity is launched, the `BounceSystem.record_launch` method is called (via a signal connection from `LaunchSystem`) to store the initial launch velocity and reset bounce state.
+2. **Collision:** When `MotionSystem.resolve_collision` is called for a launched entity hitting the floor:
+   * `MotionSystem` calls `MotionSystem.resolve_collision_motion`.
+   * `resolve_collision_motion` calls `BounceSystem.get_collision_modifiers`.
+   * `BounceSystem.calculate_bounce_vector` determines the bounce response (either a new bounce velocity or zero vertical velocity if transitioning to slide).
+   * A `MotionModifier` with the calculated bounce vector is returned.
+3. **State Transition:** `MotionSystem` uses the resulting vector from the resolver (which includes the BounceSystem's modifier) to determine if the entity continues bouncing (`velocity.y < 0`) or transitions to sliding (`velocity.y == 0`).
+
+## Signal Dependencies
+
+The BounceSystem depends on the following signals:
+
+```gdscript
+[
+    {
+        "provider": "LaunchSystem",
+        "signal_name": "entity_launched",
+        "method": "record_launch"
+    }
+]
+```
 
 ## Configuration
 

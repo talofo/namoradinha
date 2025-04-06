@@ -18,10 +18,10 @@ func _init():
     launch_system.on_register()
     
     # Connect to the entity_launched signal
-    launch_system.entity_launched.connect(func(entity_id, launch_vector, position):
-        print("Entity launched: ", entity_id)
-        print("Launch vector: ", launch_vector)
-        print("Position: ", position)
+    launch_system.entity_launched.connect(func(launched_entity_id, launched_vector, launch_position):
+        print("Entity launched: ", launched_entity_id)
+        print("Launch vector: ", launched_vector)
+        print("Position: ", launch_position)
     )
     
     # Register an entity
