@@ -35,12 +35,12 @@ var _subsystem_paths = [
 	# Then register dependent subsystems
 	"res://scripts/motion/subsystems/bounce_system/BounceSystem.gd",  # Uses ModularBounceSystem class
 	"res://scripts/motion/subsystems/boost_system/BoostSystem.gd",
-	"res://scripts/motion/subsystems/ObstacleSystem.gd",
-	"res://scripts/motion/subsystems/EquipmentSystem.gd",
-	"res://scripts/motion/subsystems/TraitSystem.gd",
-	"res://scripts/motion/subsystems/EnvironmentalForceSystem.gd",
-	"res://scripts/motion/subsystems/StatusEffectSystem.gd",
-	"res://scripts/motion/subsystems/CollisionMaterialSystem.gd"
+	# "res://scripts/motion/subsystems/ObstacleSystem.gd", # Removed placeholder
+	# "res://scripts/motion/subsystems/EquipmentSystem.gd", # Removed placeholder
+	# "res://scripts/motion/subsystems/TraitSystem.gd", # Removed placeholder
+	# "res://scripts/motion/subsystems/EnvironmentalForceSystem.gd", # Removed placeholder
+	"res://scripts/motion/subsystems/StatusEffectSystem.gd", # Kept as requested
+	"res://scripts/motion/subsystems/CollisionMaterialSystem.gd" # Kept as it's used
 ]
 
 # Debug flag to enable/disable debug prints
