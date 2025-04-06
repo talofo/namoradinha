@@ -64,9 +64,9 @@ func _init() -> void:
 			default_ground_friction = physics_config.default_ground_friction
 			default_stop_threshold = physics_config.default_stop_threshold
 		else:
-			pass # Logging removed
+			pass # Config load failed, using defaults
 	else:
-		pass # Logging removed
+		pass # Config file doesn't exist, using defaults
 
 	# Initialize components
 	physics_calculator = load("res://scripts/motion/core/PhysicsCalculator.gd").new(self)
@@ -293,11 +293,11 @@ func register_all_subsystems() -> int:
 					success_count += 1
 					# Logging removed)
 				else:
-					pass # Logging removed
+					pass # Subsystem registration failed
 			else:
-				pass # Logging removed
+				pass # Subsystem script load failed
 		else:
-			pass # Logging removed
+			pass # Subsystem path doesn't exist
 
 	# Logging removed])
 
