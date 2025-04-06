@@ -30,7 +30,7 @@ var _pending_connections: Dictionary = {}
 # List of subsystem paths to auto-register
 var _subsystem_paths = [
 	# Register signal providers first
-	"res://scripts/motion/subsystems/LaunchSystem.gd",
+	"res://scripts/motion/subsystems/launch_system/LaunchSystem.gd",
 
 	# Then register dependent subsystems
 	"res://scripts/motion/subsystems/BounceSystem.gd",
