@@ -1,15 +1,11 @@
 class_name LaunchSystem
 extends RefCounted
 
-# Reference to physics config class
-# Using LoadedPhysicsConfig to avoid shadowing the global class name
-const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
+# Signal emitted when an entity is launched
+signal entity_launched(entity_id: int, launch_vector: Vector2, position: Vector2)
 
 # Implement the IMotionSubsystem interface
 var _motion_system = null
-
-# Physics configuration resource (will be set during registration)
-var physics_config: LoadedPhysicsConfig = null
 
 # Launch configuration (will be updated from config during registration)
 var default_launch_strength: float = 1500.0
@@ -157,9 +153,7 @@ func launch_entity(entity_id: int, position: Vector2) -> Vector2:
 	
 	# Emit a signal that the entity was launched
 	# This could be used by other systems to react to the launch
-	if _motion_system and _motion_system.has_signal("entity_launched"):
-		# Use the proper signal emission syntax for Godot 4, now including position
-		_motion_system.entity_launched.emit(entity_id, launch_vector, position)
+	entity_launched.emit(entity_id, launch_vector, position)
 	
 	return launch_vector
 

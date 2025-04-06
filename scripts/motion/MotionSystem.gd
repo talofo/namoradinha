@@ -21,6 +21,9 @@ func _init() -> void:
 func _ready() -> void:
 	# Initialize with debug mode off by default
 	set_debug_enabled(false)
+	
+	# Note: Subsystems are registered in MotionSystemCore._ready()
+	# We don't need to call register_all_subsystems() here
 
 # Returns the loaded physics configuration resource
 func get_physics_config():

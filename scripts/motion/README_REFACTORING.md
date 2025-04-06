@@ -87,9 +87,47 @@ scripts/motion/
     └── ...
 ```
 
+## Recent Improvements
+
+1. **Automatic Subsystem Registration**: MotionSystemCore now automatically registers all subsystems from a predefined list, eliminating the need for manual registration in Game.gd.
+2. **Centralized Physics Config Access**: Removed duplicate physics_config variables from subsystems, ensuring all subsystems access the physics configuration through MotionSystemCore.
+3. **Standardized Error Handling**: Improved how subsystems handle missing physics configuration with consistent error messages and fallback behavior.
+4. **Reduced Code Duplication**: Eliminated redundant code for loading and accessing physics configuration.
+5. **Simplified Game Initialization**: Game.gd no longer needs to manually create and register each subsystem, making it more maintainable.
+6. **Improved Signal Handling**: Fixed signal connections between subsystems by:
+   - Adding entity_launched signal directly to LaunchSystem
+   - Implementing proper signal forwarding in MotionSystemCore
+   - Ensuring BounceSystem receives launch events correctly
+7. **Dynamic Subsystem Registration**: Improved subsystem registration to be more dynamic:
+   - Moved subsystem registration out of MotionSystemCore._ready() to allow explicit control
+   - Added explicit call to register_all_subsystems() in Game.initialize_motion_system()
+   - Fixed timing issues with subsystem registration and availability
+
+## Subsystem Physics Config Access Pattern
+
+Subsystems now follow a consistent pattern for accessing physics configuration:
+
+```gdscript
+# Ensure motion system and config are available
+if not _motion_system or not _motion_system.has_method("get_physics_config"):
+    push_error("[SubsystemName] MotionSystem or get_physics_config method not available.")
+    return fallback_value
+var current_physics_config = _motion_system.get_physics_config()
+if not current_physics_config:
+    push_error("[SubsystemName] Physics config not available from MotionSystem.")
+    return fallback_value
+    
+# Now use current_physics_config to access physics parameters
+var param = current_physics_config.some_parameter
+```
+
+This pattern ensures consistent error handling and fallback behavior across all subsystems.
+
 ## Future Improvements
 
 1. **Enhanced Debugging**: The MotionDebugger could be extended with visualization tools
 2. **More Specialized Components**: As the system grows, additional components could be added
 3. **Performance Optimizations**: The modular architecture makes it easier to optimize specific parts
 4. **Testing Framework**: Unit tests could be added for each component
+5. **Dynamic Subsystem Discovery**: The system could be extended to automatically discover and register subsystems without requiring a predefined list
+6. **Subsystem Dependencies**: Add support for subsystems to declare dependencies on other subsystems

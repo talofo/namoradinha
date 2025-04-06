@@ -23,6 +23,18 @@ var default_stop_threshold: float = 0.5  # Speed below which we consider the ent
 # Dictionary of registered subsystems
 var _subsystems: Dictionary = {}
 
+# List of subsystem paths to auto-register
+var _subsystem_paths = [
+	"res://scripts/motion/subsystems/BounceSystem.gd",
+	"res://scripts/motion/subsystems/ObstacleSystem.gd",
+	"res://scripts/motion/subsystems/EquipmentSystem.gd",
+	"res://scripts/motion/subsystems/TraitSystem.gd",
+	"res://scripts/motion/subsystems/EnvironmentalForceSystem.gd",
+	"res://scripts/motion/subsystems/StatusEffectSystem.gd",
+	"res://scripts/motion/subsystems/CollisionMaterialSystem.gd",
+	"res://scripts/motion/subsystems/LaunchSystem.gd"
+]
+
 # Debug flag to enable/disable debug prints
 var debug_enabled: bool = false
 
@@ -62,6 +74,9 @@ func get_physics_config() -> LoadedPhysicsConfig:
 func _ready() -> void:
 	# Initialize with debug mode off by default
 	set_debug_enabled(false)
+	
+	# Note: Subsystems are registered when initialize_subsystems() is called
+	# This allows for more dynamic control over when subsystems are loaded
 
 # Enable or disable debug prints for the motion system and resolver
 func set_debug_enabled(enabled: bool) -> void:
@@ -147,3 +162,52 @@ func resolve_collision(collision_info: Dictionary) -> Dictionary:
 # Returns: The final scalar value
 func resolve_scalar(type: String, base_value: float) -> float:
 	return continuous_resolver.resolve_scalar(type, base_value, _subsystems)
+
+# Register all subsystems from the predefined list
+# Returns: Number of successfully registered subsystems
+func register_all_subsystems() -> int:
+	var success_count = 0
+	
+	print("[MotionSystemCore] Auto-registering subsystems...")
+	
+	for path in _subsystem_paths:
+		if ResourceLoader.exists(path):
+			var subsystem_script = load(path)
+			if subsystem_script:
+				var subsystem = subsystem_script.new()
+				if register_subsystem(subsystem):
+					success_count += 1
+					print("[MotionSystemCore] Successfully registered subsystem: ", subsystem.get_name())
+				else:
+					push_warning("[MotionSystemCore] Failed to register subsystem from path: " + path)
+			else:
+				push_warning("[MotionSystemCore] Failed to load subsystem script: " + path)
+		else:
+			push_warning("[MotionSystemCore] Subsystem script not found: " + path)
+	
+	print("[MotionSystemCore] Auto-registered %d/%d subsystems" % [success_count, _subsystem_paths.size()])
+	
+	# Connect LaunchSystem's signal to BounceSystem's recording method
+	var launch_system = get_subsystem("LaunchSystem")
+	var bounce_system = get_subsystem("BounceSystem")
+	
+	if launch_system and bounce_system and bounce_system.has_method("record_launch"):
+		# Forward the signal from LaunchSystem through MotionSystemCore
+		if not launch_system.is_connected("entity_launched", Callable(self, "_on_launch_system_entity_launched")):
+			launch_system.connect("entity_launched", Callable(self, "_on_launch_system_entity_launched"))
+		
+		# Connect our forwarded signal to BounceSystem
+		if not is_connected("entity_launched", Callable(bounce_system, "record_launch")):
+			entity_launched.connect(bounce_system.record_launch)
+			
+		print("[MotionSystemCore] Connected entity_launched signal to BounceSystem.record_launch")
+	else:
+		push_warning("[MotionSystemCore] Failed to connect entity_launched signal to BounceSystem")
+	
+	return success_count
+
+# Signal handler for LaunchSystem's entity_launched signal
+# Forwards the signal to our own entity_launched signal
+func _on_launch_system_entity_launched(entity_id: int, launch_vector: Vector2, position: Vector2) -> void:
+	# Forward the signal
+	entity_launched.emit(entity_id, launch_vector, position)

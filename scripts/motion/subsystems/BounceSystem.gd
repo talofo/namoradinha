@@ -1,15 +1,9 @@
 class_name BounceSystem
 extends RefCounted
 
-# Reference to physics config class
-# Using LoadedPhysicsConfig to avoid shadowing the global class name
-const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
-
 # Implement the IMotionSubsystem interface
-# No need for _motion_system variable as it's not used
-
-# Physics configuration resource
-var physics_config: LoadedPhysicsConfig
+# Reference to the motion system (set during registration)
+var _motion_system = null
 
 # Entity bounce data storage
 # Structure:
@@ -24,9 +18,6 @@ var physics_config: LoadedPhysicsConfig
 #   }
 # }
 var _entity_bounce_data = {}
-
-# Reference to the motion system (set during registration)
-var _motion_system = null
 
 # Returns the subsystem name for debugging
 func get_name() -> String:
@@ -176,7 +167,7 @@ func is_floor_collision(collision_info: Dictionary) -> bool:
 	var normal = collision_info.get("normal", Vector2.ZERO)
 	return normal.y < -0.7  # Consider surfaces with normals pointing mostly up as floors
 
-	# Calculate the bounce vector for an entity
+# Calculate the bounce vector for an entity
 # entity_id: Unique identifier for the entity
 # collision_info: Information about the collision (NOW USED for current velocity)
 # Returns: The bounce vector
@@ -185,7 +176,7 @@ func calculate_bounce_vector(entity_id: int, collision_info: Dictionary) -> Vect
 	
 	# Get entity properties
 	var entity_type = collision_info.get("entity_type", "default")
-	var entity_mass = collision_info.get("mass", physics_config.default_mass if physics_config else 1.0)
+	var entity_mass = collision_info.get("mass", 1.0) # Default to 1.0 if not specified
 	
 	# Ensure motion system and config are available
 	if not _motion_system or not _motion_system.has_method("get_physics_config"):
