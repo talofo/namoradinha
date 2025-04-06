@@ -35,10 +35,3 @@ func _load_ground_tile():
 	# TODO: Replace with proper bottom alignment after CameraManager is in
 
 	await get_tree().process_frame
-
-	# Optional debug line (also visible)
-	var debug_line = ColorRect.new()
-	debug_line.color = Color.YELLOW
-	debug_line.size = Vector2(1920, 2)
-	debug_line.position = Vector2(0, tile.position.y + ground_height)
-	add_child(debug_line)
