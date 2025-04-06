@@ -9,6 +9,9 @@ func _ready():
 	# Initialize motion system
 	initialize_motion_system()
 	
+	# Pass motion system reference to player spawner
+	player_spawner.set_motion_system(motion_system)
+	
 	# Example: load stage 1
 	stage_manager.load_stage(1)
 
@@ -19,10 +22,10 @@ func _ready():
 # Initialize the MotionSystem
 func initialize_motion_system() -> void:
 	if not motion_system:
-		push_error("MotionSystem node not found!")
+		ErrorHandler.error("Game", "MotionSystem node not found!")
 		return
 	
-	print("Initializing MotionSystem...")
+	ErrorHandler.info("Game", "Initializing MotionSystem...")
 	
 	# Explicitly register all subsystems
 	# This allows for more dynamic control over when subsystems are loaded
@@ -30,7 +33,7 @@ func initialize_motion_system() -> void:
 	if core:
 		core.register_all_subsystems()
 	else:
-		push_error("MotionSystemCore not found!")
+		ErrorHandler.error("Game", "MotionSystemCore not found!")
 		return
 	
-	print("MotionSystem initialized")
+	ErrorHandler.info("Game", "MotionSystem initialized")

@@ -1,0 +1,86 @@
+# Dependency Injection Pattern
+
+This document describes the dependency injection pattern implemented in the game to improve code maintainability, testability, and reduce coupling between components.
+
+## Overview
+
+Dependency injection is a design pattern where dependencies are "injected" into objects rather than having objects create or look up their dependencies. This approach:
+
+- Reduces coupling between components
+- Makes testing easier by allowing mock dependencies
+- Improves code reusability
+- Makes dependencies explicit
+
+## Implementation
+
+### Before Refactoring
+
+Previously, components like PlayerCharacter and PlayerSpawner would directly look up their dependencies using hard-coded paths:
+
+```gdscript
+# Hard-coded path lookup
+motion_system = get_node_or_null("/root/Game/MotionSystem")
+```
+
+This approach created tight coupling and made testing difficult.
+
+### After Refactoring
+
+Now, dependencies are passed explicitly:
+
+1. **Setter Methods**: Components expose setter methods to receive dependencies:
+
+```gdscript
+# In PlayerCharacter.gd
+func set_motion_system(system) -> void:
+    motion_system = system
+    # Initialize with the dependency
+    if motion_system:
+        entity_id = get_instance_id()
+```
+
+2. **Dependency Passing**: Game.gd passes dependencies to components:
+
+```gdscript
+# In Game.gd
+func _ready():
+    # Initialize motion system
+    initialize_motion_system()
+    
+    # Pass motion system reference to player spawner
+    player_spawner.set_motion_system(motion_system)
+```
+
+3. **Cascading Dependencies**: Components pass dependencies to their children:
+
+```gdscript
+# In PlayerSpawner.gd
+func spawn_player():
+    # ...
+    player_instance = scene_to_use.instantiate()
+    
+    # Set motion system reference before adding to scene tree
+    if motion_system and player_instance.has_method("set_motion_system"):
+        player_instance.set_motion_system(motion_system)
+```
+
+## Benefits
+
+1. **Testability**: Components can be tested in isolation by injecting mock dependencies.
+2. **Flexibility**: Components can be reused in different contexts with different dependencies.
+3. **Explicit Dependencies**: Dependencies are clearly visible in the code.
+4. **Reduced Coupling**: Components don't need to know where their dependencies come from.
+
+## Best Practices
+
+1. **Use Setter Methods**: Provide setter methods for dependencies.
+2. **Set Dependencies Early**: Set dependencies before they're needed, ideally before adding nodes to the scene tree.
+3. **Check for Missing Dependencies**: Add checks and appropriate error messages for missing dependencies.
+4. **Cascade Dependencies**: Pass dependencies down to child components.
+5. **Type Hints**: Use type hints to make dependencies clear (e.g., `func set_motion_system(system: MotionSystem) -> void`).
+
+## Future Improvements
+
+1. **Constructor Injection**: Consider using `_init()` for dependency injection where appropriate.
+2. **Dependency Containers**: For more complex applications, implement a dependency container to manage dependencies.
+3. **Interface-Based Dependencies**: Define interfaces for dependencies to further reduce coupling.

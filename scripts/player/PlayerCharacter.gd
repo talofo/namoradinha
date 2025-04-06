@@ -13,14 +13,17 @@ var entity_id: int = 0
 var floor_position_y: float = 0.0
 var max_height_y: float = 0.0
 
-func _ready():
-	# Get reference to the motion system
-	motion_system = get_node_or_null("/root/Game/MotionSystem")
+# Add setter method for motion system
+func set_motion_system(system) -> void:
+	motion_system = system
+	# Store entity ID if motion system is available
 	if motion_system:
-		# Store entity ID
 		entity_id = get_instance_id()
-	else:
-		push_error("[PlayerCharacter] MotionSystem not found!")
+
+func _ready():
+	# If motion_system is null here, it should be set by the parent/spawner
+	if not motion_system:
+		ErrorHandler.warning("PlayerCharacter", "No MotionSystem reference provided. Character will not have physics behavior.")
 
 # Main physics process
 func _physics_process(delta: float) -> void:

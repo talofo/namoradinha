@@ -9,7 +9,17 @@ extends Node2D
 @export var launch_power: float = 1.0  # Current power (0.0 to 1.0)
 
 var player_instance: Node = null
+var motion_system = null  # Will be set via setter method
 var launch_system = null  # Reference to the LaunchSystem
+
+# Add setter method for motion system
+func set_motion_system(system) -> void:
+	motion_system = system
+	# Update LaunchSystem reference
+	_update_launch_system()
+	# If we already have a player instance, update it too
+	if player_instance and player_instance.has_method("set_motion_system"):
+		player_instance.set_motion_system(motion_system)
 
 func _exit_tree():
 	# Clean up when the PlayerSpawner is removed from the scene
@@ -18,12 +28,12 @@ func _exit_tree():
 		launch_system.unregister_entity(entity_id)
 
 func _ready():
-	# Get the LaunchSystem reference
-	_get_launch_system()
+	# If motion_system is already set, update launch_system
+	if motion_system:
+		_update_launch_system()
 
-# Get a reference to the LaunchSystem
-func _get_launch_system() -> void:
-	var motion_system = get_node_or_null("/root/Game/MotionSystem")
+# Get a reference to the LaunchSystem from the motion system
+func _update_launch_system() -> void:
 	if motion_system:
 		launch_system = motion_system.get_subsystem("LaunchSystem")
 
@@ -43,12 +53,17 @@ func spawn_player():
 		# Fallback to original player scene if needed
 		scene_to_use = player_scene
 		if not scene_to_use:
-			push_error("No player scene assigned.")
+			ErrorHandler.error("PlayerSpawner", "No player scene assigned.")
 			return
 	
 	# Spawn player instance
 	player_instance = scene_to_use.instantiate()
 	player_instance.position = spawn_position
+	
+	# Set motion system reference before adding to scene tree
+	if motion_system and player_instance.has_method("set_motion_system"):
+		player_instance.set_motion_system(motion_system)
+	
 	add_child(player_instance)
 	
 	# Emit the global signal for player spawned
@@ -56,7 +71,7 @@ func spawn_player():
 	
 	# Make sure we have the LaunchSystem
 	if not launch_system:
-		_get_launch_system()
+		_update_launch_system()
 	
 	# Register player with LaunchSystem
 	if launch_system and player_instance:
@@ -69,7 +84,7 @@ func spawn_player():
 		# Wait for the player to be properly positioned before launching
 		call_deferred("_prepare_and_launch_player")
 	else:
-		push_warning("PlayerSpawner: Could not register player with LaunchSystem - system not available")
+		ErrorHandler.warning("PlayerSpawner", "Could not register player with LaunchSystem - system not available")
 
 # Prepare the player for launch by ensuring it's on the ground
 # Prepare the player for launch (Simplified)
