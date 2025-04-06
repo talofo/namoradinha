@@ -81,17 +81,21 @@ scripts/motion/
 ├── interfaces/                    # Interfaces
 │   └── IMotionSubsystem.gd        # Interface for subsystems
 └── subsystems/                    # Subsystem implementations
-    ├── BoostSystem.gd
-    ├── BounceSystem.gd
-    ├── CollisionMaterialSystem.gd
-    └── ...
+    ├── boost_system/              # Boost subsystem
+    │   └── BoostSystem.gd
+    ├── bounce_system/             # Bounce subsystem
+    │   └── BounceSystem.gd
+    ├── launch_system/             # Launch subsystem
+    │   └── LaunchSystem.gd
+    ├── CollisionMaterialSystem.gd # Example of a non-nested subsystem
+    └── ...                        # Other subsystems (nested or flat)
 ```
 
 ## Recent Improvements
 
 1. **Automatic Subsystem Registration**: MotionSystemCore now automatically registers all subsystems from a predefined list, eliminating the need for manual registration in Game.gd.
 2. **Centralized Physics Config Access**: Removed duplicate physics_config variables from subsystems, ensuring all subsystems access the physics configuration through MotionSystemCore.
-3. **Standardized Error Handling**: Improved how subsystems handle missing physics configuration with consistent error messages and fallback behavior. All subsystems now use the centralized ErrorHandler for logging instead of direct push_error/push_warning calls.
+3. **Standardized Error Handling**: Improved how subsystems handle missing physics configuration with consistent checks and fallback behavior. (Note: The centralized ErrorHandler mentioned previously has been removed).
 4. **Reduced Code Duplication**: Eliminated redundant code for loading and accessing physics configuration.
 5. **Simplified Game Initialization**: Game.gd no longer needs to manually create and register each subsystem, making it more maintainable.
 6. **Improved Signal Handling**: Fixed signal connections between subsystems by:
@@ -99,7 +103,7 @@ scripts/motion/
    - Implementing proper signal forwarding in MotionSystemCore
    - Ensuring BounceSystem receives launch events correctly
 7. **Dynamic Subsystem Registration**: Improved subsystem registration to be more dynamic:
-   - Moved subsystem registration out of MotionSystemCore._ready() to allow explicit control
+   - Moved subsystem registration out of MotionSystemCore._ready() to allow explicit control via Game.gd
    - Added explicit call to register_all_subsystems() in Game.initialize_motion_system()
    - Fixed timing issues with subsystem registration and availability
 
@@ -110,18 +114,18 @@ Subsystems now follow a consistent pattern for accessing physics configuration:
 ```gdscript
 # Ensure motion system and config are available
 if not _motion_system or not _motion_system.has_method("get_physics_config"):
-    ErrorHandler.error("SubsystemName", "MotionSystem or get_physics_config method not available.")
-    return fallback_value
+	push_error("MotionSystem or get_physics_config method not available in SubsystemName.")
+	return fallback_value # Or handle appropriately
 var current_physics_config = _motion_system.get_physics_config()
 if not current_physics_config:
-    ErrorHandler.error("SubsystemName", "Physics config not available from MotionSystem.")
-    return fallback_value
-    
+	push_warning("Physics config not available from MotionSystem in SubsystemName.")
+	# Optionally use core's legacy fallbacks or subsystem defaults
+	return fallback_value # Or handle appropriately
+
 # Now use current_physics_config to access physics parameters
 var param = current_physics_config.some_parameter
 ```
-
-This pattern ensures consistent error handling and fallback behavior across all subsystems.
+This pattern ensures consistent error handling and fallback behavior across all subsystems. Note: The previous centralized ErrorHandler has been removed; standard `push_error`/`push_warning` or custom handling should be used.
 
 ## Future Improvements
 

@@ -10,17 +10,15 @@ signal subsystem_unregistered(subsystem_name: String)
 
 func _init() -> void:
 	_core = load("res://scripts/motion/core/MotionSystemCore.gd").new()
-	
-	# Connect signals from core to this node
+
 	_core.subsystem_registered.connect(func(subsystem_name): subsystem_registered.emit(subsystem_name))
 	_core.subsystem_unregistered.connect(func(subsystem_name): subsystem_unregistered.emit(subsystem_name))
 
 func _ready() -> void:
-	# Initialize with debug mode on by default to help diagnose issues
+	# Initialize with debug mode on by default
 	set_debug_enabled(true)
-	
-	# Note: Subsystems are registered in MotionSystemCore._ready()
-	# We don't need to call register_all_subsystems() here
+
+	# Note: Subsystems are registered when MotionSystemCore.register_all_subsystems() is called externally (e.g., by Game.gd)
 
 # Returns the loaded physics configuration resource
 func get_physics_config():

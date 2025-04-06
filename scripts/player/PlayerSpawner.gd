@@ -1,6 +1,5 @@
 extends Node2D
 
-@export var player_scene: PackedScene
 @export var player_character_scene: PackedScene = preload("res://player/PlayerCharacter.tscn")
 @export var spawn_position: Vector2 = Vector2(-4500, 520) # Positioned just above the ground at y=540
 
@@ -48,14 +47,11 @@ func spawn_player():
 	
 	# Use the PlayerCharacter scene
 	var scene_to_use = player_character_scene
-	
+
 	if not scene_to_use:
-		# Fallback to original player scene if needed
-		scene_to_use = player_scene
-		if not scene_to_use:
-			pass # No player scene assigned
-			return
-	
+		push_error("PlayerCharacter scene not assigned in PlayerSpawner.")
+		return
+
 	# Spawn player instance
 	player_instance = scene_to_use.instantiate()
 	player_instance.position = spawn_position
@@ -84,7 +80,7 @@ func spawn_player():
 		# Wait for the player to be properly positioned before launching
 		call_deferred("_prepare_and_launch_player")
 	else:
-		pass # Could not register player with LaunchSystem
+		push_warning("Could not register player with LaunchSystem in PlayerSpawner.")
 
 # Prepare the player for launch by ensuring it's on the ground
 # Prepare the player for launch (Simplified)

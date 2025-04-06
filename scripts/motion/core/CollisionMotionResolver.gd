@@ -49,24 +49,14 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 	# Handle bounce or slide based on current state
 	if has_launched and velocity.y >= 0:
 		# We're moving downward and have been launched, resolve collision motion (bounce or stop)
-		# Get the bounce count from the BounceSystem if available
-		var _bounce_count = -1
-		var entity_id = collision_info.get("entity_id", 0)
-		if subsystems.has("BounceSystem") and subsystems["BounceSystem"].has_method("get_bounce_count"):
-			_bounce_count = subsystems["BounceSystem"].get_bounce_count(entity_id)
-		
-		# Logging removed + " is launched and moving downward, bounce_count=" + str(bounce_count))
 
 		# Get collision motion from subsystems (primarily BounceSystem)
 		var collision_motion = resolve_collision_motion(collision_info, subsystems)
 		result["velocity"] = collision_motion
-		
-		# Logging removed)
 
 		# Determine state based on resolved motion
 		if is_zero_approx(collision_motion.y):
 			# Bounce stopped, transition to slide
-			# Logging removed, transitioning to slide")
 			result = _core.state_manager.transition_to_sliding(collision_motion)
 		else:
 			# Still bouncing
@@ -75,9 +65,7 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 			# Update max_height_y only when bouncing continues upwards
 			if collision_motion.y < 0:
 				result["max_height_y"] = collision_info.get("position", Vector2.ZERO).y
-				# Logging removed
 			else:
-				# Logging removed
 				pass  # No action needed when moving downward
 
 	elif is_sliding:

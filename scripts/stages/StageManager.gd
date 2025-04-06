@@ -10,17 +10,17 @@ func load_stage(stage_number: int) -> void:
 	var stage_resource = load(stage_path)
 
 	if not stage_resource:
-		# Logging removed
+		push_error("Failed to load stage resource: " + stage_path)
 		return
 
 	current_stage = stage_resource.instantiate()
 	add_child(current_stage)
-	
+
 	# Find the GroundManager within the loaded stage and set its number
 	# Assuming the GroundManager node is named "GroundManager" within the stage scene
-	var ground_manager = current_stage.find_child("GroundManager", true, false) 
+	var ground_manager = current_stage.find_child("GroundManager", true, false)
 	if ground_manager and ground_manager.has_method("set_stage_number"):
 		ground_manager.set_stage_number(stage_number)
 	else:
-		# Logging removed
+		push_warning("GroundManager node not found or missing set_stage_number method in stage " + str(stage_number))
 		pass

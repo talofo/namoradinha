@@ -8,8 +8,6 @@ var debug_enabled: bool = false
 # modifiers: Array of MotionModifier objects
 # Returns: The final resolved Vector2
 func resolve_modifiers(modifiers: Array) -> Vector2:
-	# Resolve modifiers
-	
 	# Sort modifiers by priority (highest first)
 	modifiers.sort_custom(func(a, b): return a.priority > b.priority)
 	
@@ -30,9 +28,7 @@ func resolve_modifiers(modifiers: Array) -> Vector2:
 		if mod.is_additive:
 			# Apply additive modifier
 			final_vector += mod.vector
-	
-	# Return final vector
-	
+
 	return final_vector
 
 # Resolves scalar modifiers (like friction multipliers)
@@ -40,8 +36,6 @@ func resolve_modifiers(modifiers: Array) -> Vector2:
 # base_value: The base value to modify
 # Returns: The final scalar value
 func resolve_scalar_modifiers(modifiers: Array, base_value: float) -> float:
-	# Resolve scalar modifiers
-	
 	# Sort modifiers by priority (highest first)
 	modifiers.sort_custom(func(a, b): return a.priority > b.priority)
 	
@@ -62,7 +56,5 @@ func resolve_scalar_modifiers(modifiers: Array, base_value: float) -> float:
 		if mod.is_additive:
 			# Apply additive scalar modifier (e.g., base_friction + bonus - penalty)
 			final_value += mod.scalar
-	
-	# Return final scalar value
-	
+
 	return final_value

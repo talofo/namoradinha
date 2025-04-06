@@ -73,11 +73,9 @@ func get_collision_modifiers(_collision_info: Dictionary) -> Array:
 # slot: Slot to equip the item in
 func equip_item(item_id: String, slot: String) -> void:
 	_equipped_items[slot] = item_id
-	# In a real implementation, this would update the player's equipment and modifiers
 
 # Unequip an item
 # slot: Slot to unequip
 func unequip_item(slot: String) -> void:
 	if _equipped_items.has(slot):
 		_equipped_items.erase(slot)
-		# In a real implementation, this would update the player's equipment and modifiers

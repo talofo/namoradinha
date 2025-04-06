@@ -5,19 +5,16 @@ extends RefCounted
 # _delta: Time since last frame
 # Returns: Array of MotionModifier objects
 func get_continuous_modifiers(_delta: float) -> Array:
-	# Logging removed
 	return []
 
 # Returns modifiers for collision events
 # _collision_info: Information about the collision
 # Returns: Array of MotionModifier objects
 func get_collision_modifiers(_collision_info: Dictionary) -> Array:
-	# Logging removed
 	return []
 
 # Returns the subsystem name for debugging
 func get_name() -> String:
-	# Logging removed
 	return "UnnamedSubsystem"
 
 # Called when the subsystem is registered with the MotionSystem

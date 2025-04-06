@@ -36,22 +36,22 @@ func _physics_process(delta: float) -> void:
 		# Entity information
 		"entity_id": entity_id,
 		"entity_type": "player",
-		
+
 		# Position and physics
 		"position": position,
 		"velocity": velocity,
 		"delta": delta,
 		# Gravity is now handled internally by MotionSystem based on PhysicsConfig
-		
+
 		# State
 		"is_on_floor": is_on_floor(),
 		"has_launched": has_launched,
 		"is_sliding": is_sliding,
-		
+
 		# Tracking
 		"max_height_y": max_height_y,
 		"floor_position_y": floor_position_y,
-		
+
 		# Material
 		"material": _detect_floor_material()
 	}
@@ -59,7 +59,7 @@ func _physics_process(delta: float) -> void:
 	# Apply motion physics via MotionSystem
 	if motion_system and motion_system.has_method("resolve_frame_motion"):
 		var motion_result = motion_system.resolve_frame_motion(motion_context)
-		
+
 		# Apply results from motion system
 		if motion_result.has("velocity"):
 			velocity = motion_result.velocity
@@ -75,21 +75,9 @@ func _physics_process(delta: float) -> void:
 
 	# Perform the actual movement
 	move_and_slide()
-	
-	# --- DETAILED DEBUG LOG ---
-	var _bounce_count = get_bounce_count()
-	var bounce_system = motion_system.get_subsystem("BounceSystem") if motion_system else null
-	var bounce_data = bounce_system.get_data(entity_id) if bounce_system and bounce_system.has_method("get_data") else {}
-	
-	var _target_height = bounce_data.get("current_target_height", 0.0) if not bounce_data.is_empty() else 0.0
-	var _max_height = bounce_data.get("max_height_y", 0.0) if not bounce_data.is_empty() else 0.0
-	var _floor_pos = bounce_data.get("floor_position_y", 0.0) if not bounce_data.is_empty() else 0.0
-	
-	# Debug logging removed
-	# --- END DETAILED DEBUG LOG ---
-	
+
 	# Removed problematic velocity preservation logic that was overriding physics results.
-	
+
 	# Round position to integer pixels to prevent subpixel flickering
 	position = position.round() # Re-enabled for testing abrupt stop issue
 
@@ -111,7 +99,7 @@ func _handle_floor_collision() -> void:
 	# Let MotionSystem handle collision response
 	if motion_system and motion_system.has_method("resolve_collision"):
 		var collision_result = motion_system.resolve_collision(collision_info)
-		
+
 		# Apply the collision result
 		if collision_result.has("velocity"):
 			velocity = collision_result.velocity

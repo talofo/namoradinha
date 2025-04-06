@@ -80,9 +80,7 @@ func add_zone(zone_type: String, position: Vector2, size: Vector2, force: Vector
 		"size": size,
 		"force": force
 	}
-	
-	# In a real implementation, this would update the environmental forces
-	
+
 	return zone_id
 
 # Remove an environmental force zone
@@ -90,7 +88,6 @@ func add_zone(zone_type: String, position: Vector2, size: Vector2, force: Vector
 func remove_zone(zone_id: String) -> bool:
 	if _active_zones.has(zone_id):
 		_active_zones.erase(zone_id)
-		# In a real implementation, this would update the environmental forces
 		return true
 	return false
 
@@ -100,6 +97,5 @@ func remove_zone(zone_id: String) -> bool:
 func update_zone_force(zone_id: String, force: Vector2) -> bool:
 	if _active_zones.has(zone_id):
 		_active_zones[zone_id].force = force
-		# In a real implementation, this would update the environmental forces
 		return true
 	return false

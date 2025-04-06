@@ -58,14 +58,12 @@ func get_collision_modifiers(_collision_info: Dictionary) -> Array:
 # level: Level of the trait (higher = stronger effect)
 func add_trait(trait_id: String, level: int = 1) -> void:
 	_active_traits[trait_id] = level
-	# In a real implementation, this would update the character's traits and modifiers
 
 # Remove a trait from the character
 # trait_id: ID of the trait to remove
 func remove_trait(trait_id: String) -> void:
 	if _active_traits.has(trait_id):
 		_active_traits.erase(trait_id)
-		# In a real implementation, this would update the character's traits and modifiers
 
 # Upgrade a trait to a higher level
 # trait_id: ID of the trait to upgrade

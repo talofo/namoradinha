@@ -56,5 +56,4 @@ func get_collision_modifiers(_collision_info: Dictionary) -> Array:
 # _obstacle_type: Type of obstacle
 # _position: Position of the obstacle
 func register_obstacle(_obstacle_type: String, _position: Vector2) -> void:
-	# In a real implementation, this would add the obstacle to a list of active obstacles
 	pass

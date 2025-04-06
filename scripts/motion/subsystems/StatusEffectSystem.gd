@@ -95,9 +95,7 @@ func apply_effect(effect_type: String, duration: float, strength: float) -> Stri
 		"remaining_time": duration,
 		"strength": strength
 	}
-	
-	# In a real implementation, this would update the status effects
-	
+
 	return effect_id
 
 # Remove a status effect
@@ -105,14 +103,12 @@ func apply_effect(effect_type: String, duration: float, strength: float) -> Stri
 func remove_effect(effect_id: String) -> bool:
 	if _active_effects.has(effect_id):
 		_active_effects.erase(effect_id)
-		# In a real implementation, this would update the status effects
 		return true
 	return false
 
 # Clear all status effects
 func clear_all_effects() -> void:
 	_active_effects.clear()
-	# In a real implementation, this would update the status effects
 
 # Update entity states based on physics
 # entity_id: Unique identifier for the entity

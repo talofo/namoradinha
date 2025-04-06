@@ -22,18 +22,12 @@ func _ready():
 # Initialize the MotionSystem
 func initialize_motion_system() -> void:
 	if not motion_system:
-		# Logging removed
 		return
-	
-	# Logging removed
-	
+
 	# Explicitly register all subsystems
 	# This allows for more dynamic control over when subsystems are loaded
 	var core = motion_system._core
 	if core:
 		core.register_all_subsystems()
 	else:
-		# Logging removed
 		return
-	
-	# Logging removed

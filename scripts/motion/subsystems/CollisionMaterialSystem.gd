@@ -59,13 +59,11 @@ func get_continuous_modifiers(_delta: float) -> Array:
 func get_collision_modifiers(collision_info: Dictionary) -> Array:
 	
 	var modifiers = []
-	
+
 	# Get material type from collision info (default if not specified)
 	var material_type = collision_info.get("material", "default")
 	var material = _registered_materials.get(material_type, _registered_materials["default"])
-	
-	# Get material properties
-	
+
 	# Add a friction modifier
 	var friction_modifier = load("res://scripts/motion/MotionModifier.gd").new(
 		"CollisionMaterialSystem",  # source
@@ -115,8 +113,7 @@ func register_material(material_type: String, properties: Dictionary) -> void:
 	# Ensure all required properties are present
 	var default_material = _registered_materials["default"]
 	var complete_properties = default_material.duplicate()
-	
-	# Override with provided properties
+
 	for key in properties:
 		complete_properties[key] = properties[key]
 	
@@ -128,8 +125,7 @@ func register_material(material_type: String, properties: Dictionary) -> void:
 func get_material_properties(material_type: String) -> Dictionary:
 	if _registered_materials.has(material_type):
 		return _registered_materials[material_type].duplicate()
-	
-	# Material not found, using default
+
 	return _registered_materials["default"].duplicate()
 
 # Detect material from a collision
@@ -146,11 +142,8 @@ func detect_material_from_collision(collision_info: Dictionary) -> String:
 # Returns: True if successful, false if material not found
 func update_material(material_type: String, properties: Dictionary) -> bool:
 	if _registered_materials.has(material_type):
-		# Update material properties
-		
 		for key in properties:
 			_registered_materials[material_type][key] = properties[key]
-		
-		# In a real implementation, this would update the material registry
+
 		return true
 	return false

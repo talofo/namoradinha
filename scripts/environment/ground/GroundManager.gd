@@ -9,7 +9,6 @@ func set_stage_number(num: int):
 	stage_number = num
 	# Optional: Add a check in _ready if logic depends on stage_number being set immediately.
 	# However, StageManager should call this before _ready executes its main logic.
-	# Logging removed
 	# Load the ground tile now that the stage number is known
 	_load_ground_tile()
 
@@ -20,14 +19,12 @@ func _ready():
 # Loads and positions the ground tile based on the set stage_number
 func _load_ground_tile():
 	if stage_number == -1:
-		# Logging removed
 		return
-		
+
 	var scene_path := "res://environment/ground/stage%d/GroundTile_Stage%d.tscn" % [stage_number, stage_number]
 	var ground_scene := load(scene_path) as PackedScene
 
 	if not ground_scene:
-		# Logging removed
 		return
 
 	var tile = ground_scene.instantiate()
@@ -38,8 +35,6 @@ func _load_ground_tile():
 	# TODO: Replace with proper bottom alignment after CameraManager is in
 
 	await get_tree().process_frame
-	# Logging removed
-	# Logging removed
 
 	# Optional debug line (also visible)
 	var debug_line = ColorRect.new()
