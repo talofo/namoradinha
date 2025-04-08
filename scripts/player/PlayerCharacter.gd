@@ -138,10 +138,10 @@ func get_bounce_count() -> int:
 #       finding an attached script (e.g., GroundMaterialInfo.gd) on it or its owner,
 #       and reading a 'material_name' property from that script.
 #       The returned name should correspond to a key in PhysicsConfig.material_properties.
-func _detect_floor_material_from_collider(collider) -> String:
+func _detect_floor_material_from_collider(_collider) -> String:
 	# TODO: Implement actual material detection based on the collider
 	# Example placeholder:
-	# if collider and collider.has_method("get_physics_material_override"):
+	# if _collider and _collider.has_method("get_physics_material_override"):
 	#     var material = collider.get_physics_material_override()
 	#     if material and material.has_meta("material_name"):
 	#         return material.get_meta("material_name")
