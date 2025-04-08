@@ -1,7 +1,7 @@
 class_name BounceOutcome
 extends RefCounted
 
-const BounceDebugData = preload("res://scripts/motion/subsystems/bounce_system/data/BounceDebugData.gd")
+const BounceDebugDataClass = preload("res://scripts/motion/subsystems/bounce_system/data/BounceDebugData.gd")
 
 ## Represents the result of a bounce calculation.
 

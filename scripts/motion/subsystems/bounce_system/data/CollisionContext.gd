@@ -3,8 +3,8 @@ extends RefCounted
 
 # Preload dependent data structures
 const IncomingMotionState = preload("res://scripts/motion/subsystems/bounce_system/data/IncomingMotionState.gd")
-const ImpactSurfaceData = preload("res://scripts/motion/subsystems/bounce_system/data/ImpactSurfaceData.gd")
-const PlayerBounceProfile = preload("res://scripts/motion/subsystems/bounce_system/data/PlayerBounceProfile.gd")
+const ImpactSurfaceDataClass = preload("res://scripts/motion/subsystems/bounce_system/data/ImpactSurfaceData.gd")
+const PlayerBounceProfileClass = preload("res://scripts/motion/subsystems/bounce_system/data/PlayerBounceProfile.gd")
 
 ## Aggregates all necessary information for a bounce calculation.
 ## Passed as input to the BounceSystem's calculation method.
@@ -32,8 +32,8 @@ func _init(
 	p_generate_debug_data: bool = false
 ) -> void:
 	incoming_motion_state = p_incoming_motion_state if p_incoming_motion_state != null else IncomingMotionState.new()
-	impact_surface_data = p_impact_surface_data if p_impact_surface_data != null else ImpactSurfaceData.new()
-	player_bounce_profile = p_player_bounce_profile if p_player_bounce_profile != null else PlayerBounceProfile.new()
+	impact_surface_data = p_impact_surface_data if p_impact_surface_data != null else ImpactSurfaceDataClass.new()
+	player_bounce_profile = p_player_bounce_profile if p_player_bounce_profile != null else PlayerBounceProfileClass.new()
 	current_gravity = p_current_gravity
 	generate_debug_data = p_generate_debug_data
 
