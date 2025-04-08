@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://dmqg52fh4887s"]
+
+[ext_resource type="Script" uid="uid://c40dwqq45ktke" path="res://scripts/motion/subsystems/bounce_system/test_bounce_system.gd" id="1_abcde"]
+
+[node name="BounceTestRunner" type="Node"]
+script = ExtResource("1_abcde")

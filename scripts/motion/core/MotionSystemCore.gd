@@ -33,7 +33,7 @@ var _subsystem_paths = [
 	"res://scripts/motion/subsystems/launch_system/LaunchSystem.gd",
 
 	# Then register dependent subsystems
-	"res://scripts/motion/subsystems/bounce_system/BounceSystem.gd",  # Uses ModularBounceSystem class
+	"res://scripts/motion/subsystems/bounce_system/BounceSystem.gd",  # Path to the new BounceSystem script
 	"res://scripts/motion/subsystems/boost_system/BoostSystem.gd",
 	# "res://scripts/motion/subsystems/ObstacleSystem.gd", # Removed placeholder
 	# "res://scripts/motion/subsystems/EquipmentSystem.gd", # Removed placeholder
@@ -243,12 +243,9 @@ func register_all_subsystems() -> int:
 		if ResourceLoader.exists(path):
 			var subsystem_script = load(path)
 			if subsystem_script:
-				var subsystem
-
-				if path == "res://scripts/motion/subsystems/bounce_system/BounceSystem.gd":
-					subsystem = ModularBounceSystem.new()
-				else:
-					subsystem = subsystem_script.new()
+				# Instantiate subsystem using its script's new() method
+				# Removed special case for old ModularBounceSystem
+				var subsystem = subsystem_script.new()
 
 				if register_subsystem(subsystem):
 					success_count += 1

@@ -1,6 +1,8 @@
 class_name CollisionMotionResolver
 extends RefCounted
 
+# Note: Preloads removed as classes are globally available via class_name
+
 # Reference to the motion system core
 var _core = null
 
@@ -23,7 +25,32 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 	for subsystem_name in subsystems:
 		var subsystem = subsystems[subsystem_name]
 		if subsystem.has_method("get_collision_modifiers"):
-			var modifiers = subsystem.get_collision_modifiers(collision_info)
+			var modifiers = []
+			if subsystem is BounceSystem:
+				# Construct CollisionContext for BounceSystem
+				# ASSUMPTION: collision_info contains all necessary raw data
+				# TODO: Need a robust way to get PlayerBounceProfile (e.g., from entity data via _core)
+				# TODO: Need a robust way to get ImpactSurfaceData (e.g., from physics collision data)
+				
+				# Placeholder data - this needs proper implementation later
+				var incoming_state = IncomingMotionState.new(collision_info.get("velocity", Vector2.ZERO)) 
+				var surface_data = ImpactSurfaceData.new(collision_info.get("normal", Vector2.UP)) 
+				var player_profile = PlayerBounceProfile.new() # Needs real data
+				# Get gravity magnitude and construct the vector
+				var gravity_magnitude = _core.get_physics_config().get_gravity_for_entity("default", 1.0) # Example access
+				var gravity_vector = Vector2.DOWN * gravity_magnitude
+				
+				var context = CollisionContext.new(
+					incoming_state,
+					surface_data,
+					player_profile,
+					gravity_vector, # Pass the Vector2
+					_core.debug_enabled # Pass debug flag
+				)
+				modifiers = subsystem.get_collision_modifiers(context)
+			else:
+				# Other subsystems still receive the raw dictionary
+				modifiers = subsystem.get_collision_modifiers(collision_info)
 			
 			# Collected modifiers from subsystem
 			all_modifiers.append_array(modifiers)
@@ -66,8 +93,8 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 			if collision_motion.y < 0:
 				result["max_height_y"] = collision_info.get("position", Vector2.ZERO).y
 			else:
-				pass  # No action needed when moving downward
-
+				pass # Restore redundant else: pass block
+				
 	elif is_sliding:
 		# Entity is sliding, update sliding state
 		var delta = collision_info.get("delta", 0.016) # Use delta from context or fallback to ~60fps
@@ -79,4 +106,4 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 # enabled: Whether debug mode is enabled
 func set_debug_enabled(enabled: bool) -> void:
 	if _resolver:
-		_resolver.debug_enabled = enabled
+		_resolver.debug_enabled = enabled # Added missing indented line

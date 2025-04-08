@@ -120,8 +120,8 @@ func update_boosts(delta: float) -> Array:
 				})
 
 		# Remove expired boosts
-		for boost_id in boosts_to_remove:
-			remove_boost(entity_id, boost_id)
+		for boost_id_to_remove in boosts_to_remove: # Use different variable name to avoid conflict
+			remove_boost(entity_id, boost_id_to_remove)
 
 	return expired_boosts
 

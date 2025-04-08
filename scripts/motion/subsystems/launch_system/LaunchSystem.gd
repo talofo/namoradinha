@@ -41,7 +41,7 @@ func get_continuous_modifiers(_delta: float) -> Array:
 	return []
 
 # Returns modifiers for collision events
-# collision_info: Information about the collision
+# _collision_info: Information about the collision
 # Returns: Array of MotionModifier objects
 func get_collision_modifiers(_collision_info: Dictionary) -> Array:
 	# LaunchSystem doesn't provide collision modifiers

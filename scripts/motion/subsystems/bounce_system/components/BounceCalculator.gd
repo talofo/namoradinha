@@ -1,196 +1,120 @@
 class_name BounceCalculator
 extends RefCounted
 
-# Reference to motion system for config access
-var _motion_system = null
+# No need to preload classes defined with class_name
 
-func set_motion_system(motion_system) -> void:
-    _motion_system = motion_system
+# --- Constants ---
+# Minimum vertical velocity (relative to surface normal) required to initiate/continue a bounce.
+# Needs tuning based on gravity and desired feel.
+const MIN_BOUNCE_VELOCITY_NORMAL: float = 50.0 
+# Minimum speed below which the entity might transition from sliding to stopped.
+const MIN_STOP_SPEED: float = 10.0 
 
-# Calculate the bounce vector for an entity
-# entity_data: Dictionary containing bounce data
-# collision_info: Information about the collision
-# Returns: The bounce vector
-func calculate_bounce_vector(entity_data: Dictionary, collision_info: Dictionary) -> Vector2:
-    if entity_data.is_empty():
-        # Empty entity data provided
-        return Vector2.ZERO
-    
-    # Get entity properties
-    var entity_type = collision_info.get("entity_type", "default")
-    var entity_mass = collision_info.get("mass", 1.0) # Default to 1.0 if not specified
-    
-    # Ensure motion system and config are available
-    if not _motion_system or not _motion_system.has_method("get_physics_config"):
-        # MotionSystem or get_physics_config method not available
-        return Vector2.ZERO
-    var current_physics_config = _motion_system.get_physics_config()
-    if not current_physics_config:
-        # Physics config not available from MotionSystem
-        return Vector2.ZERO
-        
-    # Get gravity from config
-    var gravity = current_physics_config.get_gravity_for_entity(entity_type, entity_mass)
-        
-    # Calculate the max height achieved relative to floor
-    # Important: This calculation should always result in a positive value
-    var max_height_reached = entity_data.floor_position_y - entity_data.max_height_y
-    
-    # Ensure we have a sensible positive value even if position tracking had issues
-    if max_height_reached <= 10:
-        # If tracking gave us invalid height, use the magnitude of the original launch Y velocity
-        # to estimate how high the player would have gone using basic physics formula: h = v²/2g
-        var launch_velocity_y_magnitude = abs(entity_data.launch_velocity.y)
-        max_height_reached = (launch_velocity_y_magnitude * launch_velocity_y_magnitude) / (2 * gravity)
-    
-    # Calculate bounce based on height reached using config values
-    var current_first_bounce_ratio = current_physics_config.first_bounce_ratio
-    var current_subsequent_bounce_ratio = current_physics_config.subsequent_bounce_ratio
-    var current_min_bounce_height_threshold = current_physics_config.min_bounce_height_threshold
-    
-    # Calculate target height for this bounce
-    var target_height = 0.0
-    
-    # Get max bounce count from physics config
-    var max_bounce_count = current_physics_config.max_bounce_count
-    
-    if entity_data.bounce_count == 0:
-        # First bounce - relative to max launch height
-        target_height = max_height_reached * current_first_bounce_ratio
-    else:
-        # Calculate theoretical target height using exponential decay
-        # For subsequent bounces, we use the previous bounce's target height
-        target_height = entity_data.current_target_height * current_subsequent_bounce_ratio
-        
-        # Calculate theoretical max bounces based on physics parameters
-        var theoretical_max_bounces = _calculate_theoretical_max_bounces(
-            max_height_reached, 
-            current_first_bounce_ratio, 
-            current_subsequent_bounce_ratio, 
-            current_min_bounce_height_threshold
-        )
-        
-        # Use the smaller of the two max bounce values
-        var effective_max_bounces = min(theoretical_max_bounces, max_bounce_count)
-        
-        # If we're approaching the max bounce count, force the target height below threshold
-        if entity_data.bounce_count >= effective_max_bounces - 1:
-            target_height = current_min_bounce_height_threshold * 0.5  # Force below threshold
-    
-    # Calculate required velocity to reach that height
-    # Using physics formula: v = sqrt(2 * g * h)
-    var bounce_velocity_y = 0.0
-    
-    # Use ORIGINAL launch velocity for horizontal momentum, with consistent reduction based on bounce count
-    # This prevents the horizontal velocity from increasing with each bounce
-    var current_horizontal_preservation = current_physics_config.horizontal_preservation
-    current_horizontal_preservation = pow(current_horizontal_preservation, entity_data.bounce_count)  # reduction per bounce
-    var bounce_velocity_x = entity_data.launch_velocity.x * current_horizontal_preservation
-    
-    # Continue bouncing if the target height is above the minimum threshold
-    if target_height >= current_min_bounce_height_threshold:
-        bounce_velocity_y = -sqrt(2 * gravity * target_height)
-    else:
-        # No more energy for bouncing - stop and start sliding
-        bounce_velocity_y = 0.0  # Ensure y velocity is exactly zero for sliding
-        
-        # Keep the correctly calculated horizontal velocity (original launch X reduced by preservation factor over bounces)
-        # No minimum speed enforcement or boosts applied here.
-        # bounce_velocity_x is already calculated correctly above based on launch_velocity and preservation.
-    
-    var bounce_vector = Vector2(bounce_velocity_x, bounce_velocity_y)
-    
-    return bounce_vector
+## Performs the stateless bounce calculation.
+## Takes a CollisionContext and returns a BounceOutcome.
+func calculate(context: CollisionContext) -> BounceOutcome:
+	# --- Input Extraction ---
+	var motion_state = context.incoming_motion_state
+	var surface = context.impact_surface_data
+	var profile = context.player_bounce_profile
+	var _gravity = context.current_gravity # Full gravity vector (Currently unused in calculation)
+	# TODO: Revisit if gravity vector should directly influence bounce/friction/termination physics.
+	
+	var incoming_velocity: Vector2 = motion_state.velocity
+	var surface_normal: Vector2 = surface.normal.normalized() # Ensure it's normalized
+	
+	# --- Debug Setup ---
+	var debug_data: BounceDebugData = null
+	if context.generate_debug_data:
+		debug_data = BounceDebugData.new()
+		debug_data.add_note("Input Velocity: %s" % str(incoming_velocity))
+		debug_data.add_note("Surface Normal: %s" % str(surface_normal))
+		debug_data.add_note("Surface Elasticity: %.2f, Friction: %.2f" % [surface.elasticity, surface.friction])
+		debug_data.add_note("Profile Bounciness: %.2f, FrictionMod: %.2f" % [profile.bounciness_multiplier, profile.friction_interaction_modifier])
 
-# Check if an entity should stop bouncing
-# entity_data: Dictionary containing bounce data
-# Returns: True if the entity should stop bouncing
-func should_stop_bouncing(entity_data: Dictionary) -> bool:
-    if entity_data.is_empty():
-        # Entity data is empty, stopping bounce
-        return true
-    
-    # Ensure motion system and config are available
-    if not _motion_system or not _motion_system.has_method("get_physics_config"):
-        # MotionSystem or get_physics_config method not available
-        return true # Assume stop if config is missing
-    var current_physics_config = _motion_system.get_physics_config()
-    if not current_physics_config:
-        # Physics config not available from MotionSystem
-        return true # Assume stop if config is missing
-    
-    # Calculate the max height achieved relative to floor
-    var max_height_reached = entity_data.floor_position_y - entity_data.max_height_y
-    
-    # Ensure we have a sensible positive value
-    if max_height_reached <= 10:
-        # Use the magnitude of the original launch Y velocity to estimate height
-        var gravity = current_physics_config.get_gravity_for_entity("default", 1.0)
-        var launch_velocity_y_magnitude = abs(entity_data.launch_velocity.y)
-        max_height_reached = (launch_velocity_y_magnitude * launch_velocity_y_magnitude) / (2 * gravity)
-    
-    # Get physics config parameters
-    var current_first_bounce_ratio = current_physics_config.first_bounce_ratio
-    var current_subsequent_bounce_ratio = current_physics_config.subsequent_bounce_ratio
-    var current_min_bounce_height_threshold = current_physics_config.min_bounce_height_threshold
-    var max_bounce_count = current_physics_config.max_bounce_count
-    
-    # Calculate target height using the same logic as in calculate_bounce_vector
-    var target_height = 0.0
-    
-    if entity_data.bounce_count == 0:
-        target_height = max_height_reached * current_first_bounce_ratio
-    else:
-        # Use the same exponential decay as in calculate_bounce_vector
-        target_height = entity_data.current_target_height * current_subsequent_bounce_ratio
-        
-        # Calculate theoretical max bounces
-        var theoretical_max_bounces = _calculate_theoretical_max_bounces(
-            max_height_reached, 
-            current_first_bounce_ratio, 
-            current_subsequent_bounce_ratio, 
-            current_min_bounce_height_threshold
-        )
-        
-        # Use the smaller of the two max bounce values
-        var effective_max_bounces = min(theoretical_max_bounces, max_bounce_count)
-        
-        # If we're at or beyond the max bounce count, force stop
-        if entity_data.bounce_count >= effective_max_bounces:
-            return true
-    
-    var should_stop = target_height < current_min_bounce_height_threshold
-    
-    return should_stop
+	# --- Core Bounce Physics ---
+	# Calculate effective properties based on surface and player profile
+	var effective_elasticity: float = clampf(surface.elasticity * profile.bounciness_multiplier, 0.0, 1.0)
+	var effective_friction: float = maxf(surface.friction * profile.friction_interaction_modifier, 0.0)
+	
+	if debug_data:
+		debug_data.effective_elasticity = effective_elasticity
+		debug_data.effective_friction = effective_friction
 
-# Calculate the theoretical maximum number of bounces based on physics parameters
-# max_height: The maximum height reached
-# first_bounce_ratio: The ratio for the first bounce
-# subsequent_bounce_ratio: The ratio for subsequent bounces
-# min_bounce_height_threshold: The minimum height threshold for a bounce to occur
-# Returns: The theoretical maximum number of bounces
-func _calculate_theoretical_max_bounces(max_height: float, first_bounce_ratio: float, subsequent_bounce_ratio: float, min_bounce_height_threshold: float) -> int:
-    # Calculate the height of the first bounce
-    var first_bounce_height = max_height * first_bounce_ratio
-    
-    # If the first bounce is already below the threshold, return 0
-    if first_bounce_height < min_bounce_height_threshold:
-        return 0
-    
-    # Calculate how many bounces it would take for the height to fall below the threshold
-    # Using the formula: min_threshold = first_bounce_height * (subsequent_bounce_ratio^(n-1))
-    # Solving for n: n = 1 + log(min_threshold / first_bounce_height) / log(subsequent_bounce_ratio)
-    var n = 1.0
-    if subsequent_bounce_ratio > 0 and subsequent_bounce_ratio < 1:
-        n += log(min_bounce_height_threshold / first_bounce_height) / log(subsequent_bounce_ratio)
-    
-    # Round down to get the integer number of bounces
-    # Add 1 to account for the first bounce
-    return max(1, int(n))
+	# Reflect the velocity vector across the surface normal
+	# Godot's Vector2.bounce() handles reflection based on elasticity implicitly (coefficient of restitution)
+	# v_out = v_in.bounce(normal) * elasticity 
+	# However, let's calculate manually for clarity and modifier application:
+	
+	# 1. Decompose velocity into normal (perpendicular) and tangent (parallel) components
+	var velocity_normal_component: Vector2 = surface_normal * incoming_velocity.dot(surface_normal)
+	var velocity_tangent_component: Vector2 = incoming_velocity - velocity_normal_component
+	
+	# 2. Apply elasticity to the normal component (reversing its direction)
+	# Only apply bounce if impacting *into* the surface (dot product < 0)
+	var new_velocity_normal_component: Vector2 = velocity_normal_component
+	if velocity_normal_component.dot(surface_normal) < 0:
+		new_velocity_normal_component = -velocity_normal_component * effective_elasticity
+	else:
+		# If already moving away from surface, don't apply bounce elasticity
+		# This might happen on grazing angles or multi-collisions in one frame
+		if debug_data: debug_data.add_note("Grazing impact, no normal velocity bounce applied.")
+		pass 
 
-# Check if a collision is with the floor
-# collision_info: Information about the collision
-# Returns: True if the collision is with the floor
-func is_floor_collision(collision_info: Dictionary) -> bool:
-    var normal = collision_info.get("normal", Vector2.ZERO)
-    return normal.y < -0.7  # Consider surfaces with normals pointing mostly up as floors
+	# 3. Apply friction to the tangent component (opposing tangential motion)
+	# Simple model: Reduce tangential speed based on friction.
+	# A more complex model would involve normal force magnitude, but let's keep it simpler first.
+	# We can use slide() logic conceptually: reduce speed, don't reverse direction unless friction is extreme.
+	var tangent_speed = velocity_tangent_component.length()
+	var friction_reduction = tangent_speed * effective_friction # Simplified reduction factor
+	var new_tangent_speed = maxf(0.0, tangent_speed - friction_reduction) 
+	
+	var new_velocity_tangent_component: Vector2 = velocity_tangent_component.normalized() * new_tangent_speed if tangent_speed > 0.01 else Vector2.ZERO
+
+	# --- Apply Profile Modifiers ---
+	# Note: Modifiers applied *after* basic physics reflection/friction
+	
+	# Apply speed modifiers
+	new_velocity_normal_component *= profile.vertical_speed_modifier # Assuming normal is mostly vertical
+	new_velocity_tangent_component *= profile.horizontal_speed_modifier # Assuming tangent is mostly horizontal
+	
+	# Apply angle adjustment (rotate the combined vector) - complex, might be better handled by boost system?
+	# Skipping angle adjustment for now for simplicity, as it can be tricky to define consistently.
+	# If needed: var combined_velocity = new_velocity_normal_component + new_velocity_tangent_component
+	#           combined_velocity = combined_velocity.rotated(profile.bounce_angle_adjustment)
+	#           Then potentially re-decompose if needed for termination checks.
+
+	# --- Recompose Final Velocity ---
+	var calculated_velocity = new_velocity_normal_component + new_velocity_tangent_component
+	
+	if debug_data:
+		debug_data.calculated_velocity_pre_mods = calculated_velocity # Store before termination checks modify it
+
+	# --- Determine Termination State ---
+	var final_velocity = calculated_velocity
+	var termination_state = BounceOutcome.STATE_BOUNCING
+	
+	# Check vertical bounce threshold (velocity component moving away from the surface normal)
+	var velocity_away_from_surface = final_velocity.dot(surface_normal)
+	
+	if velocity_away_from_surface < MIN_BOUNCE_VELOCITY_NORMAL:
+		# Not enough energy to bounce significantly away from the surface
+		termination_state = BounceOutcome.STATE_SLIDING # Use global class name
+		# When sliding, kill the velocity component directly into the normal
+		final_velocity = final_velocity - surface_normal * final_velocity.dot(surface_normal)
+		if debug_data: 
+			debug_data.termination_reason = "Normal velocity %.2f < threshold %.2f" % [velocity_away_from_surface, MIN_BOUNCE_VELOCITY_NORMAL]
+			debug_data.add_note("Entering SLIDING state.") # Corrected indentation
+		
+		# Check if sliding speed is also too low -> STOPPED
+		if final_velocity.length() < MIN_STOP_SPEED:
+			termination_state = BounceOutcome.STATE_STOPPED # Use global class name
+			final_velocity = Vector2.ZERO # Force stop
+			if debug_data: 
+				debug_data.termination_reason += " | Sliding speed %.2f < threshold %.2f" % [final_velocity.length(), MIN_STOP_SPEED]
+				debug_data.add_note("Entering STOPPED state.")
+	
+	# --- Create Outcome ---
+	var outcome = BounceOutcome.new(final_velocity, termination_state, debug_data)
+	
+	return outcome
