@@ -50,13 +50,11 @@ func _physics_process(delta: float) -> void:
 
 		# Tracking
 		"max_height_y": max_height_y,
-		"floor_position_y": floor_position_y,
-
-		# Material
-		"material": _detect_floor_material()
+		"floor_position_y": floor_position_y
+		# Material removed here, as it's primarily needed during collision resolution below
 	}
 
-	# Apply motion physics via MotionSystem
+	# Apply motion physics via MotionSystem (calculates intended velocity for this frame)
 	if motion_system and motion_system.has_method("resolve_frame_motion"):
 		var motion_result = motion_system.resolve_frame_motion(motion_context)
 
@@ -67,53 +65,64 @@ func _physics_process(delta: float) -> void:
 			has_launched = motion_result.has_launched
 		if motion_result.has("is_sliding"):
 			is_sliding = motion_result.is_sliding
+			
+	# Store velocity *before* move_and_slide potentially modifies it
+	var velocity_before_slide = velocity
 
-	# Handle floor collision
-	if is_on_floor():
-		floor_position_y = position.y
-		_handle_floor_collision()
-
-	# Perform the actual movement
+	# Perform the actual movement and collision detection/response
 	move_and_slide()
 
-	# Removed problematic velocity preservation logic that was overriding physics results.
+	# Check for collisions that occurred during move_and_slide
+	var collision_count = get_slide_collision_count()
+	for i in range(collision_count):
+		var collision: KinematicCollision2D = get_slide_collision(i)
+		if collision:
+			# Check if it's a floor collision (normal pointing sufficiently upwards)
+			# Using a threshold slightly less than 1.0 to account for minor slope variations
+			if collision.get_normal().dot(Vector2.UP) > 0.9: 
+				floor_position_y = position.y # Update floor position on contact
+				
+				# Construct collision info using pre-slide velocity and collision data
+				var collision_info = {
+					"entity_id": entity_id,
+					"position": position, # Use current position after move_and_slide
+					"normal": collision.get_normal(),
+					"velocity": velocity_before_slide, # Use velocity BEFORE move_and_slide
+					"has_launched": has_launched,
+					"is_sliding": is_sliding,
+					"max_height_y": max_height_y,
+					"floor_position_y": floor_position_y,
+					"material": _detect_floor_material_from_collider(collision.get_collider())
+				}
+
+				# Let MotionSystem handle collision response using pre-slide velocity
+				if motion_system and motion_system.has_method("resolve_collision"):
+					print("[PlayerCharacter._physics_process] Floor collision detected. Pre-slide vel: ", velocity_before_slide, " Normal: ", collision.get_normal()) # DEBUG PRINT
+					print("[PlayerCharacter._physics_process] Calling motion_system.resolve_collision with info: ", collision_info) # DEBUG PRINT
+					var collision_result = motion_system.resolve_collision(collision_info)
+					print("[PlayerCharacter._physics_process] Collision result received: ", collision_result) # DEBUG PRINT
+
+					# Apply the collision result directly
+					if collision_result.has("velocity"):
+						print("[PlayerCharacter._physics_process] Applying velocity from result: ", collision_result.velocity) # DEBUG PRINT
+						velocity = collision_result.velocity # OVERWRITE velocity modified by move_and_slide
+					if collision_result.has("has_launched"):
+						has_launched = collision_result.has_launched
+					if collision_result.has("is_sliding"):
+						is_sliding = collision_result.is_sliding
+					if collision_result.has("max_height_y"):
+						max_height_y = collision_result.max_height_y
+						
+				# Handle only the first significant floor collision per frame
+				break 
+
+	# Removed the old is_on_floor() check and _handle_floor_collision() call
+	# as collisions are now handled immediately after move_and_slide.
 
 	# Round position to integer pixels to prevent subpixel flickering
-	position = position.round() # Re-enabled for testing abrupt stop issue
+	position = position.round() 
 
-# Handle floor collision with MotionSystem integration
-func _handle_floor_collision() -> void:
-	print("[PlayerCharacter._handle_floor_collision] Velocity BEFORE creating collision_info: ", velocity) # DEBUG PRINT
-	# Create collision info with all necessary context
-	var collision_info = {
-		"entity_id": entity_id,
-		"position": position,
-		"normal": get_floor_normal(),
-		"velocity": velocity,
-		"has_launched": has_launched,
-		"is_sliding": is_sliding,
-		"max_height_y": max_height_y,
-		"floor_position_y": floor_position_y,
-		"material": _detect_floor_material()
-	}
-
-	# Let MotionSystem handle collision response
-	if motion_system and motion_system.has_method("resolve_collision"):
-		print("[PlayerCharacter._handle_floor_collision] Calling motion_system.resolve_collision with info: ", collision_info) # DEBUG PRINT
-		var collision_result = motion_system.resolve_collision(collision_info)
-		print("[PlayerCharacter._handle_floor_collision] Collision result received: ", collision_result) # DEBUG PRINT
-
-		# Apply the collision result
-		if collision_result.has("velocity"):
-			print("[PlayerCharacter._handle_floor_collision] Applying velocity from result: ", collision_result.velocity) # DEBUG PRINT
-			velocity = collision_result.velocity
-		if collision_result.has("has_launched"):
-			has_launched = collision_result.has_launched
-		if collision_result.has("is_sliding"):
-			is_sliding = collision_result.is_sliding
-		if collision_result.has("max_height_y"):
-			max_height_y = collision_result.max_height_y
-
+# Removed _handle_floor_collision() function as its logic is moved into _physics_process
 
 # Get the current bounce count from the BounceSystem
 func get_bounce_count() -> int:
@@ -129,6 +138,14 @@ func get_bounce_count() -> int:
 #       finding an attached script (e.g., GroundMaterialInfo.gd) on it or its owner,
 #       and reading a 'material_name' property from that script.
 #       The returned name should correspond to a key in PhysicsConfig.material_properties.
-# For now, always return "default" to ensure consistent floor physics.
-func _detect_floor_material() -> String:
+func _detect_floor_material_from_collider(collider) -> String:
+	# TODO: Implement actual material detection based on the collider
+	# Example placeholder:
+	# if collider and collider.has_method("get_physics_material_override"):
+	#     var material = collider.get_physics_material_override()
+	#     if material and material.has_meta("material_name"):
+	#         return material.get_meta("material_name")
+	# Or check script attached to collider/owner
+	
+	# Fallback to default
 	return "default"

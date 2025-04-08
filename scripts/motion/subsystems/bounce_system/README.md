@@ -75,3 +75,24 @@ The calling system (`MotionSystemCore`) **must** be responsible for:
 3.  Constructing the `CollisionContext` object accurately.
 4.  Calling `BounceSystem.get_collision_modifiers` with the context object.
 5.  Applying the returned `MotionModifier`.
+
+## Interaction with CharacterBody2D and `move_and_slide()`
+
+A key consideration when implementing custom bounce logic for a `CharacterBody2D` is the timing relative to the built-in `move_and_slide()` function.
+
+**Problem Encountered:**
+
+Initially, the custom bounce logic was triggered based on the `is_on_floor()` check within `_physics_process`. However, when the character hit the floor with high velocity (e.g., after a launch), the `move_and_slide()` function, executed *before* the `is_on_floor()` check in the *next* frame, would handle the collision first. Its default behavior often clamps or significantly reduces the vertical velocity upon impact. Consequently, when our custom `_handle_floor_collision` (or equivalent logic) ran in the subsequent frame, it received an already-dampened velocity, leading to unexpectedly small bounces despite high initial impact speeds.
+
+**Solution Implemented:**
+
+To ensure the custom bounce logic uses the character's velocity *before* `move_and_slide` modifies it upon impact, the approach was changed:
+
+1.  The character's velocity is stored *before* calling `move_and_slide()`.
+2.  `move_and_slide()` is called.
+3.  Immediately after `move_and_slide()`, `get_slide_collision_count()` and `get_slide_collision(i)` are used to check for collisions that occurred *during* that movement step.
+4.  If a floor collision is detected via `get_slide_collision()`, the custom collision resolution logic (which calls the `BounceSystem`) is invoked *within the same frame*.
+5.  Crucially, the `collision_info` passed to the `MotionSystem` uses the **velocity stored before `move_and_slide()`**, along with the collision details (normal, etc.) obtained from the `KinematicCollision2D` object.
+6.  The resulting velocity calculated by the `BounceSystem` (and potentially other subsystems) is then applied directly, overwriting any modifications made internally by `move_and_slide()`.
+
+This ensures that the bounce calculation accurately reflects the pre-impact velocity, allowing for high-energy bounces consistent with the launch parameters. The previous method of checking `is_on_floor()` in the next frame was removed to avoid redundant processing.
