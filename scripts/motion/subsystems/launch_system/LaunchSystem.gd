@@ -66,6 +66,7 @@ func unregister_entity(entity_id: int) -> bool:
 # strength: Base magnitude of the launch force
 # Returns: True if parameters were set successfully
 func set_launch_parameters(entity_id: int, angle_degrees: float, power: float, strength: float = -1.0) -> bool:
+	print("[LaunchSystem] set_launch_parameters called - Entity: ", entity_id, ", Angle: ", angle_degrees, ", Power: ", power, ", Strength: ", strength) # DEBUG PRINT
 	return _entity_data.set_launch_parameters(entity_id, angle_degrees, power, strength)
 
 # Calculate launch vector for an entity
@@ -88,7 +89,11 @@ func calculate_launch_vector(entity_id: int) -> Vector2:
 # position: The current position of the entity being launched
 # Returns: The launch vector
 func launch_entity(entity_id: int, position: Vector2) -> Vector2:
+	print("[LaunchSystem] launch_entity called - Entity: ", entity_id) # DEBUG PRINT
+	var current_params = get_launch_parameters(entity_id)
+	print("[LaunchSystem] Current params before calc: ", current_params) # DEBUG PRINT
 	var launch_vector = calculate_launch_vector(entity_id)
+	print("[LaunchSystem] Calculated vector: ", launch_vector) # DEBUG PRINT
 
 	# Emit a signal that the entity was launched
 	# This could be used by other systems to react to the launch

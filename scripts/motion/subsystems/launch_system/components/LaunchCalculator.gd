@@ -11,7 +11,9 @@ func set_motion_system(motion_system) -> void:
 # entity_data: Dictionary containing launch parameters
 # Returns: The calculated launch vector
 func calculate_launch_vector(entity_data: Dictionary) -> Vector2:
+	print("[LaunchCalculator] Calculating vector with data: ", entity_data) # DEBUG PRINT
 	if entity_data.is_empty():
+		print("[LaunchCalculator] Entity data empty, returning ZERO.") # DEBUG PRINT
 		return Vector2.ZERO
 
 	# Convert angle to radians
@@ -27,5 +29,7 @@ func calculate_launch_vector(entity_data: Dictionary) -> Vector2:
 	# Calculate final launch vector
 	var launch_magnitude = entity_data.launch_strength * entity_data.launch_power
 	var launch_vector = direction * launch_magnitude
+	
+	print("[LaunchCalculator] AngleRad: ", angle_radians, ", Dir: ", direction, ", Mag: ", launch_magnitude, ", Vector: ", launch_vector) # DEBUG PRINT
 
 	return launch_vector

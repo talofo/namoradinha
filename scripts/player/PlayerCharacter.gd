@@ -83,6 +83,7 @@ func _physics_process(delta: float) -> void:
 
 # Handle floor collision with MotionSystem integration
 func _handle_floor_collision() -> void:
+	print("[PlayerCharacter._handle_floor_collision] Velocity BEFORE creating collision_info: ", velocity) # DEBUG PRINT
 	# Create collision info with all necessary context
 	var collision_info = {
 		"entity_id": entity_id,
@@ -98,10 +99,13 @@ func _handle_floor_collision() -> void:
 
 	# Let MotionSystem handle collision response
 	if motion_system and motion_system.has_method("resolve_collision"):
+		print("[PlayerCharacter._handle_floor_collision] Calling motion_system.resolve_collision with info: ", collision_info) # DEBUG PRINT
 		var collision_result = motion_system.resolve_collision(collision_info)
+		print("[PlayerCharacter._handle_floor_collision] Collision result received: ", collision_result) # DEBUG PRINT
 
 		# Apply the collision result
 		if collision_result.has("velocity"):
+			print("[PlayerCharacter._handle_floor_collision] Applying velocity from result: ", collision_result.velocity) # DEBUG PRINT
 			velocity = collision_result.velocity
 		if collision_result.has("has_launched"):
 			has_launched = collision_result.has_launched

@@ -75,7 +75,9 @@ func spawn_player():
 		launch_system.register_entity(entity_id)
 		
 		# Set initial launch parameters
+		print("[PlayerSpawner] Setting launch params - Angle: ", launch_angle_degrees, ", Power: ", launch_power) # DEBUG PRINT
 		launch_system.set_launch_parameters(entity_id, launch_angle_degrees, launch_power)
+		print("[PlayerSpawner] Launch params set for entity: ", entity_id) # DEBUG PRINT
 		
 		# Wait for the player to be properly positioned before launching
 		call_deferred("_prepare_and_launch_player")
@@ -94,7 +96,9 @@ func _prepare_and_launch_player():
 		var entity_id = player_instance.get_instance_id()
 		
 		# Launch the entity, passing its current position, and get the launch vector
+		print("[PlayerSpawner] Calling launch_entity for entity: ", entity_id) # DEBUG PRINT
 		var launch_vector = launch_system.launch_entity(entity_id, player_instance.position)
+		print("[PlayerSpawner] Launch vector received: ", launch_vector) # DEBUG PRINT
 		
 		# Update player state
 		player_instance.has_launched = true
