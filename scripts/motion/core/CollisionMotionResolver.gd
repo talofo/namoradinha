@@ -84,6 +84,8 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 		# Determine state based on resolved motion
 		if is_zero_approx(collision_motion.y):
 			# Bounce stopped, transition to slide
+			# Ensure Y component is zero when transitioning to sliding
+			collision_motion.y = 0.0
 			result = _core.state_manager.transition_to_sliding(collision_motion)
 		else:
 			# Still bouncing
@@ -97,6 +99,8 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 				
 	elif is_sliding:
 		# Entity is sliding, update sliding state
+		# Ensure Y component is zero during sliding
+		velocity.y = 0.0
 		var delta = collision_info.get("delta", 0.016) # Use delta from context or fallback to ~60fps
 		result = _core.state_manager.update_sliding_state(velocity, delta, material_type)
 	

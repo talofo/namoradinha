@@ -53,12 +53,13 @@ func calculate_deceleration(speed: float, delta: float, effective_friction: floa
 	return deceleration
 
 # Check if an entity should stop sliding
-# speed: Current speed
+# speed: Current horizontal speed (absolute value of x component)
 # Returns: True if the entity should stop sliding
 func should_stop_sliding(speed: float) -> bool:
 	var physics_config = _core.get_physics_config()
 	var stop_threshold = physics_config.default_stop_threshold if physics_config else _core.default_stop_threshold
 	
+	# Only consider horizontal speed for stopping
 	return speed < stop_threshold
 
 # Get base friction for a material

@@ -1,160 +1,141 @@
-class_name ModularBoostSystem
+# scripts/motion/subsystems/boost_system/BoostSystem.gd
+# Main entry point for the Boost System subsystem.
+# Handles boost requests, delegates to specific boost types, and applies results.
+class_name BoostSystem
 extends RefCounted
+# Implicitly implements IMotionSubsystem (ensure methods match the interface)
 
-# Implement the IMotionSubsystem interface
-var _motion_system = null
+# Signals
+signal boost_applied(entity_id: int, boost_vector: Vector2, boost_type: String)
 
-# Component references
-var _entity_data = null
-var _calculator = null
+# Preload dependencies
+const BoostCalculator = preload("res://scripts/motion/subsystems/boost_system/components/BoostCalculator.gd")
+const BoostTypeRegistry = preload("res://scripts/motion/subsystems/boost_system/components/BoostTypeRegistry.gd")
+const ManualAirBoost = preload("res://scripts/motion/subsystems/boost_system/types/ManualAirBoost.gd")
+const BoostContext = preload("res://scripts/motion/subsystems/boost_system/data/BoostContext.gd")
+const BoostOutcome = preload("res://scripts/motion/subsystems/boost_system/data/BoostOutcome.gd")
+# Assuming IMotionSubsystem is defined globally or preloaded elsewhere if needed directly.
 
+# Components
+var _boost_calculator: BoostCalculator = null
+var _boost_type_registry: BoostTypeRegistry = null
+
+# Configuration
+var _physics_config = null # Will be set via set_physics_config
+
+# Initialization logic
 func _init() -> void:
-	# Initialize components
-	_entity_data = load("res://scripts/motion/subsystems/boost_system/data/BoostEntityData.gd").new()
-	_calculator = load("res://scripts/motion/subsystems/boost_system/components/BoostCalculator.gd").new()
+	_boost_calculator = BoostCalculator.new()
+	_boost_type_registry = BoostTypeRegistry.new()
 
-# Returns the subsystem name for debugging
+	# Register the initial boost types
+	var manual_air_boost = ManualAirBoost.new()
+	_boost_type_registry.register_boost_type("manual_air", manual_air_boost)
+	# Register other boost types here in the future
+
+# --- Configuration ---
+
+# Sets the physics configuration resource used by boost types.
+# physics_config: The loaded PhysicsConfig resource.
+func set_physics_config(physics_config) -> void:
+	_physics_config = physics_config
+	# Optionally, pass this down to boost types if they need direct access during init,
+	# but passing via context during calculation is generally preferred.
+
+# --- Core Logic ---
+
+# Attempts to apply a boost of a specific type to an entity.
+# entity_id: The ID of the entity requesting the boost.
+# boost_type: The string identifier of the boost type (e.g., "manual_air").
+# state_data: A Dictionary containing the entity's current motion state
+#             (e.g., {"is_airborne": bool, "is_rising": bool, "velocity": Vector2, "position": Vector2}).
+# direction: An optional Vector2 hint for directional boosts (not used by ManualAirBoost).
+# Returns: A Dictionary containing the result:
+#          {"success": bool, "reason": String (if failed),
+#           "boost_vector": Vector2 (if successful), "resulting_velocity": Vector2 (if successful)}
+func try_apply_boost(entity_id: int, boost_type: String, state_data: Dictionary, direction: Vector2 = Vector2.ZERO) -> Dictionary:
+	# 1. Check if the requested boost type is registered
+	if not _boost_type_registry.has_boost_type(boost_type):
+		# Use warning instead of error since this is an expected condition we test for
+		push_warning("Unknown boost type requested: '%s' for entity %d" % [boost_type, entity_id])
+		return {"success": false, "reason": "unknown_boost_type"}
+
+	# 2. Create the context object for this boost attempt
+	var boost_context = BoostContext.new()
+	boost_context.entity_id = entity_id
+	# Safely get values from state_data, providing defaults
+	boost_context.is_airborne = state_data.get("is_airborne", false)
+	boost_context.is_rising = state_data.get("is_rising", false) # Assumes state_data provides this
+	boost_context.current_velocity = state_data.get("velocity", Vector2.ZERO)
+	boost_context.position = state_data.get("position", Vector2.ZERO)
+	boost_context.requested_direction = direction
+	boost_context.physics_config = _physics_config # Pass the stored physics config
+
+	# 3. Get the specific boost type handler instance
+	var boost_type_instance = _boost_type_registry.get_boost_type(boost_type)
+
+	# 4. Check if the boost type's conditions are met
+	if not boost_type_instance.can_apply_boost(boost_context):
+		# This is an expected outcome, not necessarily an error (e.g., trying to air boost on ground)
+		# push_warning("Boost type '%s' cannot be applied in current state for entity %d" % [boost_type, entity_id])
+		return {"success": false, "reason": "invalid_state_for_boost"}
+
+	# 5. Calculate the boost outcome using the calculator and type instance
+	var boost_outcome: BoostOutcome = _boost_calculator.calculate_boost(boost_context, boost_type_instance)
+
+	# 6. Check if the calculation was successful (e.g., didn't result in zero vector)
+	if not boost_outcome.success:
+		# push_warning("Boost calculation failed for type '%s', entity %d. Reason: %s" % [boost_type, entity_id, boost_outcome.failure_reason])
+		return {"success": false, "reason": boost_outcome.failure_reason}
+
+	# 7. Emit signal indicating a successful boost application
+	emit_signal("boost_applied", entity_id, boost_outcome.boost_vector, boost_type)
+
+	# 8. Return the successful result
+	return {
+		"success": true,
+		"boost_vector": boost_outcome.boost_vector,
+		"resulting_velocity": boost_outcome.resulting_velocity
+	}
+
+
+# --- IMotionSubsystem Interface Implementation ---
+
+# Returns the unique name of this subsystem.
 func get_name() -> String:
-	return "BoostSystem"
+	return "BoostSystem" # Use the standard name now
 
-# Called when the subsystem is registered with the MotionSystem
+# Called when the subsystem is registered with the MotionSystemCore.
 func on_register() -> void:
-	# Pass motion system reference to components
-	_entity_data.set_motion_system(_motion_system)
-	_calculator.set_motion_system(_motion_system)
+	# Perform any setup needed upon registration (e.g., connecting signals)
+	pass
 
-# Called when the subsystem is unregistered from the MotionSystem
+# Called when the subsystem is unregistered.
 func on_unregister() -> void:
-	_motion_system = null
+	# Perform any cleanup needed upon unregistration
+	pass
 
-# Returns modifiers for frame-based updates
-# delta: Time since last frame
-# Returns: Array of MotionModifier objects
-func get_continuous_modifiers(delta: float) -> Array:
-	# Update boost durations and remove expired boosts
-	_entity_data.update_boosts(delta)
-
-	# In a real implementation, this would check active boosts and return appropriate modifiers
-	var modifiers = []
-
-	# Process each entity with active boosts
-	for entity_id in _get_entities_with_active_boosts():
-		var entity_data = _entity_data.get_data(entity_id)
-		if entity_data.is_empty():
-			continue
-
-		# Calculate the combined boost vector for this entity
-		var boost_vector = _calculator.calculate_boost_vector(entity_data)
-
-		# Skip if no effective boost
-		if boost_vector.length_squared() < 0.01:
-			continue
-
-		# Create a boost modifier
-		var boost_modifier = load("res://scripts/motion/MotionModifier.gd").new(
-			"BoostSystem",  # source
-			"velocity",     # type
-			10,             # priority
-			boost_vector,   # vector (calculated boost)
-			1.0,            # scalar
-			true,           # is_additive
-			-1              # duration (permanent)
-		)
-
-		modifiers.append(boost_modifier)
-
-	return modifiers
-
-# Returns modifiers for collision events
-# collision_info: Information about the collision
-# Returns: Array of MotionModifier objects
-func get_collision_modifiers(_collision_info: Dictionary) -> Array:
-	# In a real implementation, this would check for collision-triggered boosts
-	# For now, just return an empty array
+# Returns motion modifiers for continuous application (e.g., gravity, friction).
+# This system applies instantaneous boosts, so it returns none.
+func get_motion_modifiers(entity_id: int, delta: float) -> Array:
 	return []
 
-# Register an entity with the boost system
-# entity_id: Unique identifier for the entity
-# Returns: True if registration was successful
-func register_entity(entity_id: int) -> bool:
-	return _entity_data.register_entity(entity_id)
+# Returns motion modifiers triggered by collisions.
+# This system doesn't react directly to collisions in this way.
+func get_collision_modifiers(collision_context) -> Array:
+	# collision_context likely contains info about the collision (entity_id, collider, normal, etc.)
+	return []
 
-# Unregister an entity from the boost system
-# entity_id: Unique identifier for the entity
-# Returns: True if unregistration was successful
-func unregister_entity(entity_id: int) -> bool:
-	return _entity_data.unregister_entity(entity_id)
-
-# Trigger a manual boost
-# entity_id: Unique identifier for the entity
-# direction: Direction of the boost
-# strength: Strength of the boost
-# duration: Duration of the boost in seconds (-1 for permanent)
-# Returns: The boost ID, or empty string if failed
-func trigger_boost(entity_id: int, direction: Vector2, strength: float, duration: float = -1) -> String:
-	return _entity_data.add_boost(entity_id, direction, strength, duration)
-
-# Get all active boosts for an entity
-# entity_id: Unique identifier for the entity
-# Returns: Array of active boosts, or empty array if entity not found
-func get_active_boosts(entity_id: int) -> Array:
-	return _entity_data.get_active_boosts(entity_id)
-
-# Get boost history for an entity
-# entity_id: Unique identifier for the entity
-# Returns: Array of boost history, or empty array if entity not found
-func get_boost_history(entity_id: int) -> Array:
-	return _entity_data.get_boost_history(entity_id)
-
-# Remove a boost from an entity
-# entity_id: Unique identifier for the entity
-# boost_id: ID of the boost to remove
-# Returns: True if removal was successful
-func remove_boost(entity_id: int, boost_id: String) -> bool:
-	return _entity_data.remove_boost(entity_id, boost_id)
-
-# Clear all boosts for an entity
-# entity_id: Unique identifier for the entity
-# Returns: True if clearing was successful
-func clear_boosts(entity_id: int) -> bool:
-	if not _entity_data.has_entity(entity_id):
-		return false
-
-	var active_boosts = _entity_data.get_active_boosts(entity_id)
-	var success = true
-
-	for boost in active_boosts:
-		if not _entity_data.remove_boost(entity_id, boost.id):
-			success = false
-
-	return success
-
-# Get all entities with active boosts
-# Returns: Array of entity IDs
-func _get_entities_with_active_boosts() -> Array:
-	var entities = []
-
-	# Get all entities that have active boosts
-	for entity_id in _entity_data._entity_data.keys():
-		var entity_data = _entity_data.get_data(entity_id)
-		if not entity_data.is_empty() and entity_data.has("active_boosts") and not entity_data.active_boosts.is_empty():
-			entities.append(entity_id)
-
-	return entities
-
-# Returns a dictionary of signals this subsystem provides
-# The dictionary keys are signal names, values are signal parameter types
-# Returns: Dictionary of provided signals
+# Declares signals provided by this subsystem.
 func get_provided_signals() -> Dictionary:
-	# BoostSystem doesn't provide any signals
-	return {}
+	# Format: { "signal_name": [arg_type1, arg_type2, ...] }
+	# Using strings for types as per potential MotionSystemCore conventions
+	return {
+		"boost_applied": ["int", "Vector2", "String"]
+	}
 
-# Returns an array of signal dependencies this subsystem needs
-# Each entry is a dictionary with:
-# - "provider": The name of the subsystem providing the signal
-# - "signal_name": The name of the signal to connect to
-# - "method": The method in this subsystem to connect to the signal
-# Returns: Array of signal dependencies
+# Declares signals this subsystem depends on from other subsystems.
 func get_signal_dependencies() -> Array:
-	# BoostSystem doesn't depend on signals from other subsystems
+	# Format: [{ "provider": "SubsystemName", "signal_name": "signal_name", "method": "local_method_to_call" }]
+	# This system currently doesn't depend on signals from others.
 	return []

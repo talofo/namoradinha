@@ -76,6 +76,7 @@ func transition_to_stopped() -> Dictionary:
 func update_sliding_state(velocity: Vector2, delta: float, material_type: String) -> Dictionary:
 	var result = {}
 	
+	# Only consider horizontal speed (x component) for sliding
 	var speed = abs(velocity.x)
 	var direction = sign(velocity.x)
 	
@@ -96,6 +97,7 @@ func update_sliding_state(velocity: Vector2, delta: float, material_type: String
 		return transition_to_stopped()
 	else:
 		# Continue sliding
+		# Ensure Y component is always zero during sliding
 		result["velocity"] = Vector2(direction * new_speed, 0.0)
 		result["is_sliding"] = true
 

@@ -34,7 +34,7 @@ var _subsystem_paths = [
 
 	# Then register dependent subsystems
 	"res://scripts/motion/subsystems/bounce_system/BounceSystem.gd",  # Path to the new BounceSystem script
-	"res://scripts/motion/subsystems/boost_system/BoostSystem.gd",
+	"res://scripts/motion/subsystems/boost_system/BoostSystem.gd",    # Path to the new BoostSystem script
 	# "res://scripts/motion/subsystems/ObstacleSystem.gd", # Removed placeholder
 	# "res://scripts/motion/subsystems/EquipmentSystem.gd", # Removed placeholder
 	# "res://scripts/motion/subsystems/TraitSystem.gd", # Removed placeholder

@@ -1,87 +1,89 @@
-# ModularBoostSystem
+# Boost System
 
-A subsystem for the MotionSystem that handles boost physics calculations and management.
+A modular system for applying boosts to entities during gameplay.
 
 ## Overview
 
-The BoostSystem manages temporary or permanent velocity boosts that can be applied to entities. It tracks active boosts, calculates their combined effect, and provides modifiers to the MotionSystem to adjust entity velocity.
+The Boost System allows entities to receive velocity changes during gameplay based on different boost types. The system is designed to be extensible, allowing for various boost types with different behaviors.
 
-## Components
+## Core Components
 
-- **BoostSystem.gd (ModularBoostSystem)**: Main entry point that implements IMotionSubsystem
-- **BoostCalculator.gd**: Handles boost physics calculations
-- **BoostEntityData.gd**: Manages entity-specific boost data
+- **BoostSystem**: Main entry point implementing the IMotionSubsystem interface
+- **BoostTypeRegistry**: Manages registration of different boost types
+- **BoostCalculator**: Handles boost vector calculations
+- **IBoostType**: Interface for all boost types
+- **ManualAirBoost**: Implementation of the Manual Air Boost type
 
-## Features
+## Data Structures
 
-- Manages multiple simultaneous boosts per entity
-- Supports temporary boosts with duration or permanent boosts
-- Tracks boost history for debugging or gameplay mechanics
-- Calculates combined boost vectors from multiple active boosts
-- Adjusts boost effectiveness based on entity properties and physics configuration
-- Provides methods for manually triggering boosts
+- **BoostContext**: Input data for boost calculations
+- **BoostOutcome**: Output data with calculation results
 
-## Integration with MotionSystem
+## Manual Air Boost
 
-The BoostSystem implements the `IMotionSubsystem` interface and is registered with the `MotionSystem`. It primarily contributes modifiers during the `get_continuous_modifiers` phase to adjust entity velocity.
+The Manual Air Boost is a player-triggered boost that can only be used while airborne. It provides a directional motion change based on the player's vertical movement:
+
+- When rising: Applies an upward-forward boost (orange-yellow visual effect)
+- When falling: Applies a downward-forward boost (orange-yellow visual effect)
+
+## Visual Effects
+
+Each boost type can have its own unique visual effect:
+
+- **Manual Air Boost**: Orange-yellow particles with a matching trail
+- **Environmental Boost** (future): Green particles with a matching trail
+- **Mega Boost** (future): Purple particles with a matching trail
+
+The visual effects system is designed to be easily extensible. To add a new visual effect for a boost type:
+
+1. Add a new entry to the `EFFECT_CONFIGS` dictionary in `BoostEffect.gd`
+2. Pass the boost type name to the `show_effect` method when applying the boost
+
+## Setup Instructions
+
+### 1. Add Input Mapping
+
+Before using the Manual Air Boost, you need to add an input action in the Godot project settings:
+
+1. Open the Godot editor
+2. Go to Project > Project Settings
+3. Select the "Input Map" tab
+4. Add a new action called "boost"
+5. Assign a key (e.g., Space) to this action
+
+![Input Mapping](https://docs.godotengine.org/en/stable/_images/input_event_mapping.png)
+
+### 2. Physics Configuration (Optional)
+
+For better configurability, you can add these parameters to your physics configuration:
+
+```gdscript
+# Boost parameters
+var manual_air_boost_rising_strength: float = 300.0
+var manual_air_boost_rising_angle: float = 45.0
+var manual_air_boost_falling_strength: float = 500.0
+var manual_air_boost_falling_angle: float = -60.0
+var boost_cooldown: float = 0.5
+```
 
 ## Usage
 
-The `MotionSystem` automatically utilizes the `BoostSystem` during continuous motion resolution. Key interactions:
+The PlayerCharacter class now has input handling for the Manual Air Boost. When the player presses the "boost" key (Space by default) while airborne, it will:
 
-1. **Registration:** Entities must be registered with the BoostSystem before they can receive boosts:
-   ```gdscript
-   var boost_system = motion_system.get_subsystem("BoostSystem")
-   boost_system.register_entity(entity_id)
-   ```
+1. Check if the player is in a valid state for boosting
+2. Call the BoostSystem's `try_apply_boost` method with the current state
+3. Apply the resulting velocity if successful
 
-2. **Triggering Boosts:** Boosts can be triggered manually:
-   ```gdscript
-   # Apply a rightward boost with strength 10 for 2 seconds
-   boost_system.trigger_boost(entity_id, Vector2(1, 0), 10.0, 2.0)
-   
-   # Apply a permanent upward boost with strength 5
-   boost_system.trigger_boost(entity_id, Vector2(0, -1), 5.0, -1)
-   ```
+## Extending with New Boost Types
 
-3. **Managing Boosts:** Boosts can be removed or cleared:
-   ```gdscript
-   # Remove a specific boost
-   boost_system.remove_boost(entity_id, boost_id)
-   
-   # Clear all boosts for an entity
-   boost_system.clear_boosts(entity_id)
-   ```
+To add a new boost type:
 
-4. **Querying Boosts:** Active boosts and boost history can be queried:
-   ```gdscript
-   # Get all active boosts for an entity
-   var active_boosts = boost_system.get_active_boosts(entity_id)
-   
-   # Get boost history for an entity
-   var boost_history = boost_system.get_boost_history(entity_id)
-   ```
+1. Create a new class that implements the IBoostType interface
+2. Register it with the BoostTypeRegistry in BoostSystem's `_init` method
+3. Implement the activation mechanism appropriate for that boost type
 
-## Boost Data Structure
-
-Each boost is represented as a dictionary with the following fields:
-
-```gdscript
-{
-    "id": String,              # Unique identifier for the boost
-    "direction": Vector2,      # Direction of the boost
-    "strength": float,         # Strength of the boost
-    "duration": float,         # Duration in seconds (-1 for permanent)
-    "remaining_time": float,   # Remaining time in seconds
-    "created_at": float,       # Unix timestamp when the boost was created
-    "removed_at": float        # Unix timestamp when the boost was removed (only in history)
-}
-```
-
-## Implementation Details
-
-- Boosts are combined additively when multiple are active
-- Boost effectiveness can be reduced when boosting against current movement
-- Boost effectiveness can be reduced at high speeds
-- Boosts can be adjusted based on entity mass and type
-- Expired boosts are automatically removed and added to history
+Different boost types can have different activation mechanisms:
+- Manual boosts: Triggered by player input
+- Passive/Buff boosts: Triggered automatically based on game state
+- Environmental boosts: Triggered by collision with objects
+- Mega boosts: Triggered by special conditions

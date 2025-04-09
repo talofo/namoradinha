@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bvj4c558am86h"]
+
+[ext_resource type="Script" uid="uid://k8ftocc5ang4" path="res://scripts/motion/subsystems/boost_system/tests/test_boost_system.gd" id="1_uxvnx"]
+
+[node name="BoostTestScene" type="Node"]
+
+[node name="BoostSystemTest" type="Node" parent="."]
+script = ExtResource("1_uxvnx")
