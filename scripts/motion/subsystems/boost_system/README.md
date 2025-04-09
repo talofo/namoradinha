@@ -28,16 +28,18 @@ The Manual Air Boost is a player-triggered boost that can only be used while air
 
 ## Visual Effects
 
-Each boost type can have its own unique visual effect:
+**Note: Visual effects have been temporarily disabled to fix a flickering issue.**
 
-- **Manual Air Boost**: Orange-yellow particles with a matching trail
-- **Environmental Boost** (future): Green particles with a matching trail
-- **Mega Boost** (future): Purple particles with a matching trail
+The system includes code for visual effects, but they are currently not being used:
 
-The visual effects system is designed to be easily extensible. To add a new visual effect for a boost type:
+- **Manual Air Boost**: (Disabled) Orange-yellow particles with a matching trail
+- **Environmental Boost** (future): (Disabled) Green particles with a matching trail
+- **Mega Boost** (future): (Disabled) Purple particles with a matching trail
 
-1. Add a new entry to the `EFFECT_CONFIGS` dictionary in `BoostEffect.gd`
-2. Pass the boost type name to the `show_effect` method when applying the boost
+If visual effects need to be re-enabled in the future:
+
+1. Restore the calls to `_create_boost_effect()` in `_ready()` and `_show_boost_effect()` in `_try_boost()` in PlayerCharacter.gd
+2. Fix the flickering issue that occurs on the first boost application
 
 ## Setup Instructions
 
