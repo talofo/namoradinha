@@ -3,4 +3,4 @@
 [node name="CameraManager" type="Node2D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
-zoom = Vector2(0.4, 0.4)
+zoom = Vector2(0.2, 0.2)

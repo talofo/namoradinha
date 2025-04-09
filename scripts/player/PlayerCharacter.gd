@@ -30,8 +30,7 @@ func _ready():
 	if not motion_system:
 		pass # No motion system provided
 		
-	# Create boost effect node
-	_create_boost_effect()
+	# Boost effect removed to fix flickering issue
 
 # Handle input for player actions
 func _unhandled_input(event: InputEvent) -> void:
@@ -200,7 +199,7 @@ func _try_boost() -> void:
 	if result.has("success") and result["success"]:
 		velocity = result["resulting_velocity"]
 		boost_cooldown_timer = boost_cooldown_duration
-		_show_boost_effect(result["boost_vector"], "manual_air")
+		# Visual effect removed to fix flickering issue
 		print("Boost applied! New velocity: ", velocity)
 
 # Detect the material of the floor at the current position
