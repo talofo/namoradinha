@@ -1,3 +1,5 @@
+# scripts/effects/visual_effects/BoostEffect.gd
+# Visual effect for boost actions.
 class_name BoostEffect
 extends Node2D
 

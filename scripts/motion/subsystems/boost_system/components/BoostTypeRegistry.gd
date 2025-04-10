@@ -3,8 +3,7 @@
 class_name BoostTypeRegistry
 extends RefCounted
 
-# Preload the interface dependency
-const IBoostType = preload("res://scripts/motion/subsystems/boost_system/interfaces/IBoostType.gd")
+# No need to preload IBoostType as it's globally available via class_name
 
 # Dictionary to store registered boost types { "type_name": IBoostType_instance }
 var _boost_types: Dictionary = {}

@@ -2,7 +2,7 @@ class_name PlayerCharacter
 extends CharacterBody2D
 
 # Preload dependencies
-const BoostEffectClass = preload("res://scripts/player/BoostEffect.gd")
+const BoostEffectClass = preload("res://scripts/effects/visual_effects/BoostEffect.gd")
 
 # === REFERENCES ===
 var motion_system = null

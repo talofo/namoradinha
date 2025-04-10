@@ -39,8 +39,8 @@ var _subsystem_paths = [
 	# "res://scripts/motion/subsystems/EquipmentSystem.gd", # Removed placeholder
 	# "res://scripts/motion/subsystems/TraitSystem.gd", # Removed placeholder
 	# "res://scripts/motion/subsystems/EnvironmentalForceSystem.gd", # Removed placeholder
-	"res://scripts/motion/subsystems/StatusEffectSystem.gd", # Kept as requested
-	"res://scripts/motion/subsystems/CollisionMaterialSystem.gd" # Kept as it's used
+	"res://scripts/motion/subsystems/player_status_modifier_system/PlayerStatusModifierSystem.gd", # Updated path
+	"res://scripts/motion/subsystems/collision_material_system/CollisionMaterialSystem.gd" # Updated path
 ]
 
 # Debug flag to enable/disable debug prints

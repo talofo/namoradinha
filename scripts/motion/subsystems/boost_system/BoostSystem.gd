@@ -8,12 +8,7 @@ extends RefCounted
 # Signals
 signal boost_applied(entity_id: int, boost_vector: Vector2, boost_type: String)
 
-# Preload dependencies
-const BoostCalculator = preload("res://scripts/motion/subsystems/boost_system/components/BoostCalculator.gd")
-const BoostTypeRegistry = preload("res://scripts/motion/subsystems/boost_system/components/BoostTypeRegistry.gd")
-const ManualAirBoost = preload("res://scripts/motion/subsystems/boost_system/types/ManualAirBoost.gd")
-const BoostContext = preload("res://scripts/motion/subsystems/boost_system/data/BoostContext.gd")
-const BoostOutcome = preload("res://scripts/motion/subsystems/boost_system/data/BoostOutcome.gd")
+# No need to preload classes that are globally available via class_name
 # Assuming IMotionSubsystem is defined globally or preloaded elsewhere if needed directly.
 
 # Components
@@ -117,12 +112,12 @@ func on_unregister() -> void:
 
 # Returns motion modifiers for continuous application (e.g., gravity, friction).
 # This system applies instantaneous boosts, so it returns none.
-func get_motion_modifiers(entity_id: int, delta: float) -> Array:
+func get_motion_modifiers(_entity_id: int, _delta: float) -> Array:
 	return []
 
 # Returns motion modifiers triggered by collisions.
 # This system doesn't react directly to collisions in this way.
-func get_collision_modifiers(collision_context) -> Array:
+func get_collision_modifiers(_collision_context) -> Array:
 	# collision_context likely contains info about the collision (entity_id, collider, normal, etc.)
 	return []
 

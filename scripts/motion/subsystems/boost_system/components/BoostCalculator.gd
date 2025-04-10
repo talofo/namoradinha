@@ -3,10 +3,7 @@
 class_name BoostCalculator
 extends RefCounted
 
-# Preload dependencies
-const BoostContext = preload("res://scripts/motion/subsystems/boost_system/data/BoostContext.gd")
-const BoostOutcome = preload("res://scripts/motion/subsystems/boost_system/data/BoostOutcome.gd")
-const IBoostType = preload("res://scripts/motion/subsystems/boost_system/interfaces/IBoostType.gd")
+# No need to preload classes that are globally available via class_name
 
 # Calculates the boost outcome.
 # boost_context: The BoostContext containing current state.

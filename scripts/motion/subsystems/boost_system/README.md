@@ -80,7 +80,7 @@ The PlayerCharacter class now has input handling for the Manual Air Boost. When 
 
 To add a new boost type:
 
-1. Create a new class that implements the IBoostType interface
+1. Create a new class in `scripts/boosts/` that implements the IBoostType interface
 2. Register it with the BoostTypeRegistry in BoostSystem's `_init` method
 3. Implement the activation mechanism appropriate for that boost type
 

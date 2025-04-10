@@ -1,4 +1,4 @@
-# scripts/motion/subsystems/boost_system/types/ManualAirBoost.gd
+# scripts/boosts/ManualAirBoost.gd
 # Implementation for the Manual Air Boost type.
 # This class implements the IBoostType interface by providing the required methods:
 # - can_apply_boost(boost_context)
@@ -6,9 +6,7 @@
 class_name ManualAirBoost
 extends RefCounted
 
-# Explicitly preload dependencies
-const IBoostType = preload("res://scripts/motion/subsystems/boost_system/interfaces/IBoostType.gd")
-const BoostContext = preload("res://scripts/motion/subsystems/boost_system/data/BoostContext.gd")
+# No need to preload classes that are globally available via class_name
 
 # Default values - these could be loaded from configuration or overridden by physics_config
 const DEFAULT_RISING_BOOST_STRENGTH = 300.0

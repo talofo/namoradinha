@@ -3,12 +3,12 @@
 class_name IBoostType
 extends RefCounted
 
-const BoostContext = preload("res://scripts/motion/subsystems/boost_system/data/BoostContext.gd")
+# No need to preload BoostContext as it's globally available via class_name
 
 # Check if the boost can be applied in the current context.
 # boost_context: A BoostContext object containing current state.
 # Returns: True if the boost can be applied, false otherwise.
-func can_apply_boost(boost_context: BoostContext) -> bool:
+func can_apply_boost(_boost_context: BoostContext) -> bool:
 	push_error("IBoostType.can_apply_boost() must be implemented by subclasses")
 	return false
 
@@ -16,6 +16,6 @@ func can_apply_boost(boost_context: BoostContext) -> bool:
 # boost_context: A BoostContext object containing current state.
 # Returns: A Vector2 representing the velocity change to apply.
 #          Should return Vector2.ZERO if the boost calculation results in no change.
-func calculate_boost_vector(boost_context: BoostContext) -> Vector2:
+func calculate_boost_vector(_boost_context: BoostContext) -> Vector2:
 	push_error("IBoostType.calculate_boost_vector() must be implemented by subclasses")
 	return Vector2.ZERO
