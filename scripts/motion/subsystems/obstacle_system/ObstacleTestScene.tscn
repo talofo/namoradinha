@@ -1,0 +1,31 @@
+[gd_scene load_steps=4 format=3 uid="uid://c8q6y7x3jqnya"]
+
+[ext_resource type="Script" uid="uid://blpcdnq6otxoi" path="res://scripts/motion/subsystems/obstacle_system/tests/test_obstacle_system.gd" id="1_yvj5r"]
+[ext_resource type="PackedScene" uid="uid://c8q6y7x3jqnx8" path="res://obstacles/RockObstacle.tscn" id="2_aqmvp"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_j8r6t"]
+radius = 16.0
+
+[node name="ObstacleTestScene" type="Node2D"]
+script = ExtResource("1_yvj5r")
+
+[node name="Player" type="CharacterBody2D" parent="."]
+position = Vector2(200, 300)
+collision_layer = 2
+collision_mask = 4
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
+shape = SubResource("CircleShape2D_j8r6t")
+
+[node name="Sprite2D" type="Sprite2D" parent="Player"]
+scale = Vector2(0.3, 0.3)
+
+[node name="RockObstacle" parent="." instance=ExtResource("2_aqmvp")]
+position = Vector2(400, 300)
+
+[node name="DebugLabel" type="Label" parent="."]
+offset_left = 50.0
+offset_top = 50.0
+offset_right = 750.0
+offset_bottom = 500.0
+text = "Obstacle System Test Results"
