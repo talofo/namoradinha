@@ -3,7 +3,7 @@ extends Resource
 
 # Basic physics parameters
 @export var gravity: float = 1200.0
-@export var default_ground_friction: float = 0.2
+@export var default_ground_friction: float = 0.15  # Middle ground between original 0.2 and our 0.1
 @export var default_stop_threshold: float = 0.5
 
 # Bounce physics

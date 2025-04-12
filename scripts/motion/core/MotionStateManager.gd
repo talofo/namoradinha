@@ -63,8 +63,8 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 func transition_to_sliding(velocity: Vector2) -> Dictionary:
 	var result = {}
 	
-	# Preserve x-velocity with a small reduction to make the transition smoother
-	var preserved_x_velocity = velocity.x * 0.98  # No velocity clamping to allow for unlimited jump heights
+	# Preserve x-velocity with minimal reduction to allow for longer slides
+	var preserved_x_velocity = velocity.x * 0.99  # Increased from 0.98 to 0.99 for longer slides
 	result["velocity"] = Vector2(preserved_x_velocity, 0.0)
 	result["has_launched"] = false
 	result["is_sliding"] = true

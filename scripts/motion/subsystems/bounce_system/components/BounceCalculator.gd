@@ -5,11 +5,13 @@ extends RefCounted
 
 # --- Constants ---
 # Minimum ratio of normal velocity to maintain after bounce (0.0-1.0)
-const MIN_BOUNCE_ENERGY_RATIO: float = 0.3
+const MIN_BOUNCE_ENERGY_RATIO: float = 0.5
 # Minimum bounce height (in pixels) required to continue bouncing
 const MIN_BOUNCE_HEIGHT_THRESHOLD: float = 60.0
+# Minimum kinetic energy required to continue bouncing
+const MIN_BOUNCE_KINETIC_ENERGY: float = 3000.0
 # Minimum speed below which the entity might transition from sliding to stopped.
-const MIN_STOP_SPEED: float = 10.0
+const MIN_STOP_SPEED: float = 8.0
 
 ## Performs the stateless bounce calculation.
 ## Takes a CollisionContext and returns a BounceOutcome.
@@ -22,10 +24,15 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 	# TODO: Revisit if gravity vector should directly influence bounce/friction/termination physics.
 	
 	var incoming_velocity: Vector2 = motion_state.velocity
-	# --- Assume Flat Surface ---
-	# We are explicitly told the surface will always be flat ground.
-	# Therefore, the normal is always UP. We ignore the reported surface.normal for bounce calculation.
-	var surface_normal: Vector2 = Vector2.UP 
+	# --- Get Surface Normal ---
+	# Use the actual surface normal from the impact data
+	var surface_normal: Vector2 = surface.normal.normalized()
+	
+	# Debug check to ensure we're getting a valid normal
+	if Engine.is_editor_hint() or OS.is_debug_build():
+		print("[DEBUG] BounceCalculator: Using surface normal: ", surface_normal)
+		if surface_normal.is_equal_approx(Vector2.UP):
+			print("[DEBUG] BounceCalculator: Surface is flat (normal = UP)")
 	
 	# --- Debug Setup ---
 	var debug_data: BounceDebugData = null
@@ -52,29 +59,74 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 	# v_out = v_in.bounce(normal) * elasticity 
 	# However, let's calculate manually for clarity and modifier application:
 	
-	# --- Simplified Bounce Physics (Assuming Flat Surface Normal = Vector2.UP) ---
-	var calculated_velocity: Vector2 = incoming_velocity
-
-	# 1. Apply elasticity to the Y component (normal component for flat ground)
-	# Only apply if moving downwards (velocity.y > 0 in Godot 2D)
-	if incoming_velocity.y > 0:
-		calculated_velocity.y = -incoming_velocity.y * effective_elasticity
+	# --- Bounce Physics Using Surface Normal ---
+	var calculated_velocity: Vector2 = Vector2.ZERO
+	
+	# 1. Decompose velocity into normal and tangential components
+	var normal_component = incoming_velocity.dot(surface_normal) * surface_normal
+	var tangent_component = incoming_velocity - normal_component
+	
+	# Store for debugging
+	var normal_speed = normal_component.length()
+	var tangent_speed = tangent_component.length()
+	
+	if debug_data:
+		debug_data.add_note("Normal component: %s (speed: %.2f)" % [str(normal_component), normal_speed])
+		debug_data.add_note("Tangent component: %s (speed: %.2f)" % [str(tangent_component), tangent_speed])
+	
+	# 2. Apply elasticity to the normal component (only if moving into the surface)
+	var reflected_normal = Vector2.ZERO
+	if normal_component.dot(surface_normal) < 0:
+		# Moving into the surface, apply bounce
+		reflected_normal = -normal_component * effective_elasticity
 	else:
-		# If already moving up, don't apply bounce elasticity (e.g., grazing angle)
-		if debug_data: debug_data.add_note("Grazing impact or already moving up, no Y-velocity bounce applied.")
-		pass 
-
-	# 2. Apply friction to the X component (tangent component for flat ground)
-	# Simple model: Reduce horizontal speed based on friction.
-	var tangent_speed = abs(incoming_velocity.x)
-	var friction_reduction = tangent_speed * effective_friction # Simplified reduction factor
+		# Moving away from or parallel to surface, preserve component
+		if debug_data: debug_data.add_note("Grazing impact or already moving away, no normal bounce applied.")
+		reflected_normal = normal_component
+	
+	# 3. Apply friction to the tangential component
+	var friction_reduction = tangent_speed * effective_friction
 	var new_tangent_speed = maxf(0.0, tangent_speed - friction_reduction)
-	calculated_velocity.x = sign(incoming_velocity.x) * new_tangent_speed if tangent_speed > 0.01 else 0.0
+	var scaled_tangent = Vector2.ZERO
+	if tangent_speed > 0.01:
+		scaled_tangent = tangent_component.normalized() * new_tangent_speed
+	
+	# 4. Recombine components
+	calculated_velocity = reflected_normal + scaled_tangent
+	
+	# 5. Apply bounce angle adjustment if needed
+	if !is_zero_approx(profile.bounce_angle_adjustment) and !is_zero_approx(reflected_normal.length()):
+		# Only apply angle adjustment if we have a meaningful bounce
+		var rotation_matrix = Transform2D().rotated(profile.bounce_angle_adjustment)
+		calculated_velocity = rotation_matrix * calculated_velocity
+		
+		if debug_data:
+			debug_data.add_note("Applied bounce angle adjustment: %.2f radians" % profile.bounce_angle_adjustment)
+	
+	# Special case for flat ground (Vector2.UP) to ensure identical behavior to previous implementation
+	if surface_normal.is_equal_approx(Vector2.UP):
+		# For flat ground, we can simplify and ensure identical results to the previous implementation
+		var flat_calculated_velocity = Vector2(incoming_velocity.x, incoming_velocity.y)
+		
+		# Apply elasticity to Y component (only if moving downward)
+		if incoming_velocity.y > 0:
+			flat_calculated_velocity.y = -incoming_velocity.y * effective_elasticity
+		
+		# Apply friction to X component
+		var flat_tangent_speed = abs(incoming_velocity.x)
+		var flat_friction_reduction = flat_tangent_speed * effective_friction
+		var flat_new_tangent_speed = maxf(0.0, flat_tangent_speed - flat_friction_reduction)
+		flat_calculated_velocity.x = sign(incoming_velocity.x) * flat_new_tangent_speed if flat_tangent_speed > 0.01 else 0.0
+		
+		# For flat ground, use the simplified calculation to ensure identical behavior
+		calculated_velocity = flat_calculated_velocity
+		
+		if debug_data:
+			debug_data.add_note("Using simplified flat ground calculation for Vector2.UP normal")
 
-	# --- Apply Profile Modifiers (Directly to X/Y components) ---
+	# --- Apply Profile Modifiers ---
 	calculated_velocity.x *= profile.horizontal_speed_modifier
 	calculated_velocity.y *= profile.vertical_speed_modifier
-	# Note: bounce_angle_adjustment is ignored in this simplified model
 
 	if debug_data:
 		debug_data.calculated_velocity_pre_mods = calculated_velocity # Store before termination checks modify it
@@ -92,6 +144,9 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 	# In Godot, Y increases downward, so floor_position_y - max_height_y gives the height
 	var bounce_height = floor_position_y - max_height_y
 	
+	# Calculate kinetic energy (velocity^2)
+	var kinetic_energy = calculated_velocity.length_squared()
+	
 	# Print debug information (only in debug mode)
 	if Engine.is_editor_hint() or OS.is_debug_build():
 		print("[DEBUG] BounceCalculator: floor_position_y=", floor_position_y, ", max_height_y=", max_height_y)
@@ -99,19 +154,27 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 		print("[DEBUG] BounceCalculator: incoming_velocity=", incoming_velocity)
 		print("[DEBUG] BounceCalculator: effective_elasticity=", effective_elasticity)
 		print("[DEBUG] BounceCalculator: calculated_velocity=", calculated_velocity)
+		print("[DEBUG] BounceCalculator: kinetic_energy=", kinetic_energy, ", threshold=", MIN_BOUNCE_KINETIC_ENERGY)
 	
-	# Check if bounce height is below threshold
+	# Check if bounce height is below threshold or kinetic energy is too low
 	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceCalculator: Checking if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD: ", bounce_height, " < ", MIN_BOUNCE_HEIGHT_THRESHOLD)
-	if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD:
+		print("[DEBUG] BounceCalculator: Checking termination conditions...")
+		print("[DEBUG] BounceCalculator: bounce_height < threshold: ", bounce_height, " < ", MIN_BOUNCE_HEIGHT_THRESHOLD)
+		print("[DEBUG] BounceCalculator: kinetic_energy < threshold: ", kinetic_energy, " < ", MIN_BOUNCE_KINETIC_ENERGY)
+	
+	if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD or kinetic_energy < MIN_BOUNCE_KINETIC_ENERGY:
 		# Bounce height too small, transition to sliding
 		termination_state = BounceOutcome.STATE_SLIDING
 		# When sliding, kill the vertical velocity
 		final_velocity.y = 0.0 
 		
 		if debug_data:
-			debug_data.termination_reason = "Bounce height %.2f < threshold %.2f" % [
-				bounce_height, MIN_BOUNCE_HEIGHT_THRESHOLD]
+			if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD:
+				debug_data.termination_reason = "Bounce height %.2f < threshold %.2f" % [
+					bounce_height, MIN_BOUNCE_HEIGHT_THRESHOLD]
+			else:
+				debug_data.termination_reason = "Kinetic energy %.2f < threshold %.2f" % [
+					kinetic_energy, MIN_BOUNCE_KINETIC_ENERGY]
 			debug_data.add_note("Entering SLIDING state.")
 			
 		if Engine.is_editor_hint() or OS.is_debug_build():

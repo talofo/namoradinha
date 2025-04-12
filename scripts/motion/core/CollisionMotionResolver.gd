@@ -54,8 +54,15 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 				if Engine.is_editor_hint() or OS.is_debug_build():
 					print("[DEBUG] CollisionMotionResolver: Created ImpactSurfaceData with elasticity = ", surface_data.elasticity)
 				
-				# Create a default player profile (ideally this would come from the player's actual profile)
-				var player_profile = PlayerBounceProfile.new() 
+				# Create a player profile with adjusted modifiers for more horizontal movement
+				var player_profile = PlayerBounceProfile.new(
+					1.0,                # bounciness_multiplier (default)
+					0.0,                # bounce_angle_adjustment (default)
+					1.0,                # gravity_scale_modifier (default)
+					1.0,                # friction_interaction_modifier (default)
+					1.2,                # horizontal_speed_modifier (increased)
+					0.8                 # vertical_speed_modifier (decreased)
+				)
 				
 				# Get gravity magnitude and construct the vector
 				var gravity_magnitude = _core.get_physics_config().get_gravity_for_entity("default", 1.0)
