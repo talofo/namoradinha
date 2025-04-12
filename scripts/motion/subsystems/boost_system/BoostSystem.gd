@@ -5,7 +5,7 @@ class_name BoostSystem
 extends RefCounted
 # Implicitly implements IMotionSubsystem (ensure methods match the interface)
 
-const MotionProfileResolver = preload("res://scripts/motion/core/MotionProfileResolver.gd")
+# No need to preload classes that are globally available via class_name
 
 # Signals
 signal boost_applied(entity_id: int, boost_vector: Vector2, boost_type: String)
@@ -36,10 +36,13 @@ func _init() -> void:
 # Sets the physics configuration resource used by boost types.
 # physics_config: The loaded PhysicsConfig resource.
 # @deprecated Use MotionProfileResolver instead.
-func set_physics_config(_physics_config) -> void:
-	# _physics_config = physics_config # No longer storing this directly
-	push_warning("BoostSystem: set_physics_config is deprecated. Use MotionProfileResolver.")
-	pass
+func set_physics_config(physics_config) -> void:
+	# Store the physics_config for use in try_apply_boost
+	if physics_config is PhysicsConfig:
+		if Engine.is_editor_hint() or OS.is_debug_build():
+			print("[DEBUG] BoostSystem: Received PhysicsConfig via set_physics_config")
+	else:
+		push_warning("BoostSystem: set_physics_config is deprecated. Use MotionProfileResolver.")
 
 # --- Core Logic ---
 

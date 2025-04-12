@@ -3,25 +3,25 @@ extends RefCounted
 
 # No need to preload classes defined with class_name
 
-# --- Constants ---
-# Minimum ratio of normal velocity to maintain after bounce (0.0-1.0)
-const MIN_BOUNCE_ENERGY_RATIO: float = 0.5
-# Minimum bounce height (in pixels) required to continue bouncing
-const MIN_BOUNCE_HEIGHT_THRESHOLD: float = 60.0
-# Minimum kinetic energy required to continue bouncing
-const MIN_BOUNCE_KINETIC_ENERGY: float = 3000.0
-# Minimum speed below which the entity might transition from sliding to stopped.
-const MIN_STOP_SPEED: float = 8.0
-
 ## Performs the stateless bounce calculation.
-## Takes a CollisionContext and returns a BounceOutcome.
-func calculate(context: CollisionContext) -> BounceOutcome:
+## Takes a CollisionContext, resolved motion profile, and physics rules, and returns a BounceOutcome.
+## context: The collision context containing all input data
+## resolved_profile: Dictionary of resolved motion parameters from MotionProfileResolver
+## physics_rules: PhysicsConfig instance containing global rules and thresholds
+func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_rules: PhysicsConfig) -> BounceOutcome:
 	# --- Input Extraction ---
 	var motion_state = context.incoming_motion_state
 	var surface = context.impact_surface_data
 	var profile = context.player_bounce_profile
 	var _gravity = context.current_gravity # Full gravity vector (Currently unused in calculation)
 	# TODO: Revisit if gravity vector should directly influence bounce/friction/termination physics.
+	
+	# --- Extract Parameters from Resolved Profile and Physics Rules ---
+	var min_bounce_energy_ratio: float = resolved_profile.get("min_bounce_energy_ratio", physics_rules.min_bounce_energy_ratio)
+	var min_bounce_height_threshold: float = resolved_profile.get("min_bounce_height_threshold", physics_rules.min_bounce_height_threshold)
+	var min_bounce_kinetic_energy: float = resolved_profile.get("min_bounce_kinetic_energy", physics_rules.min_bounce_kinetic_energy)
+	var min_stop_speed: float = resolved_profile.get("min_stop_speed", physics_rules.min_stop_speed)
+	var horizontal_preservation: float = resolved_profile.get("horizontal_preservation", physics_rules.horizontal_preservation)
 	
 	var incoming_velocity: Vector2 = motion_state.velocity
 	# --- Get Surface Normal ---
@@ -42,8 +42,11 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 		debug_data.add_note("Surface Normal: %s" % str(surface_normal))
 		debug_data.add_note("Surface Elasticity: %.2f, Friction: %.2f" % [surface.elasticity, surface.friction])
 		debug_data.add_note("Profile Bounciness: %.2f, FrictionMod: %.2f" % [profile.bounciness_multiplier, profile.friction_interaction_modifier])
-		# Note: bounce_angle_adjustment is stored for future use with non-flat surfaces
 		debug_data.add_note("Profile Angle Adjustment: %.2f (unused with flat ground)" % profile.bounce_angle_adjustment)
+		debug_data.add_note("Min Bounce Height Threshold: %.2f" % min_bounce_height_threshold)
+		debug_data.add_note("Min Bounce Kinetic Energy: %.2f" % min_bounce_kinetic_energy)
+		debug_data.add_note("Min Stop Speed: %.2f" % min_stop_speed)
+		debug_data.add_note("Horizontal Preservation: %.2f" % horizontal_preservation)
 
 	# --- Core Bounce Physics ---
 	# Calculate effective properties based on surface and player profile
@@ -127,6 +130,9 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 	# --- Apply Profile Modifiers ---
 	calculated_velocity.x *= profile.horizontal_speed_modifier
 	calculated_velocity.y *= profile.vertical_speed_modifier
+	
+	# Apply horizontal preservation from physics rules
+	calculated_velocity.x *= horizontal_preservation
 
 	if debug_data:
 		debug_data.calculated_velocity_pre_mods = calculated_velocity # Store before termination checks modify it
@@ -150,31 +156,31 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 	# Print debug information (only in debug mode)
 	if Engine.is_editor_hint() or OS.is_debug_build():
 		print("[DEBUG] BounceCalculator: floor_position_y=", floor_position_y, ", max_height_y=", max_height_y)
-		print("[DEBUG] BounceCalculator: bounce_height=", bounce_height, ", threshold=", MIN_BOUNCE_HEIGHT_THRESHOLD)
+		print("[DEBUG] BounceCalculator: bounce_height=", bounce_height, ", threshold=", min_bounce_height_threshold)
 		print("[DEBUG] BounceCalculator: incoming_velocity=", incoming_velocity)
 		print("[DEBUG] BounceCalculator: effective_elasticity=", effective_elasticity)
 		print("[DEBUG] BounceCalculator: calculated_velocity=", calculated_velocity)
-		print("[DEBUG] BounceCalculator: kinetic_energy=", kinetic_energy, ", threshold=", MIN_BOUNCE_KINETIC_ENERGY)
+		print("[DEBUG] BounceCalculator: kinetic_energy=", kinetic_energy, ", threshold=", min_bounce_kinetic_energy)
 	
 	# Check if bounce height is below threshold or kinetic energy is too low
 	if Engine.is_editor_hint() or OS.is_debug_build():
 		print("[DEBUG] BounceCalculator: Checking termination conditions...")
-		print("[DEBUG] BounceCalculator: bounce_height < threshold: ", bounce_height, " < ", MIN_BOUNCE_HEIGHT_THRESHOLD)
-		print("[DEBUG] BounceCalculator: kinetic_energy < threshold: ", kinetic_energy, " < ", MIN_BOUNCE_KINETIC_ENERGY)
+		print("[DEBUG] BounceCalculator: bounce_height < threshold: ", bounce_height, " < ", min_bounce_height_threshold)
+		print("[DEBUG] BounceCalculator: kinetic_energy < threshold: ", kinetic_energy, " < ", min_bounce_kinetic_energy)
 	
-	if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD or kinetic_energy < MIN_BOUNCE_KINETIC_ENERGY:
+	if bounce_height < min_bounce_height_threshold or kinetic_energy < min_bounce_kinetic_energy:
 		# Bounce height too small, transition to sliding
 		termination_state = BounceOutcome.STATE_SLIDING
 		# When sliding, kill the vertical velocity
 		final_velocity.y = 0.0 
 		
 		if debug_data:
-			if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD:
+			if bounce_height < min_bounce_height_threshold:
 				debug_data.termination_reason = "Bounce height %.2f < threshold %.2f" % [
-					bounce_height, MIN_BOUNCE_HEIGHT_THRESHOLD]
+					bounce_height, min_bounce_height_threshold]
 			else:
 				debug_data.termination_reason = "Kinetic energy %.2f < threshold %.2f" % [
-					kinetic_energy, MIN_BOUNCE_KINETIC_ENERGY]
+					kinetic_energy, min_bounce_kinetic_energy]
 			debug_data.add_note("Entering SLIDING state.")
 			
 		if Engine.is_editor_hint() or OS.is_debug_build():
@@ -182,14 +188,14 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 
 		# Check if sliding speed (now just horizontal speed) is also too low -> STOPPED
 		var sliding_speed = abs(final_velocity.x) # Check speed *before* potentially setting to zero
-		if sliding_speed < MIN_STOP_SPEED:
+		if sliding_speed < min_stop_speed:
 			termination_state = BounceOutcome.STATE_STOPPED
 			if debug_data:
 				# Append to existing reason if it exists
 				if debug_data.termination_reason:
-					debug_data.termination_reason += " | Sliding speed %.2f < threshold %.2f" % [sliding_speed, MIN_STOP_SPEED]
+					debug_data.termination_reason += " | Sliding speed %.2f < threshold %.2f" % [sliding_speed, min_stop_speed]
 				else: # Should not happen based on logic, but safe fallback
-					debug_data.termination_reason = "Sliding speed %.2f < threshold %.2f" % [sliding_speed, MIN_STOP_SPEED]
+					debug_data.termination_reason = "Sliding speed %.2f < threshold %.2f" % [sliding_speed, min_stop_speed]
 				debug_data.add_note("Entering STOPPED state.")
 			final_velocity = Vector2.ZERO # Force stop *after* logging
 	else:

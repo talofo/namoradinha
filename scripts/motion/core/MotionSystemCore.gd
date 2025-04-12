@@ -63,10 +63,13 @@ func _init() -> void:
 			default_gravity = physics_config.gravity
 			default_ground_friction = physics_config.default_ground_friction
 			default_stop_threshold = physics_config.default_stop_threshold
+			
+			if debug_enabled or OS.is_debug_build():
+				print("MotionSystemCore: Loaded PhysicsConfig from ", config_path)
 		else:
-			pass # Config load failed, using defaults
+			push_warning("MotionSystemCore: Failed to load PhysicsConfig as resource. Using defaults.")
 	else:
-		pass # Config file doesn't exist, using defaults
+		push_warning("MotionSystemCore: PhysicsConfig file not found at ", config_path, ". Using defaults.")
 
 	physics_calculator = load("res://scripts/motion/core/PhysicsCalculator.gd").new(self)
 	state_manager = load("res://scripts/motion/core/MotionStateManager.gd").new(self)
@@ -106,6 +109,14 @@ func register_subsystem(subsystem) -> bool:
 		pass # Subsystem doesn't have _motion_system variable
 
 	_subsystems[subsystem_name] = subsystem
+	
+	# Pass PhysicsConfig if the subsystem needs it
+	if physics_config and subsystem.has_method("set_physics_config"):
+		subsystem.set_physics_config(physics_config)
+		if debug_enabled:
+			print("MotionSystemCore: Passed PhysicsConfig to %s" % subsystem_name)
+			
+	# Call the subsystem's registration hook
 	subsystem.on_register()
 
 	# Connect signals based on dependencies

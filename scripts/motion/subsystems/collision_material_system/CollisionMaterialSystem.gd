@@ -7,36 +7,86 @@ extends RefCounted
 # No need to preload DefaultMaterial as it's globally available via class_name
 
 # Implement the IMotionSubsystem interface
-# No need for _motion_system variable as it's not used
 var _registered_materials = {}
+var _motion_profile_resolver: MotionProfileResolver = null # Resolver reference (still needed?)
+var _physics_config: PhysicsConfig = null # Reference to the main physics config
+var _core = null # Reference to MotionSystemCore (potentially redundant if we have _physics_config)
+
+# Default constants (used only if PhysicsConfig is missing)
+const DEFAULT_FRICTION = 0.5
+const DEFAULT_BOUNCE = 0.5
+const ICE_FRICTION = 0.1
+const ICE_BOUNCE = 0.8
+const MUD_FRICTION = 2.0
+const MUD_BOUNCE = 0.2
+const RUBBER_FRICTION = 1.5
+const RUBBER_BOUNCE = 0.9
 
 func _init() -> void:
-	_register_default_materials()
+	# Materials are now registered/updated when PhysicsConfig is set
+	pass
 
-# Register default material types
+# Initialize with the MotionProfileResolver (May not be needed anymore for materials)
+func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
+	_motion_profile_resolver = resolver
+	# No longer refreshing materials here, happens in set_physics_config
+	if Engine.is_editor_hint() or OS.is_debug_build():
+		print("[DEBUG] CollisionMaterialSystem: MotionProfileResolver initialized (used for?).")
+
+# Set the PhysicsConfig and update material properties
+func set_physics_config(config: PhysicsConfig) -> void:
+	if config is PhysicsConfig:
+		_physics_config = config
+		_update_materials_from_config()
+		if Engine.is_editor_hint() or OS.is_debug_build():
+			print("[DEBUG] CollisionMaterialSystem: PhysicsConfig set and materials updated.")
+	else:
+		push_error("CollisionMaterialSystem: Invalid PhysicsConfig provided.")
+		_register_default_materials() # Fallback to defaults if config is invalid
+
+# Update material properties using the PhysicsConfig
+func _update_materials_from_config() -> void:
+	if not _physics_config:
+		push_warning("CollisionMaterialSystem: Cannot update materials, PhysicsConfig is null.")
+		_register_default_materials() # Fallback
+		return
+
+	# Use get_param for safety, falling back to constants
+	_registered_materials["default"] = {
+		"friction": _physics_config.get_param("default_material_friction", "default") if _physics_config else DEFAULT_FRICTION,
+		"bounce": _physics_config.get_param("default_material_bounce", "default") if _physics_config else DEFAULT_BOUNCE,
+		"sound": "default_impact" # Assuming a default sound
+	}
+	_registered_materials["ice"] = {
+		"friction": _physics_config.get_param("ice_material_friction", "default") if _physics_config else ICE_FRICTION,
+		"bounce": _physics_config.get_param("ice_material_bounce", "default") if _physics_config else ICE_BOUNCE,
+		"sound": "ice_slide"
+	}
+	_registered_materials["mud"] = {
+		"friction": _physics_config.get_param("mud_material_friction", "default") if _physics_config else MUD_FRICTION,
+		"bounce": _physics_config.get_param("mud_material_bounce", "default") if _physics_config else MUD_BOUNCE,
+		"sound": "mud_impact"
+	}
+	_registered_materials["rubber"] = {
+		"friction": _physics_config.get_param("rubber_material_friction", "default") if _physics_config else RUBBER_FRICTION,
+		"bounce": _physics_config.get_param("rubber_material_bounce", "default") if _physics_config else RUBBER_BOUNCE,
+		"sound": "rubber_bounce"
+	}
+	
+	if Engine.is_editor_hint() or OS.is_debug_build():
+		print("[DEBUG] CollisionMaterialSystem: Updated materials from PhysicsConfig:")
+		for mat_type in _registered_materials:
+			print("  - %s: %s" % [mat_type, _registered_materials[mat_type]])
+
+
+# Fallback: Register default material types using constants
 func _register_default_materials() -> void:
-	# Load the default material from its dedicated class
-	var default_material = DefaultMaterial.new()
+	push_warning("CollisionMaterialSystem: Using fallback default material properties.")
 	_registered_materials = {
-		"default": default_material.get_properties(),
-		
-		# Keep these as inline definitions for now
-		# They will be moved to dedicated classes when actually used
-		"ice": {
-			"friction": 0.1,
-			"bounce": 0.8,
-			"sound": "ice_slide"
-		},
-		"mud": {
-			"friction": 2.0,
-			"bounce": 0.2,
-			"sound": "mud_impact"
-		},
-		"rubber": {
-			"friction": 1.5,
-			"bounce": 0.9,
-			"sound": "rubber_bounce"
-		}
+		"default": { "friction": DEFAULT_FRICTION, "bounce": DEFAULT_BOUNCE, "sound": "default_impact" },
+		"ice": { "friction": ICE_FRICTION, "bounce": ICE_BOUNCE, "sound": "ice_slide" },
+		"mud": { "friction": MUD_FRICTION, "bounce": MUD_BOUNCE, "sound": "mud_impact" },
+		"rubber": { "friction": RUBBER_FRICTION, "bounce": RUBBER_BOUNCE, "sound": "rubber_bounce" }
 	}
 
 # Returns the subsystem name for debugging
@@ -45,11 +95,13 @@ func get_name() -> String:
 
 # Called when the subsystem is registered with the MotionSystem
 func on_register() -> void:
-	pass
+	# Store reference to MotionSystemCore for accessing PhysicsConfig
+	if "_motion_system" in self and self._motion_system:
+		_core = self._motion_system
 
 # Called when the subsystem is unregistered from the MotionSystem
 func on_unregister() -> void:
-	pass
+	_core = null
 
 # Returns modifiers for frame-based updates
 # delta: Time since last frame

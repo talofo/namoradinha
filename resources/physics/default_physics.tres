@@ -1,24 +1,39 @@
-[gd_resource type="Resource" script_class="PhysicsConfig" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="PhysicsConfig" load_steps=2 format=3 uid="uid://dhjyifsv74usq"]
 
-[ext_resource type="Script" path="res://resources/physics/PhysicsConfig.gd" id="1_yhxte"]
+[ext_resource type="Script" uid="uid://bt32w8212mrll" path="res://resources/physics/PhysicsConfig.gd" id="1_yhxte"]
 
 [resource]
 script = ExtResource("1_yhxte")
 gravity = 980.0
 default_ground_friction = 0.1
-default_stop_threshold = 0.5
-first_bounce_ratio = 0.8
-subsequent_bounce_ratio = 0.75
-min_bounce_height_threshold = 3.0
-max_bounce_count = 10
-min_slide_speed = 200.0
-horizontal_preservation = 0.95
-deceleration_base = 0.15
-deceleration_speed_factor = 0.0005
-max_deceleration_factor = 0.25
+default_stop_threshold = 0.1
+first_bounce_ratio = 0.9
+subsequent_bounce_ratio = 0.8
+min_bounce_height_threshold = 20.0
+max_bounce_count = 15
+min_slide_speed = 150.0
+horizontal_preservation = 0.98
+min_bounce_energy_ratio = 0.7
+min_bounce_kinetic_energy = 2000.0
+min_stop_speed = 5.0
+deceleration_base = 0.1
+deceleration_speed_factor = 0.0003
+max_deceleration_factor = 0.15
 frame_rate_adjustment = 60.0
 default_launch_strength = 1500.0
 default_launch_angle_degrees = 45.0
+manual_air_boost_rising_strength = 300.0
+manual_air_boost_rising_angle = 45.0
+manual_air_boost_falling_strength = 800.0
+manual_air_boost_falling_angle = -60.0
+default_material_friction = 0.3
+default_material_bounce = 0.8
+ice_material_friction = 0.05
+ice_material_bounce = 0.9
+mud_material_friction = 1.5
+mud_material_bounce = 0.3
+rubber_material_friction = 1.0
+rubber_material_bounce = 0.95
 default_mass = 1.0
 default_size_factor = 1.0
 entity_overrides = {}

@@ -1,7 +1,7 @@
 class_name MotionProfileResolver
 extends RefCounted
 
-const GroundPhysicsConfig = preload("res://resources/motion/profiles/ground/GroundPhysicsConfig.gd")
+# No need to preload classes that are globally available via class_name
 
 ## Emitted when any configuration source is updated.
 ## Passes the type of config that changed (e.g., "ground", "air").
@@ -10,6 +10,8 @@ signal config_changed(config_type: String)
 # --- Configuration Sources ---
 # Reference to the currently active ground physics configuration.
 var _ground_config: GroundPhysicsConfig = null
+# Reference to the physics configuration.
+var _physics_config: PhysicsConfig = null
 # Future config sources will be added here (e.g., _air_config, _trait_profile)
 
 # --- Caching ---
@@ -24,13 +26,37 @@ var _cached_player_id: int = -1
 # Fallback values used when no configuration source provides a specific parameter.
 # These ensure the resolver always returns a complete, valid profile.
 const DEFAULTS := {
+	# Base motion parameters
 	"friction": 0.2,
 	"bounce": 0.8,
 	"drag": 0.1,
 	"gravity_scale": 1.0,
 	"mass_multiplier": 1.0,
 	"velocity_modifier": 1.0,
-	"air_control_multiplier": 1.0
+	"air_control_multiplier": 1.0,
+	
+	# Bounce parameters
+	"min_bounce_height_threshold": 20.0,  # Lower value means more bounces
+	"min_bounce_kinetic_energy": 2000.0,  # Lower value means more bounces
+	"min_bounce_energy_ratio": 0.7,       # Higher value means more energetic bounces
+	"min_stop_speed": 5.0,                # Lower value means longer slides
+	"horizontal_preservation": 0.98,      # Higher value means more horizontal momentum preserved
+	
+	# Boost parameters
+	"manual_air_boost_rising_strength": 300.0,
+	"manual_air_boost_rising_angle": 45.0,
+	"manual_air_boost_falling_strength": 800.0,  # Higher value means stronger downward boost
+	"manual_air_boost_falling_angle": -60.0,
+	
+	# Material properties
+	"default_material_friction": 0.3,
+	"default_material_bounce": 0.8,       # Higher value means bouncier surfaces
+	"ice_material_friction": 0.05,        # Very low friction for ice
+	"ice_material_bounce": 0.9,           # Very bouncy ice
+	"mud_material_friction": 1.5,         # High friction for mud
+	"mud_material_bounce": 0.3,           # Low bounce for mud
+	"rubber_material_friction": 1.0,
+	"rubber_material_bounce": 0.95        # Very bouncy rubber
 }
 
 # --- Debugging ---
@@ -74,6 +100,16 @@ func set_ground_config(config: GroundPhysicsConfig) -> void:
 			var config_id = config.biome_id if config else "null"
 			print("MotionProfileResolver: Ground config updated to '%s'" % config_id)
 
+## Updates the physics configuration.
+func set_physics_config(config: PhysicsConfig) -> void:
+	# Check if the config has actually changed to avoid unnecessary cache invalidation.
+	if _physics_config != config:
+		_physics_config = config
+		_invalidate_cache()
+		emit_signal("config_changed", "physics")
+		if _debug_enabled:
+			print("MotionProfileResolver: Physics config updated")
+
 # --- Cache Management ---
 
 ## Invalidates the cached motion profile.
@@ -110,6 +146,9 @@ func resolve_motion_profile(player: Node) -> Dictionary:
 	var sources = {} # Track the source of each parameter for debugging
 
 	# Apply configurations in reverse priority order (lowest priority first)
+	# Layer 4: Global Physics Config (highest priority for physics parameters)
+	_apply_physics_config(_physics_config, profile.keys(), profile, sources)
+	
 	# Layer 3: Biome/Chunk Ground Physics
 	_apply_config(_ground_config, profile.keys(), "ground", profile, sources)
 
@@ -141,6 +180,60 @@ func resolve_motion_profile(player: Node) -> Dictionary:
 	return profile.duplicate() # Return a copy
 
 # --- Helper Functions ---
+
+## Applies values from the PhysicsConfig onto the profile.
+## config: The PhysicsConfig object.
+## keys: The list of parameter keys to potentially update.
+## profile: The profile dictionary being built (mutated by this function).
+## sources: The dictionary tracking parameter sources (mutated by this function).
+func _apply_physics_config(config: PhysicsConfig, keys: Array, profile: Dictionary, sources: Dictionary) -> void:
+	if not config:
+		_log_once_missing("physics")
+		return # Skip if physics config is not set
+	
+	# Map of parameter names in profile to property names in PhysicsConfig
+	var param_map = {
+		"min_bounce_height_threshold": "min_bounce_height_threshold",
+		"min_bounce_kinetic_energy": "min_bounce_kinetic_energy",
+		"min_bounce_energy_ratio": "min_bounce_energy_ratio",
+		"min_stop_speed": "min_stop_speed",
+		"horizontal_preservation": "horizontal_preservation",
+		"manual_air_boost_rising_strength": "manual_air_boost_rising_strength",
+		"manual_air_boost_rising_angle": "manual_air_boost_rising_angle",
+		"manual_air_boost_falling_strength": "manual_air_boost_falling_strength",
+		"manual_air_boost_falling_angle": "manual_air_boost_falling_angle",
+		"default_material_friction": "default_material_friction",
+		"default_material_bounce": "default_material_bounce",
+		"ice_material_friction": "ice_material_friction",
+		"ice_material_bounce": "ice_material_bounce",
+		"mud_material_friction": "mud_material_friction",
+		"mud_material_bounce": "mud_material_bounce",
+		"rubber_material_friction": "rubber_material_friction",
+		"rubber_material_bounce": "rubber_material_bounce"
+	}
+	
+	# Apply each parameter from the PhysicsConfig
+	for key in keys:
+		# Skip if key is not in our parameter map
+		if not param_map.has(key):
+			continue
+		
+		# Get the property name in PhysicsConfig
+		var prop_name = param_map[key]
+		
+		# Check if the property exists in the PhysicsConfig
+		if not config.get(prop_name):
+			continue
+		
+		# Get the value from the PhysicsConfig
+		var value = config.get(prop_name)
+		
+		# Apply the value and record its source
+		profile[key] = value
+		sources[key] = "physics"
+		
+		if _debug_enabled:
+			print("MotionProfileResolver: Applied physics parameter %s = %s" % [key, value])
 
 ## Applies values from a specific configuration source onto the profile.
 ## config: The configuration object (e.g., GroundPhysicsConfig instance).

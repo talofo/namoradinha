@@ -1,7 +1,7 @@
 class_name CollisionMotionResolver
 extends RefCounted
 
-# Note: Preloads removed as classes are globally available via class_name
+# Note: Classes are globally available via class_name
 
 # Reference to the motion system core
 var _core = null
@@ -46,30 +46,78 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 				
 				# Get the surface normal from collision_info
 				var surface_normal = collision_info.get("normal", Vector2.UP)
-				if Engine.is_editor_hint() or OS.is_debug_build():
-					print("[DEBUG] CollisionMotionResolver: Creating ImpactSurfaceData with normal = ", surface_normal)
+				var material_type = collision_info.get("material", "default")
 				
-				# Create surface data with the normal
-				var surface_data = ImpactSurfaceData.new(surface_normal) 
 				if Engine.is_editor_hint() or OS.is_debug_build():
-					print("[DEBUG] CollisionMotionResolver: Created ImpactSurfaceData with elasticity = ", surface_data.elasticity)
+					print("[DEBUG] CollisionMotionResolver: Creating ImpactSurfaceData with normal = ", surface_normal, ", material = ", material_type)
 				
-				# Create a player profile with adjusted modifiers for more horizontal movement
-				var player_profile = PlayerBounceProfile.new(
-					1.0,                # bounciness_multiplier (default)
-					0.0,                # bounce_angle_adjustment (default)
-					1.0,                # gravity_scale_modifier (default)
-					1.0,                # friction_interaction_modifier (default)
-					1.2,                # horizontal_speed_modifier (increased)
-					0.8                 # vertical_speed_modifier (decreased)
+				# Get material properties from CollisionMaterialSystem if available
+				var elasticity = 0.9  # Default fallback
+				var friction = 0.1    # Default fallback
+				
+				var collision_material_system = _core.get_subsystem("CollisionMaterialSystem")
+				if collision_material_system:
+					var material_properties = collision_material_system.get_material_properties(material_type)
+					elasticity = material_properties.get("bounce", elasticity)
+					friction = material_properties.get("friction", friction)
+					
+					if Engine.is_editor_hint() or OS.is_debug_build():
+						print("[DEBUG] CollisionMotionResolver: Got material properties from CollisionMaterialSystem: elasticity = ", elasticity, ", friction = ", friction)
+				
+				# Create surface data with the normal and material properties
+				var surface_data = ImpactSurfaceData.new(
+					surface_normal,
+					collision_info.get("position", Vector2.ZERO),
+					elasticity,
+					friction,
+					material_type
 				)
+				
+				if Engine.is_editor_hint() or OS.is_debug_build():
+					print("[DEBUG] CollisionMotionResolver: Created ImpactSurfaceData with elasticity = ", surface_data.elasticity, ", friction = ", surface_data.friction)
+				
+				# Get player_node from collision_info (added by PlayerCharacter)
+				var player_node = collision_info.get("player_node", null)
+				
+				# Get or create a player bounce profile
+				var player_profile = null
+				
+				# First check if the collision_info already has a player_bounce_profile
+				if collision_info.has("player_bounce_profile") and collision_info.player_bounce_profile is PlayerBounceProfile:
+					player_profile = collision_info.player_bounce_profile
+					if Engine.is_editor_hint() or OS.is_debug_build():
+						print("[DEBUG] CollisionMotionResolver: Using player_bounce_profile from collision_info")
+				
+				# Next, try to get it from the player_node if it has a get_bounce_profile method
+				elif is_instance_valid(player_node) and player_node.has_method("get_bounce_profile"):
+					player_profile = player_node.get_bounce_profile()
+					if Engine.is_editor_hint() or OS.is_debug_build():
+						print("[DEBUG] CollisionMotionResolver: Got player_bounce_profile from player_node.get_bounce_profile()")
+				
+				# Next, try to get it from a profile registry in the core if available
+				elif _core.has_method("get_bounce_profile_for_entity"):
+					var entity_id = collision_info.get("entity_id", 0)
+					player_profile = _core.get_bounce_profile_for_entity(entity_id)
+					if Engine.is_editor_hint() or OS.is_debug_build():
+						print("[DEBUG] CollisionMotionResolver: Got player_bounce_profile from _core.get_bounce_profile_for_entity()")
+				
+				# Finally, create a default profile if none was found
+				if not player_profile:
+					# Create a default player profile with adjusted modifiers for more horizontal movement
+					player_profile = PlayerBounceProfile.new(
+						1.0,                # bounciness_multiplier (default)
+						0.0,                # bounce_angle_adjustment (default)
+						1.0,                # gravity_scale_modifier (default)
+						1.0,                # friction_interaction_modifier (default)
+						1.2,                # horizontal_speed_modifier (increased)
+						0.8                 # vertical_speed_modifier (decreased)
+					)
+					if Engine.is_editor_hint() or OS.is_debug_build():
+						print("[DEBUG] CollisionMotionResolver: Created default PlayerBounceProfile")
 				
 				# Get gravity magnitude and construct the vector
 				var gravity_magnitude = _core.get_physics_config().get_gravity_for_entity("default", 1.0)
 				var gravity_vector = Vector2.DOWN * gravity_magnitude
-				
-				# Get player_node from collision_info (added by PlayerCharacter)
-				var player_node = collision_info.get("player_node", null) 
 				if not is_instance_valid(player_node):
 					push_error("CollisionMotionResolver: Invalid or missing 'player_node' in collision_info.")
 					# Skip bounce system if player node is missing

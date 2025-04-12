@@ -2,7 +2,6 @@ class_name BounceSystem
 extends RefCounted
 #warning-ignore-all:unused_class_variable # Interface methods might not use all variables
 
-const MotionProfileResolver = preload("res://scripts/motion/core/MotionProfileResolver.gd")
 # Note: Other preloads removed as classes are globally available via class_name
 
 # --- Constants ---
@@ -11,12 +10,18 @@ const FLOOR_NORMAL_THRESHOLD = 0.7
 
 # --- Private Variables ---
 var _calculator: BounceCalculator = null
-var _motion_profile_resolver: MotionProfileResolver = null # Added resolver reference
-# var _motion_system_core = null # Removed unused variable
+var _motion_profile_resolver: MotionProfileResolver = null # Resolver reference
+var _core = null # Reference to MotionSystemCore for accessing PhysicsConfig
 
 # --- Initialization ---
 func _init() -> void:
 	_calculator = BounceCalculator.new()
+
+# Initialize with the MotionProfileResolver
+func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
+	_motion_profile_resolver = resolver
+	if Engine.is_editor_hint() or OS.is_debug_build():
+		print("[DEBUG] BounceSystem: MotionProfileResolver initialized.")
 
 # --- IMotionSubsystem Implementation ---
 
@@ -24,16 +29,18 @@ func get_name() -> String:
 	return "BounceSystem"
 
 func on_register() -> void:
-	pass
+	# Store reference to MotionSystemCore for accessing PhysicsConfig
+	if "_motion_system" in self and self._motion_system:
+		_core = self._motion_system
 
 func on_unregister() -> void:
-	pass
+	_core = null
 
 func get_continuous_modifiers(_delta: float) -> Array[MotionModifier]:
 	# Bounce system is purely reactive to collisions, no continuous modifiers.
 	return []
 
-# Updated to accept CollisionContext directly
+# Updated to accept CollisionContext directly and use the new approach
 func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]:
 	if Engine.is_editor_hint() or OS.is_debug_build():
 		print("[DEBUG] BounceSystem.get_collision_modifiers called")
@@ -48,23 +55,26 @@ func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]
 		print("[DEBUG] BounceSystem: Context validation passed")
 
 	# --- Resolve Motion Profile ---
-	var motion_profile = {}
+	var resolved_profile = {}
 	if _motion_profile_resolver:
-		motion_profile = _motion_profile_resolver.resolve_motion_profile(context.player_node)
+		resolved_profile = _motion_profile_resolver.resolve_motion_profile(context.player_node)
 	else:
 		# Fallback if resolver is not set
-		motion_profile = MotionProfileResolver.DEFAULTS.duplicate()
+		resolved_profile = MotionProfileResolver.DEFAULTS.duplicate()
 		push_warning("BounceSystem: MotionProfileResolver not available.")
 
-	# Extract relevant parameters from profile
-	var resolved_bounce_coefficient = motion_profile.get("bounce", 0.8) # Default from resolver DEFAULTS
-
-	# --- Update Context with Resolved Data ---
-	# Apply the resolved bounce coefficient, potentially modifying the player's base multiplier
-	# Assuming we multiply the player's inherent bounciness by the surface/profile coefficient
-	context.player_bounce_profile.bounciness_multiplier *= resolved_bounce_coefficient
-	# Note: This modifies the context object directly. Ensure this is the intended design.
-	# Alternatively, the calculator could take the resolved coefficient as a separate parameter.
+	# --- Get Physics Rules ---
+	var physics_rules = null
+	# Attempt to get PhysicsConfig from the core system
+	if _core and _core.has_method("get_physics_config"):
+		physics_rules = _core.get_physics_config()
+		if physics_rules and (Engine.is_editor_hint() or OS.is_debug_build()):
+			print("[DEBUG] BounceSystem: Using PhysicsConfig from MotionSystemCore")
+	
+	# If still not found after checking core, use a default instance
+	if not physics_rules:
+		push_warning("BounceSystem: PhysicsConfig not available from MotionSystemCore. Creating default instance.")
+		physics_rules = PhysicsConfig.new() # Use default class values
 
 	# Check if it's a floor collision based on the normal in the context
 	var normal: Vector2 = context.impact_surface_data.normal
@@ -81,17 +91,13 @@ func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]
 	if Engine.is_editor_hint() or OS.is_debug_build():
 		print("[DEBUG] BounceSystem: Floor collision detected")
 	
-	# Context is already provided.
-	
 	# --- Perform Calculation ---
 	# Ensure generate_debug_data flag is set correctly based on engine state
-	# (The context object passed in might have it set differently by the caller,
-	# but we override here for consistency within the subsystem call)
 	context.generate_debug_data = Engine.is_editor_hint() or OS.is_debug_build()
 	
 	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceSystem: Calling BounceCalculator.calculate")
-	var outcome: BounceOutcome = _calculator.calculate(context)
+		print("[DEBUG] BounceSystem: Calling BounceCalculator.calculate with resolved profile and physics rules")
+	var outcome: BounceOutcome = _calculator.calculate(context, resolved_profile, physics_rules)
 	if Engine.is_editor_hint() or OS.is_debug_build():
 		print("[DEBUG] BounceSystem: BounceCalculator.calculate returned outcome with state: ", outcome.termination_state)
 
@@ -132,11 +138,3 @@ func get_provided_signals() -> Dictionary:
 func get_signal_dependencies() -> Array:
 	# This system doesn't depend on signals from other subsystems in this design.
 	return []
-
-# --- Resolver Integration ---
-
-## Called by Game.gd (or MotionSystemCore) to provide the resolver instance.
-func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
-	_motion_profile_resolver = resolver
-	# Optionally print debug message if needed
-	# print("BounceSystem: MotionProfileResolver initialized.")

@@ -148,6 +148,9 @@ func _physics_process(delta: float) -> void:
 					if Engine.is_editor_hint() or OS.is_debug_build():
 						print("[DEBUG] Floor collision detected. floor_position_y set to: ", floor_position_y) # DEBUG PRINT
 					
+					# Detect material type from collider
+					var material_type = _detect_floor_material_from_collider(collision.get_collider())
+					
 					# Construct collision info using pre-slide velocity and collision data
 					var collision_info = {
 						"entity_id": entity_id,
@@ -158,9 +161,12 @@ func _physics_process(delta: float) -> void:
 						"is_sliding": is_sliding,
 						"max_height_y": max_height_y,
 						"floor_position_y": floor_position_y,
-						"material": _detect_floor_material_from_collider(collision.get_collider()),
+						"material": material_type,
 						"player_node": self # Added player_node reference
 					}
+					
+					if Engine.is_editor_hint() or OS.is_debug_build():
+						print("[DEBUG] PlayerCharacter: Detected material type: ", material_type)
 
 					# Let MotionSystem handle collision response using pre-slide velocity
 					if motion_system and motion_system.has_method("resolve_collision"):
@@ -264,19 +270,32 @@ func _try_boost() -> void:
 			print("Boost applied! New velocity: ", velocity)
 
 # Detect the material of the floor at the current position
-# TODO: Implement logic to detect material based on the actual floor collider.
-#       This will likely involve getting the collider via get_floor_collider(),
-#       finding an attached script (e.g., GroundMaterialInfo.gd) on it or its owner,
-#       and reading a 'material_name' property from that script.
-#       The returned name should correspond to a key in PhysicsConfig.material_properties.
-func _detect_floor_material_from_collider(_collider) -> String:
-	# TODO: Implement actual material detection based on the collider
-	# Example placeholder:
-	# if _collider and _collider.has_method("get_physics_material_override"):
-	#     var material = collider.get_physics_material_override()
-	#     if material and material.has_meta("material_name"):
-	#         return material.get_meta("material_name")
-	# Or check script attached to collider/owner
-	
+# This function attempts to determine the material type from the collider
+# by checking for specific properties or groups.
+func _detect_floor_material_from_collider(collider) -> String:
+	if not collider:
+		return "default"
+		
+	# Check if the collider has a material_type property
+	if collider.get("material_type"):
+		return collider.material_type
+		
+	# Check if the collider is in specific groups
+	if collider.is_in_group("ice"):
+		return "ice"
+	elif collider.is_in_group("mud"):
+		return "mud"
+	elif collider.is_in_group("rubber"):
+		return "rubber"
+		
+	# Check the collider's name for material hints
+	var collider_name = collider.name.to_lower()
+	if "ice" in collider_name:
+		return "ice"
+	elif "mud" in collider_name:
+		return "mud"
+	elif "rubber" in collider_name:
+		return "rubber"
+		
 	# Fallback to default
 	return "default"

@@ -1,7 +1,7 @@
 extends Node2D
 
 # --- Preloads ---
-const MotionProfileResolver = preload("res://scripts/motion/core/MotionProfileResolver.gd")
+# No need to preload classes that are globally available via class_name
 const DefaultGroundConfig = preload("res://resources/motion/profiles/ground/default_ground.tres")
 
 # --- Core Systems ---
@@ -39,7 +39,18 @@ func initialize_motion_system() -> void:
 	# This allows for more dynamic control over when subsystems are loaded
 	var core = motion_system._core
 	if core:
+		# Make sure the PhysicsConfig is loaded
+		var physics_config = core.get_physics_config()
+		if physics_config:
+			print("Game: PhysicsConfig loaded successfully")
+		else:
+			push_warning("Game: PhysicsConfig not loaded in MotionSystemCore")
+			
+		# Register all subsystems
 		core.register_all_subsystems()
+		
+		# Set debug mode to true to see more detailed logs
+		core.set_debug_enabled(true)
 	else:
 		return
 
@@ -54,6 +65,18 @@ func initialize_motion_profile_resolver() -> void:
 		motion_profile_resolver.set_ground_config(DefaultGroundConfig)
 	else:
 		push_error("Game: Failed to load DefaultGroundConfig at res://resources/motion/profiles/ground/default_ground.tres")
+		
+	# Load and set the physics configuration
+	var physics_config_path = "res://resources/physics/default_physics.tres"
+	if ResourceLoader.exists(physics_config_path):
+		var physics_config = load(physics_config_path) as PhysicsConfig
+		if physics_config:
+			motion_profile_resolver.set_physics_config(physics_config)
+			print("Game: PhysicsConfig loaded and set in MotionProfileResolver")
+		else:
+			push_error("Game: Failed to load PhysicsConfig as resource from %s" % physics_config_path)
+	else:
+		push_error("Game: PhysicsConfig file not found at %s" % physics_config_path)
 
 # Pass the resolver instance to systems that need it
 func initialize_systems_with_resolver() -> void:
@@ -61,19 +84,35 @@ func initialize_systems_with_resolver() -> void:
 		push_error("Game: MotionProfileResolver not initialized before passing to systems.")
 		return
 		
-	# Pass to systems that require motion profile data
-	# Note: Systems need an 'initialize_with_resolver(resolver)' method
+	# Pass to MotionSystem (which will pass to MotionSystemCore)
 	if motion_system and motion_system.has_method("initialize_with_resolver"):
 		motion_system.initialize_with_resolver(motion_profile_resolver)
-	# Example for BounceSystem (assuming it's part of MotionSystem or accessible)
-	# if motion_system._bounce_system and motion_system._bounce_system.has_method("initialize_with_resolver"):
-	#	 motion_system._bounce_system.initialize_with_resolver(motion_profile_resolver)
-	# Example for BoostSystem
-	# if motion_system._boost_system and motion_system._boost_system.has_method("initialize_with_resolver"):
-	#	 motion_system._boost_system.initialize_with_resolver(motion_profile_resolver)
-	# Example for ObstacleSystem (if it exists and needs it)
-	# if $ObstacleSystem and $ObstacleSystem.has_method("initialize_with_resolver"):
-	#	 $ObstacleSystem.initialize_with_resolver(motion_profile_resolver)
+	
+	# Directly pass to subsystems if needed
+	var bounce_system = motion_system.get_subsystem("BounceSystem")
+	if bounce_system and bounce_system.has_method("initialize_with_resolver"):
+		bounce_system.initialize_with_resolver(motion_profile_resolver)
+		
+	var boost_system = motion_system.get_subsystem("BoostSystem")
+	if boost_system and boost_system.has_method("initialize_with_resolver"):
+		boost_system.initialize_with_resolver(motion_profile_resolver)
+		
+	var launch_system = motion_system.get_subsystem("LaunchSystem")
+	if launch_system and launch_system.has_method("initialize_with_resolver"):
+		launch_system.initialize_with_resolver(motion_profile_resolver)
+		
+	var collision_material_system = motion_system.get_subsystem("CollisionMaterialSystem")
+	if collision_material_system:
+		# Pass resolver (if still needed for other things)
+		if collision_material_system.has_method("initialize_with_resolver"):
+			collision_material_system.initialize_with_resolver(motion_profile_resolver)
+		# Pass PhysicsConfig
+		if collision_material_system.has_method("set_physics_config"):
+			var physics_config = motion_system.get_physics_config() # Get config from MotionSystem/Core
+			if physics_config:
+				collision_material_system.set_physics_config(physics_config)
+			else:
+				push_error("Game: Could not get PhysicsConfig to pass to CollisionMaterialSystem.")
 	
 	# Pass to StageManager or EnvironmentSystem for biome updates
 	if stage_manager and stage_manager.has_method("initialize_with_resolver"):

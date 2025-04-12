@@ -1,4 +1,4 @@
-# scripts/boosts/ManualAirBoost.gd
+# scripts/motion/subsystems/boost_system/types/ManualAirBoost.gd
 # Implementation for the Manual Air Boost type.
 # This class implements the IBoostType interface by providing the required methods:
 # - can_apply_boost(boost_context)
@@ -8,7 +8,7 @@ extends RefCounted
 
 # No need to preload classes that are globally available via class_name
 
-# Default values - these could be loaded from configuration or overridden by physics_config
+# Default values - used as fallbacks if not found in motion_profile
 const DEFAULT_RISING_BOOST_STRENGTH = 300.0
 const DEFAULT_FALLING_BOOST_STRENGTH = 500.0
 const DEFAULT_RISING_BOOST_ANGLE = 45.0  # Degrees upward from horizontal
@@ -24,31 +24,20 @@ func can_apply_boost(boost_context: BoostContext) -> bool:
 
 # Calculate the boost vector to apply based on the context.
 func calculate_boost_vector(boost_context: BoostContext) -> Vector2:
-	var physics_config = boost_context.physics_config
+	var motion_profile = boost_context.motion_profile
 	var boost_strength = 0.0
 	var boost_angle_degrees = 0.0
 
 	# Simple approach: Treat based on is_rising flag
 	# Future enhancement point: Add special apex handling here if needed
 	if boost_context.is_rising:
-		boost_strength = DEFAULT_RISING_BOOST_STRENGTH
-		boost_angle_degrees = DEFAULT_RISING_BOOST_ANGLE
-
-		# Use physics config if available and property exists
-		if physics_config and physics_config.has("manual_air_boost_rising_strength"):
-			boost_strength = physics_config.manual_air_boost_rising_strength
-		if physics_config and physics_config.has("manual_air_boost_rising_angle"):
-			boost_angle_degrees = physics_config.manual_air_boost_rising_angle
+		# Get values from motion_profile with fallbacks to defaults
+		boost_strength = motion_profile.get("manual_air_boost_rising_strength", DEFAULT_RISING_BOOST_STRENGTH)
+		boost_angle_degrees = motion_profile.get("manual_air_boost_rising_angle", DEFAULT_RISING_BOOST_ANGLE)
 	else:
 		# Falling (and apex, using the simpler approach)
-		boost_strength = DEFAULT_FALLING_BOOST_STRENGTH
-		boost_angle_degrees = DEFAULT_FALLING_BOOST_ANGLE
-
-		# Use physics config if available and property exists
-		if physics_config and physics_config.has("manual_air_boost_falling_strength"):
-			boost_strength = physics_config.manual_air_boost_falling_strength
-		if physics_config and physics_config.has("manual_air_boost_falling_angle"):
-			boost_angle_degrees = physics_config.manual_air_boost_falling_angle
+		boost_strength = motion_profile.get("manual_air_boost_falling_strength", DEFAULT_FALLING_BOOST_STRENGTH)
+		boost_angle_degrees = motion_profile.get("manual_air_boost_falling_angle", DEFAULT_FALLING_BOOST_ANGLE)
 
 	# Convert angle to radians for trigonometric functions
 	var boost_angle_radians = deg_to_rad(boost_angle_degrees)
@@ -71,6 +60,10 @@ func calculate_boost_vector(boost_context: BoostContext) -> Vector2:
 		cos(boost_angle_radians) * boost_strength,
 		sin(boost_angle_radians) * boost_strength * -1.0 # Negate Y for Godot's coordinate system
 	)
+
+	# Apply velocity modifier if available in the motion profile
+	var velocity_modifier = motion_profile.get("velocity_modifier", 1.0)
+	boost_vector *= velocity_modifier
 
 	return boost_vector
 
