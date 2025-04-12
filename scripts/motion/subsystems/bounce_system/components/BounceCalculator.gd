@@ -35,6 +35,8 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 		debug_data.add_note("Surface Normal: %s" % str(surface_normal))
 		debug_data.add_note("Surface Elasticity: %.2f, Friction: %.2f" % [surface.elasticity, surface.friction])
 		debug_data.add_note("Profile Bounciness: %.2f, FrictionMod: %.2f" % [profile.bounciness_multiplier, profile.friction_interaction_modifier])
+		# Note: bounce_angle_adjustment is stored for future use with non-flat surfaces
+		debug_data.add_note("Profile Angle Adjustment: %.2f (unused with flat ground)" % profile.bounce_angle_adjustment)
 
 	# --- Core Bounce Physics ---
 	# Calculate effective properties based on surface and player profile
@@ -90,17 +92,17 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 	# In Godot, Y increases downward, so floor_position_y - max_height_y gives the height
 	var bounce_height = floor_position_y - max_height_y
 	
-	# Print debug information
-	print("[DEBUG] BounceCalculator: floor_position_y=", floor_position_y, ", max_height_y=", max_height_y)
-	print("[DEBUG] BounceCalculator: bounce_height=", bounce_height, ", threshold=", MIN_BOUNCE_HEIGHT_THRESHOLD)
-	print("[DEBUG] BounceCalculator: incoming_velocity=", incoming_velocity)
-	print("[DEBUG] BounceCalculator: effective_elasticity=", effective_elasticity)
-	print("[DEBUG] BounceCalculator: calculated_velocity=", calculated_velocity)
-	
-	# We're not using bounce count anymore
+	# Print debug information (only in debug mode)
+	if Engine.is_editor_hint() or OS.is_debug_build():
+		print("[DEBUG] BounceCalculator: floor_position_y=", floor_position_y, ", max_height_y=", max_height_y)
+		print("[DEBUG] BounceCalculator: bounce_height=", bounce_height, ", threshold=", MIN_BOUNCE_HEIGHT_THRESHOLD)
+		print("[DEBUG] BounceCalculator: incoming_velocity=", incoming_velocity)
+		print("[DEBUG] BounceCalculator: effective_elasticity=", effective_elasticity)
+		print("[DEBUG] BounceCalculator: calculated_velocity=", calculated_velocity)
 	
 	# Check if bounce height is below threshold
-	print("[DEBUG] BounceCalculator: Checking if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD: ", bounce_height, " < ", MIN_BOUNCE_HEIGHT_THRESHOLD)
+	if Engine.is_editor_hint() or OS.is_debug_build():
+		print("[DEBUG] BounceCalculator: Checking if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD: ", bounce_height, " < ", MIN_BOUNCE_HEIGHT_THRESHOLD)
 	if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD:
 		# Bounce height too small, transition to sliding
 		termination_state = BounceOutcome.STATE_SLIDING
@@ -112,7 +114,8 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 				bounce_height, MIN_BOUNCE_HEIGHT_THRESHOLD]
 			debug_data.add_note("Entering SLIDING state.")
 			
-		print("[DEBUG] BounceCalculator: Transitioning to SLIDING state. Reason: Bounce height too small")
+		if Engine.is_editor_hint() or OS.is_debug_build():
+			print("[DEBUG] BounceCalculator: Transitioning to SLIDING state. Reason: Bounce height too small")
 
 		# Check if sliding speed (now just horizontal speed) is also too low -> STOPPED
 		var sliding_speed = abs(final_velocity.x) # Check speed *before* potentially setting to zero
@@ -129,7 +132,8 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 	else:
 		# Sufficient energy to bounce
 		final_velocity = calculated_velocity # Keep the calculated bounce velocity
-		print("[DEBUG] BounceCalculator: Continuing to bounce. Height: ", bounce_height)
+		if Engine.is_editor_hint() or OS.is_debug_build():
+			print("[DEBUG] BounceCalculator: Continuing to bounce. Height: ", bounce_height)
 
 	# --- Create Outcome ---
 	var outcome = BounceOutcome.new(final_velocity, termination_state, debug_data)
