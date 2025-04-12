@@ -39,7 +39,10 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 				
 				# Placeholder data - this needs proper implementation later
 				var incoming_state = IncomingMotionState.new(collision_info.get("velocity", Vector2.ZERO)) 
-				var surface_data = ImpactSurfaceData.new(collision_info.get("normal", Vector2.UP)) 
+				var surface_normal = collision_info.get("normal", Vector2.UP)
+				print("[DEBUG] CollisionMotionResolver: Creating ImpactSurfaceData with normal = ", surface_normal)
+				var surface_data = ImpactSurfaceData.new(surface_normal) 
+				print("[DEBUG] CollisionMotionResolver: Created ImpactSurfaceData with elasticity = ", surface_data.elasticity)
 				var player_profile = PlayerBounceProfile.new() # Needs real data
 				# Get gravity magnitude and construct the vector
 				var gravity_magnitude = _core.get_physics_config().get_gravity_for_entity("default", 1.0) # Example access
@@ -52,6 +55,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 					# Skip bounce system if player node is missing
 					modifiers = [] 
 				else:
+					print("[DEBUG] CollisionMotionResolver: Creating CollisionContext for BounceSystem")
 					var context = CollisionContext.new(
 						player_node, # Pass player_node
 						incoming_state,
@@ -60,7 +64,9 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 						gravity_vector, # Pass the Vector2
 						_core.debug_enabled # Pass debug flag
 					)
+					print("[DEBUG] CollisionMotionResolver: Calling BounceSystem.get_collision_modifiers")
 					modifiers = subsystem.get_collision_modifiers(context)
+					print("[DEBUG] CollisionMotionResolver: BounceSystem returned ", modifiers.size(), " modifiers")
 			else:
 				# Other subsystems still receive the raw dictionary
 				modifiers = subsystem.get_collision_modifiers(collision_info)

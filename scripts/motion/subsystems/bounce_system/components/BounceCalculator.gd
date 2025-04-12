@@ -6,8 +6,8 @@ extends RefCounted
 # --- Constants ---
 # Minimum ratio of normal velocity to maintain after bounce (0.0-1.0)
 const MIN_BOUNCE_ENERGY_RATIO: float = 0.3
-# Minimum absolute normal speed required to continue bouncing after impact.
-const MIN_ABSOLUTE_BOUNCE_NORMAL_SPEED: float = 5.0
+# Minimum bounce height (in pixels) required to continue bouncing
+const MIN_BOUNCE_HEIGHT_THRESHOLD: float = 60.0
 # Minimum speed below which the entity might transition from sliding to stopped.
 const MIN_STOP_SPEED: float = 10.0
 
@@ -81,30 +81,38 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 	var final_velocity = calculated_velocity
 	var termination_state = BounceOutcome.STATE_BOUNCING
 	
-	# Check bounce threshold using Y-velocity (normal component for flat ground)
-	var velocity_away_from_surface = abs(calculated_velocity.y) # Speed moving away vertically
-	var incoming_normal_speed = abs(incoming_velocity.y) # Speed impacting vertically
-
-	# Avoid division by zero if incoming normal speed is negligible
-	var bounce_ratio = 0.0
-	if incoming_normal_speed > 0.01: # Add a small epsilon check
-		bounce_ratio = velocity_away_from_surface / incoming_normal_speed
-
-	# Check if bounce energy ratio OR absolute normal speed is below threshold
-	if bounce_ratio < MIN_BOUNCE_ENERGY_RATIO or velocity_away_from_surface < MIN_ABSOLUTE_BOUNCE_NORMAL_SPEED:
-		# Not enough energy retained OR absolute speed too low to bounce significantly
+	# Get the max height and floor position from the context
+	var max_height_y = context.player_node.max_height_y
+	var floor_position_y = context.player_node.floor_position_y
+	var initial_bounce_position_y = context.player_node.initial_bounce_position_y
+	
+	# Calculate the bounce height (difference between floor and max height)
+	# In Godot, Y increases downward, so floor_position_y - max_height_y gives the height
+	var bounce_height = floor_position_y - max_height_y
+	
+	# Print debug information
+	print("[DEBUG] BounceCalculator: floor_position_y=", floor_position_y, ", max_height_y=", max_height_y)
+	print("[DEBUG] BounceCalculator: bounce_height=", bounce_height, ", threshold=", MIN_BOUNCE_HEIGHT_THRESHOLD)
+	print("[DEBUG] BounceCalculator: incoming_velocity=", incoming_velocity)
+	print("[DEBUG] BounceCalculator: effective_elasticity=", effective_elasticity)
+	print("[DEBUG] BounceCalculator: calculated_velocity=", calculated_velocity)
+	
+	# We're not using bounce count anymore
+	
+	# Check if bounce height is below threshold
+	print("[DEBUG] BounceCalculator: Checking if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD: ", bounce_height, " < ", MIN_BOUNCE_HEIGHT_THRESHOLD)
+	if bounce_height < MIN_BOUNCE_HEIGHT_THRESHOLD:
+		# Bounce height too small, transition to sliding
 		termination_state = BounceOutcome.STATE_SLIDING
 		# When sliding, kill the vertical velocity
 		final_velocity.y = 0.0 
 		
 		if debug_data:
-			if bounce_ratio < MIN_BOUNCE_ENERGY_RATIO:
-				debug_data.termination_reason = "Vertical velocity ratio %.2f < threshold %.2f (vel_out: %.2f / vel_in: %.2f)" % [
-					bounce_ratio, MIN_BOUNCE_ENERGY_RATIO, velocity_away_from_surface, incoming_normal_speed]
-			else: # Must be the absolute speed check that failed
-				debug_data.termination_reason = "Absolute vertical speed %.2f < threshold %.2f" % [
-					velocity_away_from_surface, MIN_ABSOLUTE_BOUNCE_NORMAL_SPEED]
+			debug_data.termination_reason = "Bounce height %.2f < threshold %.2f" % [
+				bounce_height, MIN_BOUNCE_HEIGHT_THRESHOLD]
 			debug_data.add_note("Entering SLIDING state.")
+			
+		print("[DEBUG] BounceCalculator: Transitioning to SLIDING state. Reason: Bounce height too small")
 
 		# Check if sliding speed (now just horizontal speed) is also too low -> STOPPED
 		var sliding_speed = abs(final_velocity.x) # Check speed *before* potentially setting to zero
@@ -121,6 +129,7 @@ func calculate(context: CollisionContext) -> BounceOutcome:
 	else:
 		# Sufficient energy to bounce
 		final_velocity = calculated_velocity # Keep the calculated bounce velocity
+		print("[DEBUG] BounceCalculator: Continuing to bounce. Height: ", bounce_height)
 
 	# --- Create Outcome ---
 	var outcome = BounceOutcome.new(final_velocity, termination_state, debug_data)

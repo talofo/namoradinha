@@ -13,18 +13,24 @@ func _init(core) -> void:
 func resolve_frame_motion(context: Dictionary) -> Dictionary:
 	var result = {}
 	
-	# Apply gravity if entity is launched
+	# Apply gravity if entity is launched and not in post-bounce period
 	if context.has("has_launched") and context.get("has_launched"):
-		var velocity = context.get("velocity", Vector2.ZERO)
-		var delta = context.get("delta", 0.01) # Fallback to 0.01 if no delta
-
-		# Get appropriate gravity based on entity type and mass
-		var entity_type = context.get("entity_type", "default")
-		var mass = context.get("mass", _core.physics_config.default_mass if _core.physics_config else 1.0)
+		var skip_gravity = context.get("skip_gravity", false)
 		
-		# Apply gravity
-		velocity = _core.physics_calculator.apply_gravity(velocity, delta, entity_type, mass)
-		result["velocity"] = velocity
+		if not skip_gravity:
+			var velocity = context.get("velocity", Vector2.ZERO)
+			var delta = context.get("delta", 0.01) # Fallback to 0.01 if no delta
+
+			# Get appropriate gravity based on entity type and mass
+			var entity_type = context.get("entity_type", "default")
+			var mass = context.get("mass", _core.physics_config.default_mass if _core.physics_config else 1.0)
+			
+			# Apply gravity
+			velocity = _core.physics_calculator.apply_gravity(velocity, delta, entity_type, mass)
+			result["velocity"] = velocity
+		else:
+			# Skip gravity, just pass through the current velocity
+			result["velocity"] = context.get("velocity", Vector2.ZERO)
 
 	# Get continuous motion modifiers
 	var motion_delta: Vector2 = Vector2.ZERO # Declare motion_delta with default value

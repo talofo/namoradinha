@@ -12,7 +12,7 @@ var collision_point: Vector2 = Vector2.ZERO
 # The elasticity (bounciness) of the surface. Typically 0.0 to 1.0.
 # 0.0 = No bounce (absorbs all perpendicular velocity).
 # 1.0 = Perfect bounce (reflects all perpendicular velocity).
-var elasticity: float = 0.9 # Increased further for higher bounces
+var elasticity: float = 0.9 # High value for higher bounces
 
 # The kinetic friction coefficient of the surface. Typically >= 0.0.
 # Affects sliding/stopping parallel to the surface.
@@ -22,7 +22,7 @@ var friction: float = 0.1 # Example default
 # Might be useful for specific slope-based mechanics.
 var slope_angle: float = 0.0
 
-func _init(p_normal: Vector2 = Vector2.UP, p_collision_point: Vector2 = Vector2.ZERO, p_elasticity: float = 0.9, p_friction: float = 0.1) -> void: # Updated default p_elasticity
+func _init(p_normal: Vector2 = Vector2.UP, p_collision_point: Vector2 = Vector2.ZERO, p_elasticity: float = 0.9, p_friction: float = 0.1) -> void: # Updated default p_elasticity to match class variable
 	normal = p_normal
 	collision_point = p_collision_point
 	elasticity = p_elasticity # Use provided elasticity directly, default is now 0.9
