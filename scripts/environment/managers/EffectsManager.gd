@@ -1,9 +1,7 @@
 class_name EffectsManager
 extends Node2D
 
-# Class references
-const EnvironmentTheme = preload("res://resources/environment/EnvironmentTheme.gd")
-const TransitionHelper = preload("res://scripts/environment/utils/TransitionHelper.gd")
+# Both EnvironmentTheme and TransitionHelper are available globally via class_name
 
 signal transition_completed
 signal fallback_activated(reason)
@@ -76,7 +74,7 @@ func _transition_out_effects() -> void:
     else:
         active_effects.clear()
 
-func _create_fog_effect(theme: EnvironmentTheme) -> void:
+func _create_fog_effect(_theme: EnvironmentTheme) -> void:
     var fog = ColorRect.new()
     fog.name = "FogEffect"
     fog.color = Color(1, 1, 1, 0.2)  # Translucent white
@@ -91,24 +89,24 @@ func _create_fog_effect(theme: EnvironmentTheme) -> void:
     tween.tween_property(fog, "modulate:a", 1.0, transition_duration)
     tween.tween_callback(func(): transition_completed.emit())
 
-func _create_particle_effect(theme: EnvironmentTheme) -> void:
+func _create_particle_effect(_theme: EnvironmentTheme) -> void:
     var particles = GPUParticles2D.new()
     particles.name = "ParticleEffect"
     
     # Set up basic particles
-    var material = ParticleProcessMaterial.new()
-    material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
-    material.emission_box_extents = Vector3(960, 10, 1)
-    material.direction = Vector3(0, -1, 0)
-    material.spread = 10.0
-    material.gravity = Vector3(0, 9.8, 0)
-    material.initial_velocity_min = 20.0
-    material.initial_velocity_max = 40.0
-    material.scale_min = 2.0
-    material.scale_max = 4.0
-    material.color = Color(1, 1, 1, 0.8)
+    var particle_material = ParticleProcessMaterial.new()
+    particle_material.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+    particle_material.emission_box_extents = Vector3(960, 10, 1)
+    particle_material.direction = Vector3(0, -1, 0)
+    particle_material.spread = 10.0
+    particle_material.gravity = Vector3(0, 9.8, 0)
+    particle_material.initial_velocity_min = 20.0
+    particle_material.initial_velocity_max = 40.0
+    particle_material.scale_min = 2.0
+    particle_material.scale_max = 4.0
+    particle_material.color = Color(1, 1, 1, 0.8)
     
-    particles.process_material = material
+    particles.process_material = particle_material
     particles.amount = 100
     particles.lifetime = 5.0
     particles.modulate.a = 0.0  # Start transparent
@@ -120,7 +118,7 @@ func _create_particle_effect(theme: EnvironmentTheme) -> void:
     tween.tween_property(particles, "modulate:a", 1.0, transition_duration)
     tween.tween_callback(func(): transition_completed.emit())
 
-func _create_overlay_effect(theme: EnvironmentTheme) -> void:
+func _create_overlay_effect(_theme: EnvironmentTheme) -> void:
     var overlay = ColorRect.new()
     overlay.name = "OverlayEffect"
     overlay.color = Color(0.2, 0.2, 0.8, 0.1)  # Slight blue tint

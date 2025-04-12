@@ -10,8 +10,8 @@ layout_mode = 3
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -200.0
-offset_bottom = 300.0
+offset_left = -300.0
+offset_bottom = 320.0
 grow_horizontal = 0
 size_flags_horizontal = 8
 size_flags_vertical = 0
@@ -59,6 +59,9 @@ text = "Assets: None"
 [node name="FallbackLabel" type="Label" parent="Control/Panel/VBoxContainer"]
 layout_mode = 2
 text = "No fallbacks"
+autowrap_mode = 2
+text_overrun_behavior = 3
+max_lines_visible = 3
 
 [node name="HSeparator2" type="HSeparator" parent="Control/Panel/VBoxContainer"]
 layout_mode = 2

@@ -1,9 +1,7 @@
 class_name MotionSystemCore
 extends Node
 
-# Reference to physics config class
-# Using LoadedPhysicsConfig to avoid shadowing the global class name
-const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
+# PhysicsConfig is available globally via class_name
 
 signal subsystem_registered(subsystem_name: String)
 signal subsystem_unregistered(subsystem_name: String)
@@ -13,7 +11,7 @@ signal subsystem_unregistered(subsystem_name: String)
 signal entity_launched(entity_id: int, launch_vector: Vector2, position: Vector2)
 
 # Physics configuration resource
-var physics_config: LoadedPhysicsConfig
+var physics_config: PhysicsConfig
 
 # Legacy parameters - will be used as fallbacks if no config is loaded
 var default_gravity: float = 1200.0
@@ -57,7 +55,7 @@ func _init() -> void:
 	# Load physics configuration
 	var config_path = "res://resources/physics/default_physics.tres"
 	if ResourceLoader.exists(config_path):
-		physics_config = load(config_path) as LoadedPhysicsConfig
+		physics_config = load(config_path) as PhysicsConfig
 		if physics_config:
 			# Update legacy parameters from config
 			default_gravity = physics_config.gravity
@@ -75,7 +73,7 @@ func _init() -> void:
 	debugger = load("res://scripts/motion/core/MotionDebugger.gd").new(self)
 
 # Returns the loaded physics configuration resource
-func get_physics_config() -> LoadedPhysicsConfig:
+func get_physics_config() -> PhysicsConfig:
 	return physics_config
 
 func _ready() -> void:

@@ -1,6 +1,6 @@
 extends Node2D
 
-@export var player_character_scene: PackedScene = preload("res://player/PlayerCharacter.tscn")
+@export var player_character_scene: PackedScene = load("res://player/PlayerCharacter.tscn")
 @export var spawn_position: Vector2 = Vector2(-4500, 520) # Positioned just above the ground at y=540
 
 # Launch parameters (stored for UI and initial setup only)

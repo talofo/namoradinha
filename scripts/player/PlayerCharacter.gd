@@ -1,8 +1,7 @@
 class_name PlayerCharacter
 extends CharacterBody2D
 
-# Preload dependencies
-const BoostEffectClass = preload("res://scripts/effects/visual_effects/BoostEffect.gd")
+# BoostEffect is available globally via class_name
 
 # === REFERENCES ===
 var motion_system = null
@@ -157,11 +156,11 @@ func get_bounce_count() -> int:
 	return -1
 	
 # === VISUAL EFFECTS ===
-var boost_effect = null # Will be a BoostEffectClass instance
+var boost_effect = null # Will be a BoostEffect instance
 
 # Create a boost effect for visual feedback
 func _create_boost_effect() -> void:
-	boost_effect = BoostEffectClass.new()
+	boost_effect = BoostEffect.new()
 	boost_effect.name = "BoostEffect"
 	add_child(boost_effect)
 

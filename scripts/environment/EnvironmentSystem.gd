@@ -1,11 +1,7 @@
 class_name EnvironmentSystem
 extends Node2D
 
-# Class references
-const ThemeDatabase = preload("res://resources/environment/ThemeDatabase.gd")
-const EnvironmentTheme = preload("res://resources/environment/EnvironmentTheme.gd")
-const StageConfig = preload("res://resources/environment/StageConfig.gd")
-const GroundVisualManager = preload("res://scripts/environment/managers/GroundVisualManager.gd")
+# All these classes are available globally via class_name
 
 signal visuals_updated(theme_id, biome_id)
 signal transition_completed
@@ -173,12 +169,20 @@ func _complete_transition() -> void:
 
 func _on_manager_fallback(reason: String) -> void:
     var manager_name = "unknown"
+    
+    # Determine which manager triggered the fallback
     if reason.begins_with("GroundVisualManager"):
         manager_name = "ground"
     elif reason.begins_with("BackgroundManager"):
         manager_name = "background"
     elif reason.begins_with("EffectsManager"):
         manager_name = "effects"
+    
+    # For missing textures that don't specify the manager
+    if reason.contains("ground texture"):
+        manager_name = "ground"
+    elif reason.contains("background texture"):
+        manager_name = "background"
     
     if debug_mode:
         print("Fallback in " + manager_name + ": " + reason)

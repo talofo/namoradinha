@@ -1,7 +1,6 @@
 extends Node2D
 
-# Class references
-const StageConfig = preload("res://resources/environment/StageConfig.gd")
+# StageConfig is available globally via class_name
 
 var current_stage: Node = null
 

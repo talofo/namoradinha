@@ -1,9 +1,7 @@
 class_name GroundVisualManager
 extends Node2D
 
-# Class references
-const EnvironmentTheme = preload("res://resources/environment/EnvironmentTheme.gd")
-const TransitionHelper = preload("res://scripts/environment/utils/TransitionHelper.gd")
+# Both EnvironmentTheme and TransitionHelper are available globally via class_name
 
 signal transition_completed
 signal fallback_activated(reason)

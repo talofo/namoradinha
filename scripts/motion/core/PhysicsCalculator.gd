@@ -1,9 +1,7 @@
 class_name PhysicsCalculator
 extends RefCounted
 
-# Reference to physics config class
-# Using LoadedPhysicsConfig to avoid shadowing the global class name
-const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
+# PhysicsConfig is available globally via class_name
 
 # Reference to the motion system core
 var _core = null

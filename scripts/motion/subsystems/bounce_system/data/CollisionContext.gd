@@ -1,10 +1,7 @@
 class_name CollisionContext
 extends RefCounted
 
-# Preload dependent data structures
-const IncomingMotionStateClass = preload("res://scripts/motion/subsystems/bounce_system/data/IncomingMotionState.gd")
-const ImpactSurfaceDataClass = preload("res://scripts/motion/subsystems/bounce_system/data/ImpactSurfaceData.gd")
-const PlayerBounceProfileClass = preload("res://scripts/motion/subsystems/bounce_system/data/PlayerBounceProfile.gd")
+# All these classes are available globally via class_name
 
 ## Aggregates all necessary information for a bounce calculation.
 ## Passed as input to the BounceSystem's calculation method.
@@ -31,9 +28,9 @@ func _init(
 	p_current_gravity: Vector2 = Vector2.DOWN * ProjectSettings.get_setting("physics/2d/default_gravity", 980.0),
 	p_generate_debug_data: bool = false
 ) -> void:
-	incoming_motion_state = p_incoming_motion_state if p_incoming_motion_state != null else IncomingMotionStateClass.new()
-	impact_surface_data = p_impact_surface_data if p_impact_surface_data != null else ImpactSurfaceDataClass.new()
-	player_bounce_profile = p_player_bounce_profile if p_player_bounce_profile != null else PlayerBounceProfileClass.new()
+	incoming_motion_state = p_incoming_motion_state if p_incoming_motion_state != null else IncomingMotionState.new()
+	impact_surface_data = p_impact_surface_data if p_impact_surface_data != null else ImpactSurfaceData.new()
+	player_bounce_profile = p_player_bounce_profile if p_player_bounce_profile != null else PlayerBounceProfile.new()
 	current_gravity = p_current_gravity
 	generate_debug_data = p_generate_debug_data
 

@@ -1,7 +1,7 @@
 class_name BounceOutcome
 extends RefCounted
 
-const BounceDebugDataClass = preload("res://scripts/motion/subsystems/bounce_system/data/BounceDebugData.gd")
+# BounceDebugData is available globally via class_name
 
 ## Represents the result of a bounce calculation.
 

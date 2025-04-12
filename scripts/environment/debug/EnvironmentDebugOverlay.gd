@@ -1,8 +1,7 @@
 class_name EnvironmentDebugOverlay
 extends CanvasLayer
 
-# Class references
-const EnvironmentSystem = preload("res://scripts/environment/EnvironmentSystem.gd")
+# EnvironmentSystem is available globally via class_name
 
 @export var environment_system: EnvironmentSystem
 
@@ -73,7 +72,8 @@ func _on_visuals_updated(_theme_id: String, _biome_id: String) -> void:
 func _on_fallback_activated(manager_name: String, reason: String) -> void:
     # Add fallback info to the debug overlay
     if fallback_label:
-        fallback_label.text = "Fallback in " + manager_name + ": " + reason
+        # Format the fallback message for better readability
+        fallback_label.text = "Fallback in " + manager_name + ":\n" + reason
         fallback_label.modulate = Color(1, 0.5, 0.5)  # Light red
 
 func _create_theme_buttons() -> void:

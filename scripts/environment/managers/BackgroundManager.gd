@@ -1,9 +1,7 @@
 class_name BackgroundManager
 extends ParallaxBackground
 
-# Class references
-const EnvironmentTheme = preload("res://resources/environment/EnvironmentTheme.gd")
-const TransitionHelper = preload("res://scripts/environment/utils/TransitionHelper.gd")
+# Both EnvironmentTheme and TransitionHelper are available globally via class_name
 
 signal transition_completed
 signal fallback_activated(reason)
@@ -75,25 +73,25 @@ func apply_theme(theme: EnvironmentTheme) -> void:
         _apply_layer_texture(mid_layer, mid_texture, theme.background_tint, theme.parallax_ratio * 1.5)
         _apply_layer_texture(near_layer, near_texture, theme.background_tint, theme.parallax_ratio * 2.0)
 
-func _create_layer(name: String, motion_scale_value: float) -> ParallaxLayer:
-    var layer = ParallaxLayer.new()
-    layer.name = name
-    layer.motion_scale = Vector2(motion_scale_value, motion_scale_value)
-    add_child(layer)
-    return layer
+func _create_layer(layer_name: String, motion_scale_value: float) -> ParallaxLayer:
+    var parallax_layer = ParallaxLayer.new()
+    parallax_layer.name = layer_name
+    parallax_layer.motion_scale = Vector2(motion_scale_value, motion_scale_value)
+    add_child(parallax_layer)
+    return parallax_layer
 
-func _apply_layer_texture(layer: ParallaxLayer, texture: Texture2D, tint: Color, motion_ratio: Vector2) -> void:
-    if !layer:
+func _apply_layer_texture(parallax_layer: ParallaxLayer, texture: Texture2D, tint: Color, motion_ratio: Vector2) -> void:
+    if !parallax_layer:
         return
     
-    layer.motion_scale = motion_ratio
+    parallax_layer.motion_scale = motion_ratio
     
-    var sprite = layer.get_node_or_null("Sprite2D")
+    var sprite = parallax_layer.get_node_or_null("Sprite2D")
     if !sprite:
         sprite = Sprite2D.new()
         sprite.name = "Sprite2D"
         sprite.centered = false
-        layer.add_child(sprite)
+        parallax_layer.add_child(sprite)
     
     # Transition to new texture
     _transition_sprite_texture(sprite, texture, tint)
@@ -128,15 +126,15 @@ func _transition_sprite_texture(sprite: Sprite2D, new_texture: Texture2D, new_ti
     active_tweens.append(tween)
 
 func _create_fallback_backgrounds() -> void:
-    var layers = [far_layer, mid_layer, near_layer]
+    var bg_layers = [far_layer, mid_layer, near_layer]
     
-    for i in range(layers.size()):
-        var layer = layers[i]
-        if !layer:
+    for i in range(bg_layers.size()):
+        var current_layer = bg_layers[i]
+        if !current_layer:
             continue
         
         # Remove existing sprites
-        for child in layer.get_children():
+        for child in current_layer.get_children():
             child.queue_free()
         
         # Create colored rectangle as fallback
@@ -148,7 +146,7 @@ func _create_fallback_backgrounds() -> void:
         fallback.color = Color(1, 0, 1, alpha)  # Magenta with varying alpha
         
         fallback.size = Vector2(1920, 1080)  # Screen size
-        layer.add_child(fallback)
+        current_layer.add_child(fallback)
     
     # No transition to track
     transition_completed.emit()

@@ -2,8 +2,7 @@
 # Autoload script for globally accessible signals (Event Bus)
 extends Node
 
-# Class references
-const StageConfig = preload("res://resources/environment/StageConfig.gd")
+# StageConfig is available globally via class_name
 
 # Signal emitted when a player character is spawned and added to the scene tree.
 # Connect to this signal if you need to react to player spawning (e.g., UI, controllers).
