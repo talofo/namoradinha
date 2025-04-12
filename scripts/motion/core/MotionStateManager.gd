@@ -27,10 +27,18 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 		result["velocity"] = velocity
 
 	# Get continuous motion modifiers
-	var motion_delta = _core.resolve_continuous_motion(
-		context.get("delta", 0.0), 
-		context.get("is_sliding", false)
-	)
+	var motion_delta: Vector2 = Vector2.ZERO # Declare motion_delta with default value
+	var player_node = context.get("player_node", null) # Extract player_node from context
+	if not is_instance_valid(player_node):
+		push_error("MotionStateManager: Invalid player_node in context for resolve_continuous_motion.")
+		# If player node is invalid, we can't resolve profile, skip continuous motion step
+		motion_delta = Vector2.ZERO 
+	else:
+		motion_delta = _core.resolve_continuous_motion(
+			player_node, # Pass player_node first
+			context.get("delta", 0.0),
+			context.get("is_sliding", false)
+		)
 	
 	# Apply continuous motion modifiers to velocity
 	if result.has("velocity"):

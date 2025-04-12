@@ -32,20 +32,31 @@ The refactored system follows a modular architecture with the following componen
 
 ### Motion Resolution Components
 
-5. **ContinuousMotionResolver.gd**
-   - Handles continuous motion resolution
-   - Collects and processes modifiers from subsystems
-   - Resolves scalar values (like friction)
+5. **MotionProfileResolver.gd** (New)
+   - Resolves base motion parameters (friction, bounce, drag, etc.) from configuration profiles (e.g., `GroundPhysicsConfig`).
+   - Provides a unified source for fundamental physics properties based on context (like biome).
+   - Caches resolved profiles for performance.
 
-6. **CollisionMotionResolver.gd**
-   - Handles collision-based motion resolution
-   - Processes bounce and slide logic
-   - Manages collision response
+6. **MotionModifierResolver.gd** (Renamed from `MotionResolver.gd`)
+   - Resolves dynamic `MotionModifier` objects applied by subsystems (e.g., boosts, temporary effects).
+   - Applies modifiers based on priority rules.
 
-7. **MotionDebugger.gd**
-   - Provides debug functionality
-   - Logs motion-related information
-   - Helps with troubleshooting
+7. **ContinuousMotionResolver.gd**
+   - Handles continuous motion resolution (integrating base physics with dynamic modifiers).
+   - Collects continuous modifiers from subsystems.
+   - Uses `MotionModifierResolver` to combine dynamic effects.
+   - (Note: Needs updates to incorporate base parameters from `MotionProfileResolver`).
+
+8. **CollisionMotionResolver.gd**
+   - Handles collision-based motion resolution.
+   - Processes bounce and slide logic.
+   - Manages collision response.
+   - (Note: Needs updates to incorporate base parameters from `MotionProfileResolver`).
+
+9. **MotionDebugger.gd**
+   - Provides debug functionality for both profile resolution and modifier application.
+   - Logs motion-related information.
+   - Helps with troubleshooting.
 
 ## Subsystem Integration
 
@@ -67,28 +78,41 @@ The public API of `MotionSystem.gd` remains unchanged, so existing code that use
 ## File Structure
 
 ```
-scripts/motion/
-├── MotionSystem.gd                # Main entry point (lightweight wrapper)
-├── MotionResolver.gd              # Resolver for motion modifiers
-├── MotionModifier.gd              # Data structure for motion modifications
-├── core/                          # Core components
-│   ├── MotionSystemCore.gd        # Central coordinator
-│   ├── PhysicsCalculator.gd       # Physics calculations
-│   ├── MotionStateManager.gd      # State management
-│   ├── ContinuousMotionResolver.gd # Continuous motion resolution
-│   ├── CollisionMotionResolver.gd # Collision motion resolution
-│   └── MotionDebugger.gd          # Debug functionality
-├── interfaces/                    # Interfaces
-│   └── IMotionSubsystem.gd        # Interface for subsystems
-└── subsystems/                    # Subsystem implementations
-    ├── boost_system/              # Boost subsystem
-    │   └── BoostSystem.gd
-    ├── bounce_system/             # Bounce subsystem
-    │   └── BounceSystem.gd
-    ├── launch_system/             # Launch subsystem
-    │   └── LaunchSystem.gd
-    ├── CollisionMaterialSystem.gd # Example of a non-nested subsystem
-    └── ...                        # Other subsystems (nested or flat)
+scripts/
+├── motion/
+│   ├── MotionSystem.gd                # Main entry point (lightweight wrapper)
+│   ├── MotionModifierResolver.gd      # Resolver for dynamic motion modifiers (Renamed)
+│   ├── MotionModifier.gd              # Data structure for motion modifications
+│   ├── core/                          # Core components
+│   │   ├── MotionSystemCore.gd        # Central coordinator
+│   │   ├── MotionProfileResolver.gd   # NEW: Resolves base parameters from profiles
+│   │   ├── PhysicsCalculator.gd       # Physics calculations (May need updates)
+│   │   ├── MotionStateManager.gd      # State management
+│   │   ├── ContinuousMotionResolver.gd # Continuous motion resolution
+│   │   ├── CollisionMotionResolver.gd # Collision motion resolution
+│   │   └── MotionDebugger.gd          # Debug functionality
+│   ├── interfaces/                    # Interfaces
+│   │   └── IMotionSubsystem.gd        # Interface for subsystems
+│   └── subsystems/                    # Subsystem implementations
+│       ├── boost_system/              # Boost subsystem
+│       │   └── BoostSystem.gd
+│       ├── bounce_system/             # Bounce subsystem
+│       │   └── BounceSystem.gd
+│       ├── launch_system/             # Launch subsystem
+│       │   └── LaunchSystem.gd
+│       ├── CollisionMaterialSystem.gd # Example of a non-nested subsystem
+│       └── ...                        # Other subsystems (nested or flat)
+└── ...
+resources/
+├── motion/
+│   └── profiles/                    # NEW: Motion configuration profiles
+│       ├── ground/                  # Example: Ground physics profiles
+│       │   ├── GroundPhysicsConfig.gd # Script defining the resource
+│       │   ├── default_ground.tres    # Default ground parameters
+│       │   ├── ice_ground.tres        # Ice parameters
+│       │   └── ...
+│       └── ...                      # Future profiles (air, traits, etc.)
+└── ...
 ```
 
 ## Recent Improvements
@@ -107,25 +131,40 @@ scripts/motion/
    - Added explicit call to register_all_subsystems() in Game.initialize_motion_system()
    - Fixed timing issues with subsystem registration and availability
 
-## Subsystem Physics Config Access Pattern
+## Subsystem Motion Parameter Access Pattern (Updated)
 
-Subsystems now follow a consistent pattern for accessing physics configuration:
+With the introduction of `MotionProfileResolver`, subsystems no longer directly access a static `PhysicsConfig`. Instead, they receive the `MotionProfileResolver` instance and query it for the current motion parameters based on context (usually the player node).
+
+1.  **Initialization:** Subsystems needing motion parameters should implement an `initialize_with_resolver(resolver: MotionProfileResolver)` method. This method will be called by `Game.gd` or `MotionSystemCore.gd` to inject the resolver instance. Store this instance in a local variable (e.g., `_motion_profile_resolver`).
+
+2.  **Accessing Parameters:** Within methods that require motion parameters (e.g., `get_collision_modifiers`, `try_apply_boost`, `get_continuous_modifiers`), use the stored resolver to get the current profile:
 
 ```gdscript
-# Ensure motion system and config are available
-if not _motion_system or not _motion_system.has_method("get_physics_config"):
-	push_error("MotionSystem or get_physics_config method not available in SubsystemName.")
-	return fallback_value # Or handle appropriately
-var current_physics_config = _motion_system.get_physics_config()
-if not current_physics_config:
-	push_warning("Physics config not available from MotionSystem in SubsystemName.")
-	# Optionally use core's legacy fallbacks or subsystem defaults
-	return fallback_value # Or handle appropriately
+# Ensure resolver and player context are available
+# (player_node might come from method arguments or context objects)
+if not _motion_profile_resolver:
+    push_warning("SubsystemName: MotionProfileResolver not available.")
+    # Handle fallback - perhaps use MotionProfileResolver.DEFAULTS or skip logic
+    return fallback_value
 
-# Now use current_physics_config to access physics parameters
-var param = current_physics_config.some_parameter
+if not is_instance_valid(player_node):
+    push_error("SubsystemName: Invalid player_node provided.")
+    # Handle fallback
+    return fallback_value
+
+# Resolve the current motion profile for the player
+var motion_profile: Dictionary = _motion_profile_resolver.resolve_motion_profile(player_node)
+
+# Access specific parameters with fallbacks if necessary
+var friction = motion_profile.get("friction", MotionProfileResolver.DEFAULTS.friction)
+var bounce = motion_profile.get("bounce", MotionProfileResolver.DEFAULTS.bounce)
+# ... access other needed parameters
+
+# Use the resolved parameters in the subsystem's logic
+# Example: apply friction, calculate bounce force, etc.
 ```
-This pattern ensures consistent error handling and fallback behavior across all subsystems. Note: The previous centralized ErrorHandler has been removed; standard `push_error`/`push_warning` or custom handling should be used.
+
+This pattern ensures that subsystems always use the centrally resolved, context-aware motion parameters, incorporating ground physics, and eventually other sources like traits, equipment, and effects, as defined by the `MotionProfileResolver`.
 
 ## Future Improvements
 

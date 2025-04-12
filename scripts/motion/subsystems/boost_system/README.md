@@ -16,8 +16,8 @@ The Boost System allows entities to receive velocity changes during gameplay bas
 
 ## Data Structures
 
-- **BoostContext**: Input data for boost calculations
-- **BoostOutcome**: Output data with calculation results
+- **BoostContext**: Input data for boost calculations (includes current motion state and the resolved `motion_profile` from `MotionProfileResolver`).
+- **BoostOutcome**: Output data with calculation results.
 
 ## Manual Air Boost
 
@@ -55,18 +55,27 @@ Before using the Manual Air Boost, you need to add an input action in the Godot 
 
 ![Input Mapping](https://docs.godotengine.org/en/stable/_images/input_event_mapping.png)
 
-### 2. Physics Configuration (Optional)
+### 2. Motion Profile Configuration
 
-For better configurability, you can add these parameters to your physics configuration:
+Boost calculations now utilize parameters resolved by the `MotionProfileResolver`. Parameters relevant to boosts (like `velocity_modifier`) should be defined within the appropriate motion profile resources (e.g., `GroundPhysicsConfig`, or future `TraitProfileConfig`, `EquipmentModifierConfig`).
 
+The `BoostSystem` receives the resolved `motion_profile` dictionary via the `BoostContext` object during the `try_apply_boost` call. Specific boost type implementations (`IBoostType`) and the `BoostCalculator` can then access parameters like `velocity_modifier` from this dictionary.
+
+Example access within an `IBoostType` or `BoostCalculator`:
 ```gdscript
-# Boost parameters
-var manual_air_boost_rising_strength: float = 300.0
-var manual_air_boost_rising_angle: float = 45.0
-var manual_air_boost_falling_strength: float = 500.0
-var manual_air_boost_falling_angle: float = -60.0
-var boost_cooldown: float = 0.5
+func calculate_boost(context: BoostContext):
+    # Access the resolved motion profile from the context
+    var profile = context.motion_profile
+
+    # Get the velocity modifier, using a default if not found
+    var velocity_mod = profile.get("velocity_modifier", 1.0)
+
+    # Use the modifier in calculations
+    var final_boost_strength = base_strength * velocity_mod
+    # ... other calculations ...
 ```
+
+This ensures boosts are affected by the current environmental context, equipment, traits, etc., as defined in the central `MotionProfileResolver`.
 
 ## Usage
 

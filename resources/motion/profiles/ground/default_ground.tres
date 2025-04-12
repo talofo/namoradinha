@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GroundPhysicsConfig" load_steps=2 format=3 uid="uid://unique_default_ground_id"]
+
+[ext_resource type="Script" path="res://resources/motion/profiles/ground/GroundPhysicsConfig.gd" id="1_abcde"] ; Replace 1_abcde with actual ID if known, otherwise Godot will handle it.
+
+[resource]
+script = ExtResource("1_abcde") ; Replace 1_abcde with actual ID
+biome_id = "default"
+friction = 0.2
+bounce = 0.8
+drag = 0.1
+gravity_scale = 1.0
+mass_multiplier = 1.0
+velocity_modifier = 1.0
+air_control_multiplier = 1.0

@@ -2,7 +2,8 @@ class_name BounceSystem
 extends RefCounted
 #warning-ignore-all:unused_class_variable # Interface methods might not use all variables
 
-# Note: Preloads removed as classes are globally available via class_name
+const MotionProfileResolver = preload("res://scripts/motion/core/MotionProfileResolver.gd")
+# Note: Other preloads removed as classes are globally available via class_name
 
 # --- Constants ---
 # Threshold for considering a collision normal as "floor" (dot product with UP vector)
@@ -10,6 +11,8 @@ const FLOOR_NORMAL_THRESHOLD = 0.7
 
 # --- Private Variables ---
 var _calculator: BounceCalculator = null
+var _motion_profile_resolver: MotionProfileResolver = null # Added resolver reference
+# var _motion_system_core = null # Removed unused variable
 
 # --- Initialization ---
 func _init() -> void:
@@ -37,9 +40,28 @@ func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]
 	var modifiers: Array[MotionModifier] = []
 
 	# --- Input Validation ---
-	if not context or not context.incoming_motion_state or not context.impact_surface_data or not context.player_bounce_profile:
-		printerr("BounceSystem: Invalid or incomplete CollisionContext received.")
+	if not context or not context.player_node or not context.incoming_motion_state or not context.impact_surface_data or not context.player_bounce_profile:
+		printerr("BounceSystem: Invalid or incomplete CollisionContext received (player_node is required).")
 		return modifiers
+
+	# --- Resolve Motion Profile ---
+	var motion_profile = {}
+	if _motion_profile_resolver:
+		motion_profile = _motion_profile_resolver.resolve_motion_profile(context.player_node)
+	else:
+		# Fallback if resolver is not set
+		motion_profile = MotionProfileResolver.DEFAULTS.duplicate()
+		push_warning("BounceSystem: MotionProfileResolver not available.")
+
+	# Extract relevant parameters from profile
+	var resolved_bounce_coefficient = motion_profile.get("bounce", 0.8) # Default from resolver DEFAULTS
+
+	# --- Update Context with Resolved Data ---
+	# Apply the resolved bounce coefficient, potentially modifying the player's base multiplier
+	# Assuming we multiply the player's inherent bounciness by the surface/profile coefficient
+	context.player_bounce_profile.bounciness_multiplier *= resolved_bounce_coefficient
+	# Note: This modifies the context object directly. Ensure this is the intended design.
+	# Alternatively, the calculator could take the resolved coefficient as a separate parameter.
 
 	# Check if it's a floor collision based on the normal in the context
 	var normal: Vector2 = context.impact_surface_data.normal
@@ -96,3 +118,11 @@ func get_provided_signals() -> Dictionary:
 func get_signal_dependencies() -> Array:
 	# This system doesn't depend on signals from other subsystems in this design.
 	return []
+
+# --- Resolver Integration ---
+
+## Called by Game.gd (or MotionSystemCore) to provide the resolver instance.
+func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
+	_motion_profile_resolver = resolver
+	# Optionally print debug message if needed
+	# print("BounceSystem: MotionProfileResolver initialized.")

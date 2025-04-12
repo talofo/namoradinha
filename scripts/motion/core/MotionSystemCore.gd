@@ -1,6 +1,7 @@
 class_name MotionSystemCore
 extends Node
 
+const MotionProfileResolver = preload("res://scripts/motion/core/MotionProfileResolver.gd")
 # PhysicsConfig is available globally via class_name
 
 signal subsystem_registered(subsystem_name: String)
@@ -50,6 +51,7 @@ var state_manager = null
 var continuous_resolver = null
 var collision_resolver = null
 var debugger = null
+var _motion_profile_resolver: MotionProfileResolver = null # Added resolver reference
 
 func _init() -> void:
 	# Load physics configuration
@@ -208,10 +210,36 @@ func get_all_subsystems() -> Dictionary:
 
 # Resolve continuous motion (called every physics frame)
 # delta: Time since last frame
+# player_node: The player node for context (needed by profile resolver)
+# delta: Time since last frame
 # is_sliding: Whether the entity is currently sliding
 # Returns: The final motion vector
-func resolve_continuous_motion(delta: float, is_sliding: bool = false) -> Vector2:
-	return continuous_resolver.resolve(delta, is_sliding, _subsystems)
+func resolve_continuous_motion(player_node: Node, delta: float, is_sliding: bool = false) -> Vector2:
+	# Resolve motion profile first
+	var motion_profile = {}
+	if _motion_profile_resolver:
+		# Ensure player_node is valid before passing
+		if is_instance_valid(player_node):
+			motion_profile = _motion_profile_resolver.resolve_motion_profile(player_node)
+		else:
+			push_error("MotionSystemCore: Invalid player_node in resolve_continuous_motion.")
+			motion_profile = MotionProfileResolver.DEFAULTS.duplicate() # Use defaults if player invalid
+	else:
+		# Fallback if resolver is not set (should not happen in normal operation)
+		motion_profile = MotionProfileResolver.DEFAULTS.duplicate()
+		push_warning("MotionSystemCore: MotionProfileResolver not available in resolve_continuous_motion.")
+
+	# Pass relevant profile parameters to the continuous resolver
+	# The continuous_resolver needs to be updated to accept these.
+	# For now, we pass the profile in the context dictionary.
+	var context = {
+		"profile": motion_profile,
+		"is_sliding": is_sliding
+		# Add other relevant context if needed by continuous_resolver
+	}
+	# Assuming continuous_resolver.resolve signature is updated to accept context dictionary
+	return continuous_resolver.resolve(delta, context, _subsystems)
+
 
 # Resolve frame motion (called every physics frame)
 # context: Dictionary containing motion context (position, velocity, delta, etc.)
@@ -255,3 +283,12 @@ func register_all_subsystems() -> int:
 			pass # Subsystem path doesn't exist
 
 	return success_count
+
+
+# --- Resolver Integration ---
+
+## Called by Game.gd (or similar) to provide the resolver instance.
+func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
+	_motion_profile_resolver = resolver
+	if debug_enabled:
+		print("MotionSystemCore: MotionProfileResolver initialized.")

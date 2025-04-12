@@ -54,6 +54,7 @@ func _physics_process(delta: float) -> void:
 		# Entity information
 		"entity_id": entity_id,
 		"entity_type": "player",
+		"player_node": self, # Added reference to self for resolver context
 
 		# Position and physics
 		"position": position,
@@ -110,7 +111,8 @@ func _physics_process(delta: float) -> void:
 					"is_sliding": is_sliding,
 					"max_height_y": max_height_y,
 					"floor_position_y": floor_position_y,
-					"material": _detect_floor_material_from_collider(collision.get_collider())
+					"material": _detect_floor_material_from_collider(collision.get_collider()),
+					"player_node": self # Added player_node reference
 				}
 
 				# Let MotionSystem handle collision response using pre-slide velocity
@@ -188,7 +190,8 @@ func _try_boost() -> void:
 		"is_airborne": not is_on_floor(),
 		"is_rising": velocity.y < 0,  # In Godot, negative Y is up
 		"velocity": velocity,
-		"position": position
+		"position": position,
+		"player_node": self  # Add reference to self for the boost system
 	}
 	
 	# Try to apply the boost

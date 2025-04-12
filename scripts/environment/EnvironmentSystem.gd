@@ -1,6 +1,10 @@
 class_name EnvironmentSystem
 extends Node2D
 
+const MotionProfileResolver = preload("res://scripts/motion/core/MotionProfileResolver.gd")
+const GroundPhysicsConfig = preload("res://resources/motion/profiles/ground/GroundPhysicsConfig.gd")
+const DefaultGroundConfig = preload("res://resources/motion/profiles/ground/default_ground.tres")
+
 # All these classes are available globally via class_name
 
 signal visuals_updated(theme_id, biome_id)
@@ -25,6 +29,9 @@ var current_config: StageConfig = null
 # Track transitions
 var _pending_transitions = {}
 var _active_transition = false
+
+# Resolver reference
+var _motion_profile_resolver: MotionProfileResolver = null
 
 func _ready():
     # Connect manager signals
@@ -93,11 +100,47 @@ func get_theme_by_id(theme_id: String) -> EnvironmentTheme:
     return null
 
 func change_biome(biome_id: String) -> void:
+    if current_biome_id == biome_id and _motion_profile_resolver and _motion_profile_resolver._ground_config and _motion_profile_resolver._ground_config.biome_id == biome_id:
+        # Avoid redundant updates if biome hasn't actually changed
+        return
+        
     current_biome_id = biome_id
     
+    # Update MotionProfileResolver with the new biome's ground config
+    _update_resolver_ground_config(biome_id)
+    
     # In the future, biomes might affect theme selection
-    # For now, just re-apply the current theme
+    # For now, just re-apply the current theme (existing logic)
     apply_theme_by_id(current_theme_id)
+
+
+## Loads and sets the ground config in the MotionProfileResolver based on biome ID.
+func _update_resolver_ground_config(biome_id: String) -> void:
+    if not _motion_profile_resolver:
+        push_warning("EnvironmentSystem: MotionProfileResolver not available to update ground config.")
+        return
+
+    # Construct the expected path for the biome's ground config resource
+    var biome_config_path = "res://resources/motion/profiles/ground/%s_ground.tres" % biome_id
+    
+    var biome_config: GroundPhysicsConfig = null
+    if ResourceLoader.exists(biome_config_path):
+        biome_config = load(biome_config_path) as GroundPhysicsConfig
+
+    if biome_config:
+        _motion_profile_resolver.set_ground_config(biome_config)
+        if debug_mode:
+            print("EnvironmentSystem: Set ground config for biome '%s'." % biome_id)
+    else:
+        push_warning("EnvironmentSystem: No GroundPhysicsConfig found for biome '%s' at path '%s'. Falling back to default." % [biome_id, biome_config_path])
+        # Fall back to the preloaded default config
+        if DefaultGroundConfig:
+            _motion_profile_resolver.set_ground_config(DefaultGroundConfig)
+        else:
+            # This should ideally not happen if the default preload worked
+            push_error("EnvironmentSystem: DefaultGroundConfig could not be loaded for fallback.")
+            _motion_profile_resolver.set_ground_config(null) # Clear config as last resort
+
 
 func _apply_theme(theme: EnvironmentTheme) -> void:
     if !theme:
@@ -201,3 +244,18 @@ func _unhandled_input(event):
             apply_theme_by_id("default")
         elif event.keycode == KEY_2:
             apply_theme_by_id("debug")
+
+
+# --- Resolver Integration ---
+
+## Called by Game.gd to provide the resolver instance.
+func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
+    _motion_profile_resolver = resolver
+    # Immediately update resolver with the initial biome's config if available
+    if current_biome_id:
+        _update_resolver_ground_config(current_biome_id)
+    elif DefaultGroundConfig: # If no biome set yet, use default
+        _motion_profile_resolver.set_ground_config(DefaultGroundConfig)
+        
+    if debug_mode:
+        print("EnvironmentSystem: MotionProfileResolver initialized.")

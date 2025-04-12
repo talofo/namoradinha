@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GroundPhysicsConfig" load_steps=2 format=3 uid="uid://unique_ice_ground_id"]
+
+[ext_resource type="Script" path="res://resources/motion/profiles/ground/GroundPhysicsConfig.gd" id="1_ghijk"] ; Replace 1_ghijk with actual ID if known
+
+[resource]
+script = ExtResource("1_ghijk") ; Replace 1_ghijk with actual ID
+biome_id = "ice"
+friction = 0.05
+bounce = 0.9
+drag = 0.05
+gravity_scale = 1.0
+mass_multiplier = 1.0
+velocity_modifier = 1.2
+air_control_multiplier = 0.8
