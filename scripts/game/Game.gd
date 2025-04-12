@@ -4,6 +4,7 @@ extends Node2D
 @onready var player_spawner = $PlayerSpawner
 @onready var stage_manager = $StageManager
 @onready var motion_system = $MotionSystem  # Reference to the MotionSystem node
+@onready var environment_system = $EnvironmentSystem  # Reference to the EnvironmentSystem node
 
 func _ready():
 	# Initialize motion system

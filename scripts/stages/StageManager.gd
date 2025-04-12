@@ -1,5 +1,8 @@
 extends Node2D
 
+# Class references
+const StageConfig = preload("res://resources/environment/StageConfig.gd")
+
 var current_stage: Node = null
 
 func load_stage(stage_number: int) -> void:
@@ -23,4 +26,17 @@ func load_stage(stage_number: int) -> void:
 		ground_manager.set_stage_number(stage_number)
 	else:
 		push_warning("GroundManager node not found or missing set_stage_number method in stage " + str(stage_number))
-		pass
+	
+	# Create stage config for environment system
+	var config = StageConfig.new()
+	config.stage_id = stage_number
+	
+	# Map stage_id to theme_id (customize as needed)
+	match stage_number:
+		1:
+			config.theme_id = "default"
+		_:
+			config.theme_id = "default"
+	
+	# Emit signal that will be caught by EnvironmentSystem
+	GlobalSignals.stage_loaded.emit(config)

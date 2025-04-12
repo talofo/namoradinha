@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/environment/managers/BackgroundManager.gd" id="1_yjk2e"]
+
+[node name="BackgroundManager" type="ParallaxBackground"]
+script = ExtResource("1_yjk2e")
+transition_duration = 0.5
+
+[node name="FarLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.2, 0.2)
+
+[node name="MidLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.5, 0.5)
+
+[node name="NearLayer" type="ParallaxLayer" parent="."]
+motion_scale = Vector2(0.8, 0.8)
