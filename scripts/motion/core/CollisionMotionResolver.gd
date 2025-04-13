@@ -35,7 +35,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 				# Construct CollisionContext for BounceSystem
 				# ASSUMPTION: collision_info contains all necessary raw data
 				# TODO: Need a robust way to get PlayerBounceProfile (e.g., from entity data via _core)
-				# TODO: Need a robust way to get ImpactSurfaceData (e.g., from physics collision data)
+				# TODO: Need a robust way to get CollisionSurfaceData (e.g., from physics collision data)
 				
 				# Special case for BounceSystem which requires a CollisionContext object
 				# This is necessary because BounceSystem uses a more structured approach
@@ -49,7 +49,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 				var material_type = collision_info.get("material", "default")
 				
 				if Engine.is_editor_hint() or OS.is_debug_build():
-					print("[DEBUG] CollisionMotionResolver: Creating ImpactSurfaceData with normal = ", surface_normal, ", material = ", material_type)
+					print("[DEBUG] CollisionMotionResolver: Creating CollisionSurfaceData with normal = ", surface_normal, ", material = ", material_type)
 				
 				# Get material properties from CollisionMaterialSystem if available
 				var elasticity = 0.9  # Default fallback
@@ -65,7 +65,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 						print("[DEBUG] CollisionMotionResolver: Got material properties from CollisionMaterialSystem: elasticity = ", elasticity, ", friction = ", friction)
 				
 				# Create surface data with the normal and material properties
-				var surface_data = ImpactSurfaceData.new(
+				var surface_data = CollisionSurfaceData.new(
 					surface_normal,
 					collision_info.get("position", Vector2.ZERO),
 					elasticity,
@@ -74,7 +74,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 				)
 				
 				if Engine.is_editor_hint() or OS.is_debug_build():
-					print("[DEBUG] CollisionMotionResolver: Created ImpactSurfaceData with elasticity = ", surface_data.elasticity, ", friction = ", surface_data.friction)
+					print("[DEBUG] CollisionMotionResolver: Created CollisionSurfaceData with elasticity = ", surface_data.elasticity, ", friction = ", surface_data.friction)
 				
 				# Get player_node from collision_info (added by PlayerCharacter)
 				var player_node = collision_info.get("player_node", null)
@@ -177,12 +177,28 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 		var collision_motion = resolve_collision_motion(collision_info, subsystems)
 		result["velocity"] = collision_motion
 
-		# Determine state based on resolved motion
-		if is_zero_approx(collision_motion.y):
+		# Determine state based on resolved motion and BounceOutcome state
+		var bounce_system = _core.get_subsystem("BounceSystem")
+		var is_terminated = false
+		
+		# Check if we have a BounceSystem and if it has a last_outcome property
+		if bounce_system and bounce_system.has_method("get_last_outcome"):
+			var last_outcome = bounce_system.get_last_outcome()
+			if last_outcome:
+				is_terminated = last_outcome.is_terminated()
+				
+				if Engine.is_editor_hint() or OS.is_debug_build():
+					print("[DEBUG] CollisionMotionResolver: BounceSystem last_outcome state: ", last_outcome.termination_state)
+		
+		# If bounce is terminated or Y velocity is zero, transition to sliding
+		if is_terminated or is_zero_approx(collision_motion.y):
 			# Bounce stopped, transition to slide
 			# Ensure Y component is zero when transitioning to sliding
 			collision_motion.y = 0.0
 			result = _core.state_manager.transition_to_sliding(collision_motion)
+			
+			if Engine.is_editor_hint() or OS.is_debug_build():
+				print("[DEBUG] CollisionMotionResolver: Transitioning to sliding state with velocity: ", collision_motion)
 		else:
 			# Still bouncing
 			result["has_launched"] = true
@@ -190,8 +206,6 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 			# Update max_height_y only when bouncing continues upwards
 			if collision_motion.y < 0:
 				result["max_height_y"] = collision_info.get("position", Vector2.ZERO).y
-			else:
-				pass # Restore redundant else: pass block
 				
 	elif is_sliding:
 		# Entity is sliding, update sliding state

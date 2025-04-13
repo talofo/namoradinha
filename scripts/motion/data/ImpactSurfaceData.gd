@@ -1,4 +1,4 @@
-class_name ImpactSurfaceData
+class_name CollisionSurfaceData
 extends RefCounted
 
 ## Holds information about the surface involved in the collision.

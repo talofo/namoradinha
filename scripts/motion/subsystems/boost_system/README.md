@@ -12,7 +12,7 @@ The Boost System allows entities to receive velocity changes during gameplay bas
 - **BoostTypeRegistry**: Manages registration of different boost types
 - **BoostCalculator**: Handles boost vector calculations
 - **IBoostType**: Interface for all boost types
-- **ManualAirBoost**: Implementation of the Manual Air Boost type
+- **AirBoostType**: Implementation of the Manual Air Boost type
 
 ## Data Structures
 
@@ -57,25 +57,36 @@ Before using the Manual Air Boost, you need to add an input action in the Godot 
 
 ### 2. Motion Profile Configuration
 
-Boost calculations now utilize parameters resolved by the `MotionProfileResolver`. Parameters relevant to boosts (like `velocity_modifier`) should be defined within the appropriate motion profile resources (e.g., `GroundPhysicsConfig`, or future `TraitProfileConfig`, `EquipmentModifierConfig`).
+Boost calculations utilize parameters resolved by the `MotionProfileResolver`. Parameters relevant to boosts (like `manual_air_boost_falling_strength`, `velocity_modifier`) are primarily defined in the global `PhysicsConfig` (`default_physics.tres`) and potentially overridden by other configuration sources (like `GroundPhysicsConfig`) before being included in the final resolved profile.
 
-The `BoostSystem` receives the resolved `motion_profile` dictionary via the `BoostContext` object during the `try_apply_boost` call. Specific boost type implementations (`IBoostType`) and the `BoostCalculator` can then access parameters like `velocity_modifier` from this dictionary.
+The `BoostSystem` receives the resolved `motion_profile` dictionary via the `BoostContext` object during the `try_apply_boost` call. Specific boost type implementations (`IBoostType`) and the `BoostCalculator` access parameters from this dictionary.
 
-Example access within an `IBoostType` or `BoostCalculator`:
+Example access within an `IBoostType` implementation (like `AirBoostType.gd`):
 ```gdscript
-func calculate_boost(context: BoostContext):
+func calculate_boost_vector(boost_context: BoostContext) -> Vector2:
     # Access the resolved motion profile from the context
-    var profile = context.motion_profile
+    var motion_profile = boost_context.motion_profile
+    var boost_strength = 0.0
+    var boost_angle_degrees = 0.0
 
-    # Get the velocity modifier, using a default if not found
-    var velocity_mod = profile.get("velocity_modifier", 1.0)
+    if boost_context.is_rising:
+        # Get values from motion_profile (which includes PhysicsConfig values)
+        boost_strength = motion_profile.get("manual_air_boost_rising_strength")
+        boost_angle_degrees = motion_profile.get("manual_air_boost_rising_angle")
+    else:
+        boost_strength = motion_profile.get("manual_air_boost_falling_strength")
+        boost_angle_degrees = motion_profile.get("manual_air_boost_falling_angle")
 
-    # Use the modifier in calculations
-    var final_boost_strength = base_strength * velocity_mod
-    # ... other calculations ...
+    # ... calculate vector ...
+
+    # Apply general velocity modifier if present
+    var velocity_modifier = motion_profile.get("velocity_modifier", 1.0)
+    boost_vector *= velocity_modifier
+
+    return boost_vector
 ```
 
-This ensures boosts are affected by the current environmental context, equipment, traits, etc., as defined in the central `MotionProfileResolver`.
+This ensures boosts use parameters defined centrally in `PhysicsConfig` but can still be influenced by context (ground type, traits, etc.) via the `MotionProfileResolver`.
 
 ## Usage
 

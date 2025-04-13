@@ -1,8 +1,8 @@
 class_name EnvironmentSystem
 extends Node2D
 
-const MotionProfileResolver = preload("res://scripts/motion/core/MotionProfileResolver.gd")
-const GroundPhysicsConfig = preload("res://resources/motion/profiles/ground/GroundPhysicsConfig.gd")
+# No need to preload classes that are globally available via class_name in Godot 4.4
+# Load the default ground config resource
 const DefaultGroundConfig = preload("res://resources/motion/profiles/ground/default_ground.tres")
 
 # All these classes are available globally via class_name

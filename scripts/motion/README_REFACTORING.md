@@ -11,30 +11,34 @@ The refactored system follows a modular architecture with the following componen
 ### Core Components
 
 1. **MotionSystem.gd**
-   - Lightweight wrapper that delegates to the core components
-   - Maintains the same public API for backward compatibility
-   - Forwards signals from the core system
+   - Lightweight wrapper node that delegates to the core components.
+   - Maintains the same public API for backward compatibility.
+   - Forwards signals from the core system.
 
 2. **MotionSystemCore.gd**
-   - Central coordinator that manages subsystems
-   - Handles configuration loading
-   - Delegates specific tasks to specialized components
+   - Central coordinator (RefCounted) that manages subsystems.
+   - Loads the main `PhysicsConfig` resource (`default_physics.tres`).
+   - Delegates specific tasks to specialized components.
+   - Injects dependencies (like `PhysicsConfig` and `MotionProfileResolver`) into subsystems.
 
 3. **PhysicsCalculator.gd**
-   - Handles physics-related calculations
-   - Provides utility functions for gravity, friction, etc.
-   - Encapsulates physics logic
+   - Handles physics-related calculations (e.g., applying gravity, friction).
+   - Encapsulates physics logic, often using parameters resolved by `MotionProfileResolver`.
 
 4. **MotionStateManager.gd**
-   - Manages entity state (launched, sliding, etc.)
-   - Handles state transitions
-   - Processes frame-based motion
+   - Manages entity state (launched, sliding, etc.).
+   - Handles state transitions.
+   - Processes frame-based motion.
 
 ### Motion Resolution Components
 
 5. **MotionProfileResolver.gd** (New)
-   - Resolves base motion parameters (friction, bounce, drag, etc.) from configuration profiles (e.g., `GroundPhysicsConfig`).
-   - Provides a unified source for fundamental physics properties based on context (like biome).
+   - Resolves the final motion parameters (friction, bounce, drag, boost strengths, material properties, etc.) by layering different configuration sources.
+   - **Sources (in order of application, lowest to highest priority):**
+     - **PhysicsConfig:** Loads global physics rules and defaults (`default_physics.tres`).
+     - **GroundPhysicsConfig:** Applies biome-specific overrides (e.g., `default_ground.tres`, `ice_ground.tres`).
+     - **(Future):** Equipment, Traits, Status Effects.
+   - Provides a unified source for fundamental physics properties based on context.
    - Caches resolved profiles for performance.
 
 6. **MotionModifierResolver.gd** (Renamed from `MotionResolver.gd`)
@@ -45,13 +49,13 @@ The refactored system follows a modular architecture with the following componen
    - Handles continuous motion resolution (integrating base physics with dynamic modifiers).
    - Collects continuous modifiers from subsystems.
    - Uses `MotionModifierResolver` to combine dynamic effects.
-   - (Note: Needs updates to incorporate base parameters from `MotionProfileResolver`).
+   - Uses parameters from the profile resolved by `MotionProfileResolver`.
 
 8. **CollisionMotionResolver.gd**
    - Handles collision-based motion resolution.
-   - Processes bounce and slide logic.
+   - Creates `CollisionContext` and `ImpactSurfaceData` (using material properties resolved via `MotionProfileResolver` and provided by `CollisionMaterialSystem`).
+   - Delegates collision handling to relevant subsystems (like `BounceSystem`).
    - Manages collision response.
-   - (Note: Needs updates to incorporate base parameters from `MotionProfileResolver`).
 
 9. **MotionDebugger.gd**
    - Provides debug functionality for both profile resolution and modifier application.
@@ -117,54 +121,28 @@ resources/
 
 ## Recent Improvements
 
-1. **Automatic Subsystem Registration**: MotionSystemCore now automatically registers all subsystems from a predefined list, eliminating the need for manual registration in Game.gd.
-2. **Centralized Physics Config Access**: Removed duplicate physics_config variables from subsystems, ensuring all subsystems access the physics configuration through MotionSystemCore.
-3. **Standardized Error Handling**: Improved how subsystems handle missing physics configuration with consistent checks and fallback behavior. (Note: The centralized ErrorHandler mentioned previously has been removed).
-4. **Reduced Code Duplication**: Eliminated redundant code for loading and accessing physics configuration.
-5. **Simplified Game Initialization**: Game.gd no longer needs to manually create and register each subsystem, making it more maintainable.
-6. **Improved Signal Handling**: Fixed signal connections between subsystems by:
-   - Adding entity_launched signal directly to LaunchSystem
-   - Implementing proper signal forwarding in MotionSystemCore
-   - Ensuring BounceSystem receives launch events correctly
-7. **Dynamic Subsystem Registration**: Improved subsystem registration to be more dynamic:
-   - Moved subsystem registration out of MotionSystemCore._ready() to allow explicit control via Game.gd
-   - Added explicit call to register_all_subsystems() in Game.initialize_motion_system()
-   - Fixed timing issues with subsystem registration and availability
+1. **Automatic Subsystem Registration**: `MotionSystemCore` automatically registers subsystems from a predefined list.
+2. **Standardized Error Handling**: Improved handling of missing configurations with consistent checks and fallbacks.
+3. **Reduced Code Duplication**: Centralized configuration loading and access.
+4. **Simplified Game Initialization**: `Game.gd` initialization is cleaner due to automatic registration.
+5. **Improved Signal Handling**: Fixed signal connections between subsystems.
+6. **Dynamic Subsystem Registration**: Registration is now controlled explicitly by `Game.gd`.
+7. **PhysicsConfig Integration**: `MotionProfileResolver` now incorporates global physics parameters from `PhysicsConfig` (`default_physics.tres`) as the base layer for profile resolution.
+8. **Direct Config Injection**: `MotionSystemCore` now attempts to inject the loaded `PhysicsConfig` directly into subsystems that need it (like `CollisionMaterialSystem`).
 
 ## Subsystem Motion Parameter Access Pattern (Updated)
 
-With the introduction of `MotionProfileResolver`, subsystems no longer directly access a static `PhysicsConfig`. Instead, they receive the `MotionProfileResolver` instance and query it for the current motion parameters based on context (usually the player node).
+Subsystems primarily interact with motion parameters in two ways:
 
-1.  **Initialization:** Subsystems needing motion parameters should implement an `initialize_with_resolver(resolver: MotionProfileResolver)` method. This method will be called by `Game.gd` or `MotionSystemCore.gd` to inject the resolver instance. Store this instance in a local variable (e.g., `_motion_profile_resolver`).
+1.  **Using the Resolved Motion Profile:** For most dynamic calculations (boosts, bounce logic, continuous forces), subsystems should use the `MotionProfileResolver`.
+    *   **Initialization:** Implement `initialize_with_resolver(resolver: MotionProfileResolver)` and store the resolver instance.
+    *   **Access:** In relevant methods, call `_motion_profile_resolver.resolve_motion_profile(player_node)` to get the fully resolved dictionary of parameters (which includes values layered from `PhysicsConfig`, `GroundPhysicsConfig`, etc.). Access parameters using `.get("param_name", fallback_value)`.
 
-2.  **Accessing Parameters:** Within methods that require motion parameters (e.g., `get_collision_modifiers`, `try_apply_boost`, `get_continuous_modifiers`), use the stored resolver to get the current profile:
+2.  **Using Directly Injected PhysicsConfig:** For subsystems that manage fundamental properties based *only* on the global config (like `CollisionMaterialSystem` setting base material properties), they can receive the `PhysicsConfig` directly.
+    *   **Initialization:** Implement `set_physics_config(config: PhysicsConfig)` and store the config instance. This method is called by `MotionSystemCore` during registration.
+    *   **Access:** Use the stored `_physics_config` reference (e.g., `_physics_config.default_material_bounce`).
 
-```gdscript
-# Ensure resolver and player context are available
-# (player_node might come from method arguments or context objects)
-if not _motion_profile_resolver:
-    push_warning("SubsystemName: MotionProfileResolver not available.")
-    # Handle fallback - perhaps use MotionProfileResolver.DEFAULTS or skip logic
-    return fallback_value
-
-if not is_instance_valid(player_node):
-    push_error("SubsystemName: Invalid player_node provided.")
-    # Handle fallback
-    return fallback_value
-
-# Resolve the current motion profile for the player
-var motion_profile: Dictionary = _motion_profile_resolver.resolve_motion_profile(player_node)
-
-# Access specific parameters with fallbacks if necessary
-var friction = motion_profile.get("friction", MotionProfileResolver.DEFAULTS.friction)
-var bounce = motion_profile.get("bounce", MotionProfileResolver.DEFAULTS.bounce)
-# ... access other needed parameters
-
-# Use the resolved parameters in the subsystem's logic
-# Example: apply friction, calculate bounce force, etc.
-```
-
-This pattern ensures that subsystems always use the centrally resolved, context-aware motion parameters, incorporating ground physics, and eventually other sources like traits, equipment, and effects, as defined by the `MotionProfileResolver`.
+This dual approach allows subsystems to access either the fully resolved, context-aware parameters or the base global parameters as needed.
 
 ## Future Improvements
 

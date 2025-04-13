@@ -3,7 +3,7 @@
 # This class implements the IBoostType interface by providing the required methods:
 # - can_apply_boost(boost_context)
 # - calculate_boost_vector(boost_context)
-class_name ManualAirBoost
+class_name AirBoostType
 extends RefCounted
 
 # No need to preload classes that are globally available via class_name

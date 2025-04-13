@@ -40,13 +40,14 @@ func assert_vector2_approx_eq(v1: Vector2, v2: Vector2, tolerance: float = 0.001
 # const BounceSystem = preload(...) # Not needed
 # const CollisionContext = preload(...) # Not needed
 # const IncomingMotionState = preload(...) # Not needed
-# const ImpactSurfaceData = preload(...) # Not needed
+# Note: Classes are globally available via class_name
 # const PlayerBounceProfile = preload(...) # Not needed
 # const BounceOutcome = preload(...) # Not needed
 # const MotionModifier = preload(...) # Not needed
 
 # --- Test Subject ---
 var bounce_system: BounceSystem # Use the correct global class name
+var MIN_STOP_SPEED = 10.0 # Define the constant here since we can't access it from BounceCalculator
 
 # --- Test Suite ---
 func _ready(): # Changed from _init to run when node is ready
@@ -104,7 +105,7 @@ func test_basic_first_bounce_flat_ground() -> bool:
 	
 	# Arrange: Define the collision context
 	var incoming_state = IncomingMotionState.new(Vector2(300, 600)) # Moving right and strongly downwards
-	var surface_data = ImpactSurfaceData.new(
+	var surface_data = CollisionSurfaceData.new(
 		Vector2.UP, # Normal pointing straight up
 		Vector2(100, 500), # Collision point
 		0.6, # Elasticity
@@ -113,7 +114,14 @@ func test_basic_first_bounce_flat_ground() -> bool:
 	var player_profile = PlayerBounceProfile.new() # Default profile
 	var gravity = Vector2.DOWN * 980.0
 	
+	# Create a mock player node for testing
+	var mock_player = Node.new()
+	mock_player.max_height_y = 0
+	mock_player.floor_position_y = 500
+	mock_player.initial_bounce_position_y = 500
+	
 	var context = CollisionContext.new(
+		mock_player,
 		incoming_state,
 		surface_data,
 		player_profile,
@@ -155,12 +163,25 @@ func test_bounce_with_high_bounciness() -> bool:
 	
 	# Arrange: Similar context, but higher bounciness multiplier
 	var incoming_state = IncomingMotionState.new(Vector2(300, 600)) 
-	var surface_data = ImpactSurfaceData.new(Vector2.UP, Vector2(100, 500), 0.6, 0.1)
+	var surface_data = CollisionSurfaceData.new(Vector2.UP, Vector2(100, 500), 0.6, 0.1)
 	# Increase bounciness via profile - Use positional argument for constructor
 	var player_profile = PlayerBounceProfile.new(1.5) 
 	var gravity = Vector2.DOWN * 980.0
 	
-	var context = CollisionContext.new(incoming_state, surface_data, player_profile, gravity, true)
+	# Create a mock player node for testing
+	var mock_player = Node.new()
+	mock_player.max_height_y = 0
+	mock_player.floor_position_y = 500
+	mock_player.initial_bounce_position_y = 500
+	
+	var context = CollisionContext.new(
+		mock_player,
+		incoming_state,
+		surface_data,
+		player_profile,
+		gravity,
+		true
+	)
 	
 	# Act: Call the system's modifier function directly with the context object
 	var result_array = bounce_system.get_collision_modifiers(context) # Keep isolated call for now
@@ -192,11 +213,24 @@ func test_termination_low_velocity() -> bool:
 	# Arrange: Low incoming velocity, below bounce threshold
 	# MIN_BOUNCE_VELOCITY_NORMAL is 50.0 in BounceCalculator
 	var incoming_state = IncomingMotionState.new(Vector2(20, 40)) # Low speed, downwards
-	var surface_data = ImpactSurfaceData.new(Vector2.UP, Vector2(100, 500), 0.6, 0.1)
+	var surface_data = CollisionSurfaceData.new(Vector2.UP, Vector2(100, 500), 0.6, 0.1)
 	var player_profile = PlayerBounceProfile.new() 
 	var gravity = Vector2.DOWN * 980.0
 	
-	var context = CollisionContext.new(incoming_state, surface_data, player_profile, gravity, true)
+	# Create a mock player node for testing
+	var mock_player = Node.new()
+	mock_player.max_height_y = 0
+	mock_player.floor_position_y = 500
+	mock_player.initial_bounce_position_y = 500
+	
+	var context = CollisionContext.new(
+		mock_player,
+		incoming_state,
+		surface_data,
+		player_profile,
+		gravity,
+		true
+	)
 	
 	# Act
 	var result_array = bounce_system.get_collision_modifiers(context)
@@ -243,7 +277,7 @@ func test_full_sequence_simulation() -> bool:
 	var max_steps = 100                       # Prevent infinite loops
 	var step_count = 0
 
-	var surface_data = ImpactSurfaceData.new(Vector2.UP, Vector2.ZERO, 0.7, 0.1) # Bouncy ground
+	var surface_data = CollisionSurfaceData.new(Vector2.UP, Vector2.ZERO, 0.7, 0.1) # Bouncy ground
 	var player_profile = PlayerBounceProfile.new()
 	
 	print("    Simulating sequence: Launch -> Bounce(s) -> Slide/Stop")
@@ -268,7 +302,20 @@ func test_full_sequence_simulation() -> bool:
 			# Create context for this collision
 			var incoming_state = IncomingMotionState.new(current_velocity)
 			surface_data.collision_point = current_position # Update collision point
-			var context = CollisionContext.new(incoming_state, surface_data, player_profile, gravity, false) # Debug off for loop
+			# Create a mock player node for testing
+			var mock_player = Node.new()
+			mock_player.max_height_y = current_position.y
+			mock_player.floor_position_y = ground_level
+			mock_player.initial_bounce_position_y = ground_level
+			
+			var context = CollisionContext.new(
+				mock_player,
+				incoming_state,
+				surface_data,
+				player_profile,
+				gravity,
+				false # Debug off for loop
+			)
 			
 			# Get bounce outcome
 			var modifiers = bounce_system.get_collision_modifiers(context)
@@ -282,7 +329,7 @@ func test_full_sequence_simulation() -> bool:
 			
 			# Check for termination (sliding/stopped) based on outcome velocity
 			if abs(new_velocity.y) < 0.1: # Check if vertical velocity is killed (sliding/stopped)
-				if new_velocity.length() < BounceCalculator.MIN_STOP_SPEED:
+				if new_velocity.length() < MIN_STOP_SPEED:
 					print("      Step %d: Termination -> STOPPED. Final Vel: %s" % [step_count, str(new_velocity.round())])
 					current_velocity = Vector2.ZERO
 					success = assert_vector2_approx_eq(new_velocity, Vector2.ZERO, 0.01, "Should be zero velocity when stopped.") and success

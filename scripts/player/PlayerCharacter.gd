@@ -107,6 +107,12 @@ func _physics_process(delta: float) -> void:
 			motion_result.velocity.y = velocity.y
 			if Engine.is_editor_hint() or OS.is_debug_build():
 				print("[DEBUG] Preserving upward velocity during post-bounce: ", velocity.y)
+		
+		# If we're sliding, ensure Y velocity is zero
+		if is_sliding:
+			motion_result.velocity.y = 0.0
+			if Engine.is_editor_hint() or OS.is_debug_build():
+				print("[DEBUG] Enforcing zero Y velocity during sliding")
 			
 		velocity = motion_result.velocity
 		# DEBUG: Print velocity after motion system resolution
@@ -181,10 +187,10 @@ func _physics_process(delta: float) -> void:
 						if collision_result.has("velocity"):
 							if Engine.is_editor_hint() or OS.is_debug_build():
 								print("[PlayerCharacter._physics_process] Applying velocity from result: ", collision_result.velocity) # DEBUG PRINT
-							velocity = collision_result.velocity # OVERWRITE velocity modified by move_and_slide
+								velocity = collision_result.velocity # OVERWRITE velocity modified by move_and_slide
 							
 							# If we're bouncing (negative Y velocity), start the collision grace timer and post-bounce timer
-							if velocity.y < 0:
+							if velocity.y < 0: 
 								collision_grace_timer = collision_grace_duration
 								post_bounce_timer = post_bounce_duration
 								# Reset max_height_y to current position at the start of a new bounce
@@ -202,9 +208,8 @@ func _physics_process(delta: float) -> void:
 									# DEBUG: Print final velocity after bounce
 									print("[DEBUG] Final velocity after bounce: ", velocity)
 							
-							# Ensure Y component is zero when sliding
-							if collision_result.has("is_sliding") and collision_result.is_sliding:
-								velocity.y = 0.0
+							# Removed redundant check: velocity.y = 0.0 for sliding.
+							# The BounceCalculator/CollisionMotionResolver should provide the correct velocity vector.
 								
 						if collision_result.has("has_launched"):
 							has_launched = collision_result.has_launched

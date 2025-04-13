@@ -4,64 +4,85 @@ A subsystem for the MotionSystem that provides material-specific physics propert
 
 ## Overview
 
-The CollisionMaterialSystem acts as a lookup service for surface properties. When an entity collides with something, other systems (like `MotionSystem` or `PlayerCharacter`) can determine the type of material collided with (e.g., "ice", "mud", "default"). This system then provides the relevant physics parameters associated with that material type, such as friction coefficients or bounce ratios.
+The CollisionMaterialSystem acts as a central repository and lookup service for surface material properties (friction, bounce, sound). It reads these properties directly from the global `PhysicsConfig` resource (`default_physics.tres`) during initialization.
+
+When an entity collides with something, other systems (like `CollisionMotionResolver`) determine the type of material involved (e.g., "ice", "mud", "default"). They then query this system to get the physics parameters associated with that material type.
 
 ## Features
 
-- Stores physics properties (friction, bounce ratio, etc.) associated with different material names.
+- Stores physics properties (friction, bounce, sound) associated with different material names ("default", "ice", "mud", "rubber").
+- Loads these properties directly from the `PhysicsConfig` resource injected by `MotionSystemCore`.
 - Provides a method (`get_material_properties`) to retrieve the properties dictionary for a given material name.
-- Allows for easy definition and extension of new material types and their associated physics behaviors.
 
 ## Integration with MotionSystem
 
-The CollisionMaterialSystem implements the `IMotionSubsystem` interface and is registered with the `MotionSystem`. It doesn't typically generate `MotionModifier`s itself. Instead, other systems query it during their calculations.
+The CollisionMaterialSystem implements the `IMotionSubsystem` interface and is registered with the `MotionSystemCore`.
 
-## Material Types
-
-Material types are now defined as separate classes in the `scripts/collision_materials/` directory:
-
-- **DefaultMaterial**: The base material with standard friction and bounce properties
-- Additional materials (Ice, Mud, Rubber) are currently defined inline but will be moved to separate classes when needed
+- **Initialization:** `MotionSystemCore` calls `set_physics_config(config)` on this system, passing the loaded `PhysicsConfig` resource.
+- **Property Loading:** The `set_physics_config` method triggers `_update_materials_from_config`, which reads properties like `default_material_friction`, `ice_material_bounce`, etc., from the `PhysicsConfig` and stores them internally in the `_registered_materials` dictionary.
+- **Usage:** Other systems, primarily `CollisionMotionResolver`, query this system using `get_material_properties(material_type)` to get the friction and bounce values needed to create `ImpactSurfaceData` for collision calculations.
 
 ## Usage
 
-1.  **Define Materials:** Create a new material class in `scripts/collision_materials/` that implements the `ICollisionMaterial` interface:
+1.  **Define Properties in PhysicsConfig:** Ensure all material properties are defined in `PhysicsConfig.gd` (`@export var`) and have corresponding values set in `resources/physics/default_physics.tres`.
     ```gdscript
-    # Example: scripts/collision_materials/IceMaterial.gd
-    class_name IceMaterial
-    extends RefCounted
-    
-    const ICollisionMaterial = preload("res://scripts/motion/subsystems/collision_material_system/interfaces/ICollisionMaterial.gd")
-    
-    func get_properties() -> Dictionary:
-        return {
-            "friction": 0.1,
-            "bounce": 0.8,
-            "sound": "ice_slide"
-        }
+    # In PhysicsConfig.gd
+    @export var default_material_friction: float = 0.3
+    @export var default_material_bounce: float = 0.8
+    @export var ice_material_friction: float = 0.05
+    # ... etc ...
+
+    # In default_physics.tres
+    [resource]
+    script = ExtResource("...")
+    default_material_friction = 0.3
+    default_material_bounce = 0.8
+    ice_material_friction = 0.05
+    # ... etc ...
     ```
 
-2.  **Register Materials:** The CollisionMaterialSystem loads material classes and registers their properties.
+2.  **Initialization (Automatic):** `MotionSystemCore` automatically loads `default_physics.tres` and passes the `PhysicsConfig` instance to this system via `set_physics_config`. The system then populates its internal `_registered_materials` dictionary.
 
-3.  **Determine Material Type:** The colliding entity (e.g., `PlayerCharacter`) or the `MotionSystem` determines the name of the material involved in the collision.
+3.  **Determine Material Type:** The colliding entity (e.g., `PlayerCharacter`) or `CollisionMotionResolver` determines the name ("default", "ice", etc.) of the material involved in the collision (usually based on the collider's properties or metadata).
 
-4.  **Query Properties:** The system needing the properties gets the subsystem and queries it:
+4.  **Query Properties:** The system needing the properties (typically `CollisionMotionResolver`) gets this subsystem and queries it:
     ```gdscript
-    # Example within MotionSystem.resolve_collision
-    var collision_material_system = get_subsystem("CollisionMaterialSystem")
-    var material_type = collision_info.get("material", "default") # Get material name from context
-    var base_friction = physics_config.default_ground_friction # Default fallback
+    # Example within CollisionMotionResolver._create_impact_surface_data
+    var collision_material_system = _core.get_subsystem("CollisionMaterialSystem")
+    var material_type = collision_info.get("material", "default") # Get material name
+    var elasticity = 0.5 # Fallback
+    var friction = 0.3 # Fallback
 
     if collision_material_system:
         var material_properties = collision_material_system.get_material_properties(material_type)
-        base_friction = material_properties.get("friction", base_friction) # Use material friction if available
+        elasticity = material_properties.get("bounce", elasticity)
+        friction = material_properties.get("friction", friction)
     
-    # ... use base_friction in calculations ...
+    var surface_data = ImpactSurfaceData.new(normal, elasticity, friction)
     ```
 
 ## Extending with New Material Types
 
-To add a new material type:
+To add a new material type (e.g., "sand"):
 
-1. Create a new class in `scripts/collision_materials/` that implements the ICollisionMaterial interface
-2. Register it with the CollisionMaterialSystem (or update the _register_default_materials method)
+1.  **Add Properties to `PhysicsConfig.gd`:**
+    ```gdscript
+    @export var sand_material_friction: float = 0.7
+    @export var sand_material_bounce: float = 0.4
+    ```
+2.  **Add Values to `default_physics.tres`:**
+    ```gdscript
+    [resource]
+    # ... other properties ...
+    sand_material_friction = 0.7
+    sand_material_bounce = 0.4
+    ```
+3.  **Update `CollisionMaterialSystem._update_materials_from_config`:** Add an entry for the new material type:
+    ```gdscript
+    _registered_materials["sand"] = {
+        "friction": _physics_config.get_param("sand_material_friction", "default") if _physics_config else SAND_FRICTION, # Define SAND_FRICTION constant for fallback
+        "bounce": _physics_config.get_param("sand_material_bounce", "default") if _physics_config else SAND_BOUNCE, # Define SAND_BOUNCE constant for fallback
+        "sound": "sand_impact" # Add appropriate sound key
+    }
+    ```
+4.  **Update Collision Detection:** Ensure your game logic correctly identifies "sand" materials during collisions and includes `"material": "sand"` in the `collision_info` dictionary passed to the `MotionSystem`.

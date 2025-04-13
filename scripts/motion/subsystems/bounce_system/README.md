@@ -23,12 +23,11 @@ This document describes the rewritten Bounce System, designed to be stateless, r
 5.  **Internal Calculation:**
     *   `BounceSystem` validates the context.
     *   `BounceSystem` uses the `MotionProfileResolver` (passed during initialization) to resolve the current `motion_profile` for the `player_node`.
-    *   `BounceSystem` extracts the base `bounce` coefficient from the resolved profile.
-    *   `BounceSystem` potentially modifies the `context.player_bounce_profile` by combining the resolved coefficient with the player's inherent multipliers (e.g., `context.player_bounce_profile.bounciness_multiplier *= resolved_bounce_coefficient`).
+    *   `BounceSystem` retrieves the `PhysicsConfig` instance (injected by `MotionSystemCore` or uses a default).
     *   `BounceSystem` checks if it's a floor collision.
-    *   `BounceSystem` calls `BounceCalculator.calculate(context: CollisionContext)`.
-    *   `BounceCalculator` performs the physics calculation based *only* on the (potentially modified) context data.
-    *   `BounceCalculator` determines if the bounce results in continued bouncing, sliding, or stopping.
+    *   `BounceSystem` calls `BounceCalculator.calculate(context: CollisionContext, resolved_profile: Dictionary, physics_rules: PhysicsConfig)`.
+    *   `BounceCalculator` performs the physics calculation using data from the context, the resolved profile, and the physics rules.
+    *   `BounceCalculator` determines if the bounce results in continued bouncing, sliding, or stopping based on thresholds from `physics_rules` or `resolved_profile`.
     *   `BounceCalculator` returns a `BounceOutcome` object.
 6.  **Modifier Generation:** `BounceSystem` receives the `BounceOutcome` and generates a `MotionModifier` to apply the resulting `new_velocity`.
 7.  **Return:** `BounceSystem` returns an array containing the single velocity `MotionModifier`.
@@ -38,11 +37,11 @@ This document describes the rewritten Bounce System, designed to be stateless, r
 
 These classes define the data passed to and returned from the system:
 
-*   **`CollisionContext` (`data/CollisionContext.gd`):** Input object containing:
+*   **`CollisionContext` (`../data/CollisionContext.gd`):** Input object containing:
     *   `player_node: Node` (Required for profile resolution)
     *   `incoming_motion_state: IncomingMotionState`
-    *   `impact_surface_data: ImpactSurfaceData` (Provides collision normal, etc.)
-    *   `player_bounce_profile: PlayerBounceProfile` (Contains player-specific multipliers/adjustments. May be modified by `BounceSystem` based on resolved profile.)
+    *   `impact_surface_data: ImpactSurfaceData` (Provides collision normal, surface elasticity/friction from `CollisionMaterialSystem`)
+    *   `player_bounce_profile: PlayerBounceProfile` (Contains player-specific multipliers/adjustments)
     *   `current_gravity: Vector2`
     *   `generate_debug_data: bool`
 *   **`BounceOutcome` (`data/BounceOutcome.gd`):** Output object containing:
@@ -51,7 +50,7 @@ These classes define the data passed to and returned from the system:
     *   `debug_data: BounceDebugData` (Optional, for debug builds)
 *   **Supporting Data Classes:**
     *   `IncomingMotionState` (`data/IncomingMotionState.gd`)
-    *   `ImpactSurfaceData` (`data/ImpactSurfaceData.gd`)
+    *   `ImpactSurfaceData` (`../data/ImpactSurfaceData.gd`) - Note: Moved to `scripts/motion/data/`
     *   `PlayerBounceProfile` (`data/PlayerBounceProfile.gd`)
     *   `BounceDebugData` (`data/BounceDebugData.gd`)
 
@@ -59,13 +58,13 @@ These classes define the data passed to and returned from the system:
 
 *   **`BounceSystem` (`BounceSystem.gd`):**
     *   Implements `IMotionSubsystem`.
-    *   Orchestrates the process: receives context, calls calculator, creates modifier.
+    *   Orchestrates the process: receives context, resolves profile, gets physics rules, calls calculator, creates modifier.
     *   Handles floor detection logic.
 *   **`BounceCalculator` (`components/BounceCalculator.gd`):**
     *   Contains the pure, stateless physics calculation logic.
-    *   Takes `CollisionContext` as input, returns `BounceOutcome`.
+    *   Takes `CollisionContext`, `resolved_profile`, and `physics_rules` as input, returns `BounceOutcome`.
     *   Applies elasticity, friction, profile modifiers.
-    *   Determines termination state (bouncing, sliding, stopped).
+    *   Uses thresholds from `physics_rules` (or `resolved_profile` overrides) to determine termination state (bouncing, sliding, stopped).
 
 ## Testing
 
@@ -79,8 +78,8 @@ The calling system (`MotionSystemCore`) **must** be responsible for:
 1.  Detecting relevant collisions.
 2.  Gathering all necessary data (motion state, collision details, player profile, gravity, **and the player_node**).
 3.  Constructing the `CollisionContext` object accurately.
-4.  Ensuring the `BounceSystem` has been initialized with the `MotionProfileResolver`.
-5.  Calling `BounceSystem.get_collision_modifiers` with the context object. (The `BounceSystem` itself will handle resolving the profile and modifying the context before calculation).
+4.  Ensuring the `BounceSystem` has been initialized with the `MotionProfileResolver` and `PhysicsConfig` (via `MotionSystemCore`).
+5.  Calling `BounceSystem.get_collision_modifiers` with the context object.
 6.  Applying the returned `MotionModifier`.
 
 ## Interaction with CharacterBody2D and `move_and_slide()`

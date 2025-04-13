@@ -17,7 +17,7 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 	# TODO: Revisit if gravity vector should directly influence bounce/friction/termination physics.
 	
 	# --- Extract Parameters from Resolved Profile and Physics Rules ---
-	var min_bounce_energy_ratio: float = resolved_profile.get("min_bounce_energy_ratio", physics_rules.min_bounce_energy_ratio)
+	var _min_bounce_energy_ratio: float = resolved_profile.get("min_bounce_energy_ratio", physics_rules.min_bounce_energy_ratio)
 	var min_bounce_height_threshold: float = resolved_profile.get("min_bounce_height_threshold", physics_rules.min_bounce_height_threshold)
 	var min_bounce_kinetic_energy: float = resolved_profile.get("min_bounce_kinetic_energy", physics_rules.min_bounce_kinetic_energy)
 	var min_stop_speed: float = resolved_profile.get("min_stop_speed", physics_rules.min_stop_speed)
@@ -144,7 +144,7 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 	# Get the max height and floor position from the context
 	var max_height_y = context.player_node.max_height_y
 	var floor_position_y = context.player_node.floor_position_y
-	var initial_bounce_position_y = context.player_node.initial_bounce_position_y
+	var _initial_bounce_position_y = context.player_node.initial_bounce_position_y
 	
 	# Calculate the bounce height (difference between floor and max height)
 	# In Godot, Y increases downward, so floor_position_y - max_height_y gives the height
@@ -168,11 +168,12 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 		print("[DEBUG] BounceCalculator: bounce_height < threshold: ", bounce_height, " < ", min_bounce_height_threshold)
 		print("[DEBUG] BounceCalculator: kinetic_energy < threshold: ", kinetic_energy, " < ", min_bounce_kinetic_energy)
 	
+	# Transition to sliding if bounce height is too small or kinetic energy is too low
 	if bounce_height < min_bounce_height_threshold or kinetic_energy < min_bounce_kinetic_energy:
 		# Bounce height too small, transition to sliding
 		termination_state = BounceOutcome.STATE_SLIDING
-		# When sliding, kill the vertical velocity
-		final_velocity.y = 0.0 
+		# Keep the calculated velocity which includes slope influence
+		final_velocity = calculated_velocity # Ensure we use the calculated velocity for sliding
 		
 		if debug_data:
 			if bounce_height < min_bounce_height_threshold:

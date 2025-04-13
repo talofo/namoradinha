@@ -1,8 +1,7 @@
 class_name MotionSystemCore
 extends Node
 
-const MotionProfileResolver = preload("res://scripts/motion/core/MotionProfileResolver.gd")
-# PhysicsConfig is available globally via class_name
+# No need to preload classes that are globally available via class_name in Godot 4.4
 
 signal subsystem_registered(subsystem_name: String)
 signal subsystem_unregistered(subsystem_name: String)

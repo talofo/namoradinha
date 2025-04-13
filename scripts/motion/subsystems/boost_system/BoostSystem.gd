@@ -27,7 +27,8 @@ func _init() -> void:
 	_boost_type_registry = BoostTypeRegistry.new()
 
 	# Register the initial boost types
-	var manual_air_boost = ManualAirBoost.new()
+	# Use the fully qualified path to the script file
+	var manual_air_boost = load("res://scripts/motion/subsystems/boost_system/types/ManualAirBoost.gd").new()
 	_boost_type_registry.register_boost_type("manual_air", manual_air_boost)
 	# Register other boost types here in the future
 
@@ -51,7 +52,7 @@ func set_physics_config(physics_config) -> void:
 # boost_type: The string identifier of the boost type (e.g., "manual_air").
 # state_data: A Dictionary containing the entity's current motion state
 #             (e.g., {"is_airborne": bool, "is_rising": bool, "velocity": Vector2, "position": Vector2}).
-# direction: An optional Vector2 hint for directional boosts (not used by ManualAirBoost).
+# direction: An optional Vector2 hint for directional boosts (not used by AirBoostType).
 # Returns: A Dictionary containing the result:
 #          {"success": bool, "reason": String (if failed),
 #           "boost_vector": Vector2 (if successful), "resulting_velocity": Vector2 (if successful)}

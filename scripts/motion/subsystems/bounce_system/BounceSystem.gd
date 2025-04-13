@@ -12,6 +12,7 @@ const FLOOR_NORMAL_THRESHOLD = 0.7
 var _calculator: BounceCalculator = null
 var _motion_profile_resolver: MotionProfileResolver = null # Resolver reference
 var _core = null # Reference to MotionSystemCore for accessing PhysicsConfig
+var _last_outcome: BounceOutcome = null # Store the last bounce outcome for state tracking
 
 # --- Initialization ---
 func _init() -> void:
@@ -29,9 +30,12 @@ func get_name() -> String:
 	return "BounceSystem"
 
 func on_register() -> void:
-	# Store reference to MotionSystemCore for accessing PhysicsConfig
+	# Store reference to MotionSystem for accessing PhysicsConfig
 	if "_motion_system" in self and self._motion_system:
 		_core = self._motion_system
+		# Debug print to verify _core is set
+		if Engine.is_editor_hint() or OS.is_debug_build():
+			print("[DEBUG] BounceSystem: _core set to ", _core)
 
 func on_unregister() -> void:
 	_core = null
@@ -69,11 +73,19 @@ func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]
 	if _core and _core.has_method("get_physics_config"):
 		physics_rules = _core.get_physics_config()
 		if physics_rules and (Engine.is_editor_hint() or OS.is_debug_build()):
-			print("[DEBUG] BounceSystem: Using PhysicsConfig from MotionSystemCore")
+			print("[DEBUG] BounceSystem: Using PhysicsConfig from MotionSystem")
 	
-	# If still not found after checking core, use a default instance
+	# If still not found after checking core, try to load it directly
 	if not physics_rules:
-		push_warning("BounceSystem: PhysicsConfig not available from MotionSystemCore. Creating default instance.")
+		var config_path = "res://resources/physics/default_physics.tres"
+		if ResourceLoader.exists(config_path):
+			physics_rules = load(config_path) as PhysicsConfig
+			if physics_rules and (Engine.is_editor_hint() or OS.is_debug_build()):
+				print("[DEBUG] BounceSystem: Loaded PhysicsConfig directly from ", config_path)
+	
+	# If still not found, use a default instance
+	if not physics_rules:
+		push_warning("BounceSystem: PhysicsConfig not available. Creating default instance.")
 		physics_rules = PhysicsConfig.new() # Use default class values
 
 	# Check if it's a floor collision based on the normal in the context
@@ -98,6 +110,10 @@ func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]
 	if Engine.is_editor_hint() or OS.is_debug_build():
 		print("[DEBUG] BounceSystem: Calling BounceCalculator.calculate with resolved profile and physics rules")
 	var outcome: BounceOutcome = _calculator.calculate(context, resolved_profile, physics_rules)
+	
+	# Store the outcome for state tracking
+	_last_outcome = outcome
+	
 	if Engine.is_editor_hint() or OS.is_debug_build():
 		print("[DEBUG] BounceSystem: BounceCalculator.calculate returned outcome with state: ", outcome.termination_state)
 
@@ -138,3 +154,10 @@ func get_provided_signals() -> Dictionary:
 func get_signal_dependencies() -> Array:
 	# This system doesn't depend on signals from other subsystems in this design.
 	return []
+
+# --- Public Methods ---
+
+# Get the last bounce outcome
+# Returns: The last BounceOutcome or null if no bounce has occurred yet
+func get_last_outcome() -> BounceOutcome:
+	return _last_outcome
