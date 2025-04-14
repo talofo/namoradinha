@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="ChunkDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/stage/resources/ChunkDefinition.gd" id="1_yjk2p"]
+
+[resource]
+script = ExtResource("1_yjk2p")
+chunk_id = "default_chunk"
+chunk_type = "straight"
+layout_markers = [{
+"intended_category": "obstacle",
+"name": "ObstacleMarker1",
+"position": Vector3(0, 0, 25),
+"tags": ["narrow"]
+}, {
+"intended_category": "collectible",
+"name": "CollectibleMarker1",
+"position": Vector3(2, 0, 50),
+"tags": ["any"]
+}, {
+"intended_category": "boost",
+"name": "BoostMarker1",
+"position": Vector3(-2, 0, 75),
+"tags": ["boost_marker"]
+}]
+theme_tags = ["standard"]
+difficulty_rating = 1.0
+length = 100.0
+transition_chunk = false

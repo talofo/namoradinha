@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="StageCompositionConfig" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/stage/resources/StageConfig.gd" id="1_yjk2p"]
+
+[resource]
+script = ExtResource("1_yjk2p")
+id = "default_stage"
+target_difficulty = "low"
+flow_profile = ["low", "mid", "low"]
+chunk_count_estimate = 10
+theme = "forest"
+launch_event_type = "player_start"
+story_end_condition = {
+"type": "distance",
+"value": 1000.0
+}
+chunk_selection = {
+"allowed_types": ["straight_easy", "curve_left_easy", "curve_right_easy"],
+"theme_tags": ["forest", "standard"]
+}
+content_distribution_id = "default"
+debug_markers = false
