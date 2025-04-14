@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="GroundPhysicsConfig" load_steps=2 format=3 uid="uid://unique_mud_ground_id"]
+
+[ext_resource type="Script" path="res://resources/motion/profiles/ground/GroundPhysicsConfig.gd" id="1_lmnop"] ; Replace 1_lmnop with actual ID if known
+
+[resource]
+script = ExtResource("1_lmnop") ; Replace 1_lmnop with actual ID
+biome_id = "mud"
+friction = 0.4
+bounce = 0.4
+drag = 0.3
+gravity_scale = 1.0
+mass_multiplier = 1.2
+velocity_modifier = 0.7
+air_control_multiplier = 0.6

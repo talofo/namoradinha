@@ -52,11 +52,13 @@ func get_all_subsystems() -> Dictionary:
 	return _core.get_all_subsystems()
 
 # Resolve continuous motion (called every physics frame)
+# player_node: The player node for context
 # delta: Time since last frame
 # is_sliding: Whether the entity is currently sliding
 # Returns: The final motion vector
-func resolve_continuous_motion(delta: float, is_sliding: bool = false) -> Vector2:
-	return _core.resolve_continuous_motion(delta, is_sliding)
+func resolve_continuous_motion(player_node: Node, delta: float, is_sliding: bool = false) -> Vector2:
+	# Forward the call with the added player_node argument
+	return _core.resolve_continuous_motion(player_node, delta, is_sliding)
 
 # Resolve frame motion (called every physics frame)
 # context: Dictionary containing motion context (position, velocity, delta, etc.)
@@ -76,3 +78,13 @@ func resolve_collision(collision_info: Dictionary) -> Dictionary:
 # Returns: The final scalar value
 func resolve_scalar(type: String, base_value: float) -> float:
 	return _core.resolve_scalar(type, base_value)
+
+# --- Resolver Integration ---
+
+## Called by Game.gd to provide the resolver instance.
+## Forwards the resolver to the MotionSystemCore instance.
+func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
+	if _core and _core.has_method("initialize_with_resolver"):
+		_core.initialize_with_resolver(resolver)
+	else:
+		push_error("MotionSystem: _core (MotionSystemCore) is missing or lacks initialize_with_resolver method.")

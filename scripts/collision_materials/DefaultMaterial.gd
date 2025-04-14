@@ -8,8 +8,17 @@ extends RefCounted
 # Get the material properties
 # Returns: Dictionary containing material properties
 func get_properties() -> Dictionary:
+	# Get default values from PhysicsConfig if available
+	var physics_config = load("res://resources/physics/default_physics.tres") as PhysicsConfig
+	var friction = 0.5  # Default fallback
+	var bounce = 0.5    # Default fallback
+	
+	if physics_config:
+		friction = physics_config.default_material_friction
+		bounce = physics_config.default_material_bounce
+		
 	return {
-		"friction": 0.5,  # Reduced friction to make sliding last longer
-		"bounce": 0.5,
+		"friction": friction,
+		"bounce": bounce,
 		"sound": "default_impact"
 	}

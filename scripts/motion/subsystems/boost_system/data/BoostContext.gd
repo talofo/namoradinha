@@ -10,3 +10,5 @@ var current_velocity: Vector2 = Vector2.ZERO
 var position: Vector2 = Vector2.ZERO
 var requested_direction: Vector2 = Vector2.ZERO # Optional direction hint from the trigger
 var physics_config = null # Reference to the loaded PhysicsConfig resource
+var player_node = null # Reference to the player node
+var motion_profile = {} # Motion profile data

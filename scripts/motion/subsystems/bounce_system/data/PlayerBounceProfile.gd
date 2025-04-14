@@ -9,10 +9,12 @@ var bounciness_multiplier: float = 1.0
 
 # Additive adjustment to the calculated bounce angle (in radians).
 # Positive values might angle the bounce more upwards/forwards depending on convention.
+# NOTE: Currently unused with flat ground, but preserved for future implementation with sloped surfaces.
 var bounce_angle_adjustment: float = 0.0
 
 # Multiplier applied to the effective gravity during bounce calculation.
 # Allows traits/equipment to make the player feel lighter or heavier during bounces.
+# NOTE: Currently unused in bounce calculation, but preserved for future implementation.
 var gravity_scale_modifier: float = 1.0
 
 # Multiplier affecting how surface friction is applied during the bounce/slide transition.

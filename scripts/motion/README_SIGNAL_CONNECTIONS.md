@@ -53,7 +53,7 @@ func get_signal_dependencies() -> Array:
 - None
 
 **Dependencies:**
-- `LaunchSystem.entity_launched` → `BounceSystem.record_launch`: Notifies the BounceSystem when an entity is launched
+- None (Previously listed dependency on LaunchSystem.entity_launched removed as it's no longer present in BounceSystem.gd)
 
 ### Other Subsystems
 

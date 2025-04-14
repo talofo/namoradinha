@@ -133,7 +133,7 @@ func test_unknown_boost_type() -> bool:
 	
 	return success
 
-# Test that the ManualAirBoost is correctly rejected when the entity is not airborne.
+# Test that the AirBoostType is correctly rejected when the entity is not airborne.
 func test_non_airborne_rejection() -> bool:
 	var success = true
 	
@@ -150,7 +150,7 @@ func test_non_airborne_rejection() -> bool:
 	
 	return success
 
-# Test that the ManualAirBoost applies correctly when the entity is rising.
+# Test that the AirBoostType applies correctly when the entity is rising.
 func test_rising_boost() -> bool:
 	var success = true
 	
@@ -189,7 +189,7 @@ func test_rising_boost() -> bool:
 	
 	return success
 
-# Test that the ManualAirBoost applies correctly when the entity is falling.
+# Test that the AirBoostType applies correctly when the entity is falling.
 func test_falling_boost() -> bool:
 	var success = true
 	

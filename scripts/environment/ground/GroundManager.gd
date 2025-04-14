@@ -1,5 +1,7 @@
 extends Node2D
 
+signal ground_tiles_created(data)
+
 # The stage number this ground manager belongs to. Will be set by StageManager.
 var stage_number: int = -1 
 @export var ground_height: float = 100.0  # Match your CollisionShape height
@@ -35,3 +37,18 @@ func _load_ground_tile():
 	# TODO: Replace with proper bottom alignment after CameraManager is in
 
 	await get_tree().process_frame
+	
+	# Collect position data for visuals
+	var ground_data = []
+	for child in get_children():
+		if child is StaticBody2D:
+			var collision_shape = child.get_node_or_null("CollisionShape2D")
+			if collision_shape and collision_shape.shape:
+				var data = {
+					"position": child.position,
+					"size": collision_shape.shape.extents * 2  # Adjust based on your collision shape
+				}
+				ground_data.append(data)
+	
+	# Emit signal with position data for the EnvironmentSystem
+	ground_tiles_created.emit(ground_data)

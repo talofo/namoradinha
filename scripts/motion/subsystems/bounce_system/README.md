@@ -13,17 +13,21 @@ This document describes the rewritten Bounce System, designed to be stateless, r
 
 1.  **Collision Detection:** An external system (e.g., `MotionSystemCore`, Physics Engine) detects a relevant collision (e.g., player hitting the ground).
 2.  **Context Gathering:** The external system gathers all necessary information:
-    *   Player's motion state just before impact.
-    *   Surface properties at the collision point.
-    *   Player's permanent bounce profile (from traits, equipment).
+    *   Player's motion state just before impact (`IncomingMotionState`).
+    *   Collision details like normal (`ImpactSurfaceData`).
+    *   Player's permanent bounce profile (from traits, equipment - `PlayerBounceProfile`).
     *   Current gravity affecting the player.
+    *   The `player_node` itself (needed for profile resolution).
 3.  **Context Object Creation:** The external system creates a `CollisionContext` object containing the gathered data.
 4.  **Method Call:** The external system calls `BounceSystem.get_collision_modifiers(context: CollisionContext)`.
 5.  **Internal Calculation:**
-    *   `BounceSystem` validates the context and checks if it's a floor collision.
-    *   `BounceSystem` calls `BounceCalculator.calculate(context: CollisionContext)`.
-    *   `BounceCalculator` performs the physics calculation based *only* on the provided context data (applying elasticity, friction, profile modifiers).
-    *   `BounceCalculator` determines if the bounce results in continued bouncing, sliding, or stopping, based on energy thresholds.
+    *   `BounceSystem` validates the context.
+    *   `BounceSystem` uses the `MotionProfileResolver` (passed during initialization) to resolve the current `motion_profile` for the `player_node`.
+    *   `BounceSystem` retrieves the `PhysicsConfig` instance (injected by `MotionSystemCore` or uses a default).
+    *   `BounceSystem` checks if it's a floor collision.
+    *   `BounceSystem` calls `BounceCalculator.calculate(context: CollisionContext, resolved_profile: Dictionary, physics_rules: PhysicsConfig)`.
+    *   `BounceCalculator` performs the physics calculation using data from the context, the resolved profile, and the physics rules.
+    *   `BounceCalculator` determines if the bounce results in continued bouncing, sliding, or stopping based on thresholds from `physics_rules` or `resolved_profile`.
     *   `BounceCalculator` returns a `BounceOutcome` object.
 6.  **Modifier Generation:** `BounceSystem` receives the `BounceOutcome` and generates a `MotionModifier` to apply the resulting `new_velocity`.
 7.  **Return:** `BounceSystem` returns an array containing the single velocity `MotionModifier`.
@@ -33,10 +37,11 @@ This document describes the rewritten Bounce System, designed to be stateless, r
 
 These classes define the data passed to and returned from the system:
 
-*   **`CollisionContext` (`data/CollisionContext.gd`):** Input object containing:
+*   **`CollisionContext` (`../data/CollisionContext.gd`):** Input object containing:
+    *   `player_node: Node` (Required for profile resolution)
     *   `incoming_motion_state: IncomingMotionState`
-    *   `impact_surface_data: ImpactSurfaceData`
-    *   `player_bounce_profile: PlayerBounceProfile`
+    *   `impact_surface_data: ImpactSurfaceData` (Provides collision normal, surface elasticity/friction from `CollisionMaterialSystem`)
+    *   `player_bounce_profile: PlayerBounceProfile` (Contains player-specific multipliers/adjustments)
     *   `current_gravity: Vector2`
     *   `generate_debug_data: bool`
 *   **`BounceOutcome` (`data/BounceOutcome.gd`):** Output object containing:
@@ -45,7 +50,7 @@ These classes define the data passed to and returned from the system:
     *   `debug_data: BounceDebugData` (Optional, for debug builds)
 *   **Supporting Data Classes:**
     *   `IncomingMotionState` (`data/IncomingMotionState.gd`)
-    *   `ImpactSurfaceData` (`data/ImpactSurfaceData.gd`)
+    *   `ImpactSurfaceData` (`../data/ImpactSurfaceData.gd`) - Note: Moved to `scripts/motion/data/`
     *   `PlayerBounceProfile` (`data/PlayerBounceProfile.gd`)
     *   `BounceDebugData` (`data/BounceDebugData.gd`)
 
@@ -53,13 +58,13 @@ These classes define the data passed to and returned from the system:
 
 *   **`BounceSystem` (`BounceSystem.gd`):**
     *   Implements `IMotionSubsystem`.
-    *   Orchestrates the process: receives context, calls calculator, creates modifier.
+    *   Orchestrates the process: receives context, resolves profile, gets physics rules, calls calculator, creates modifier.
     *   Handles floor detection logic.
 *   **`BounceCalculator` (`components/BounceCalculator.gd`):**
     *   Contains the pure, stateless physics calculation logic.
-    *   Takes `CollisionContext` as input, returns `BounceOutcome`.
+    *   Takes `CollisionContext`, `resolved_profile`, and `physics_rules` as input, returns `BounceOutcome`.
     *   Applies elasticity, friction, profile modifiers.
-    *   Determines termination state (bouncing, sliding, stopped).
+    *   Uses thresholds from `physics_rules` (or `resolved_profile` overrides) to determine termination state (bouncing, sliding, stopped).
 
 ## Testing
 
@@ -71,10 +76,11 @@ The system is tested via `test_bounce_system.gd`, which directly instantiates `B
 
 The calling system (`MotionSystemCore`) **must** be responsible for:
 1.  Detecting relevant collisions.
-2.  Gathering all necessary data (motion state, surface properties, player profile, gravity).
+2.  Gathering all necessary data (motion state, collision details, player profile, gravity, **and the player_node**).
 3.  Constructing the `CollisionContext` object accurately.
-4.  Calling `BounceSystem.get_collision_modifiers` with the context object.
-5.  Applying the returned `MotionModifier`.
+4.  Ensuring the `BounceSystem` has been initialized with the `MotionProfileResolver` and `PhysicsConfig` (via `MotionSystemCore`).
+5.  Calling `BounceSystem.get_collision_modifiers` with the context object.
+6.  Applying the returned `MotionModifier`.
 
 ## Interaction with CharacterBody2D and `move_and_slide()`
 

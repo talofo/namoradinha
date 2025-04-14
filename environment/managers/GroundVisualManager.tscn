@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/environment/managers/GroundVisualManager.gd" id="1_yjk2e"]
+
+[node name="GroundVisualManager" type="Node2D"]
+script = ExtResource("1_yjk2e")
+transition_duration = 0.5
