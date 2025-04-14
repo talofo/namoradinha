@@ -38,7 +38,6 @@ func assert_not_null(val, message: String = ""):
 
 # --- Test Subjects ---
 var environment_system = null
-var ground_manager = null
 var stage_manager = null
 var theme_database = null
 
@@ -80,12 +79,8 @@ func _ready():
 	else:
 		print("  [PASS]")
 		
-	print("Running test: test_ground_data_integration")
-	if not test_ground_data_integration():
-		all_passed = false
-		print("  [FAIL]")
-	else:
-		print("  [PASS]")
+	# Skip ground data integration test as it relies on the old GroundManager
+	print("Skipping test: test_ground_data_integration (relies on old GroundManager)")
 
 	# --- Summary ---
 	print("\n--- Test Summary ---")
@@ -145,9 +140,7 @@ func _setup_test_environment():
 	var StageManagerClass = load("res://scripts/stages/StageManager.gd")
 	stage_manager = StageManagerClass.new()
 	
-	# Create ground manager
-	var GroundManagerClass = load("res://scripts/environment/ground/GroundManager.gd")
-	ground_manager = GroundManagerClass.new()
+	# We no longer need to create a GroundManager as it's been replaced by the chunk system
 	
 	# Connect signals for testing
 	environment_system.visuals_updated.connect(_on_visuals_updated)
@@ -156,7 +149,6 @@ func _setup_test_environment():
 	
 	add_child(environment_system)
 	add_child(stage_manager)
-	add_child(ground_manager)
 
 func _cleanup_test_environment():
 	# Disconnect signals
@@ -173,12 +165,9 @@ func _cleanup_test_environment():
 		environment_system.queue_free()
 	if stage_manager:
 		stage_manager.queue_free()
-	if ground_manager:
-		ground_manager.queue_free()
 	
 	environment_system = null
 	stage_manager = null
-	ground_manager = null
 	theme_database = null
 
 # --- Signal Handlers ---
@@ -282,37 +271,5 @@ func test_biome_changing_integration() -> bool:
 	
 	# Check that environment system state was updated
 	success = assert_eq(environment_system.current_biome_id, "desert", "Current biome should be desert") and success
-	
-	return success
-
-# Test ground data integration
-func test_ground_data_integration() -> bool:
-	var success = true
-	
-	# Reset signal tracking
-	_reset_signal_tracking()
-	
-	# Create test ground data
-	var ground_data = [
-		{
-			"position": Vector2(0, 0),
-			"size": Vector2(100, 20)
-		},
-		{
-			"position": Vector2(100, 0),
-			"size": Vector2(100, 20)
-		}
-	]
-	
-	# Emit ground_tiles_created signal
-	ground_manager.ground_tiles_created.emit(ground_data)
-	
-	# Check that ground visuals were updated
-	var ground_visual_manager = environment_system.get_node("GroundVisualManager")
-	if ground_visual_manager:
-		success = assert_not_null(ground_visual_manager.current_sprite, "Ground sprite should be created") and success
-	else:
-		success = false
-		printerr("    Assertion Failed: GroundVisualManager not found")
 	
 	return success

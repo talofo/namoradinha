@@ -51,11 +51,6 @@ func _ready():
     GlobalSignals.theme_changed.connect(apply_theme_by_id)
     GlobalSignals.biome_changed.connect(change_biome)
     
-    # Connect to GroundManager for position data
-    # This will be handled by the chunk instantiation system now
-    # Listen for ground_tiles_created signals from any GroundManager that might be added
-    # The signal connection will be set up when chunks are instantiated
-    
     # Apply default theme
     apply_theme_by_id("default")
     
@@ -243,10 +238,8 @@ func _on_manager_fallback(reason: String) -> void:
     
     fallback_activated.emit(manager_name, reason)
 
-# Handle ground tiles data from physics GroundManager
-func _on_ground_tiles_created(ground_data: Array) -> void:
-    if ground_manager:
-        ground_manager.apply_ground_visuals(ground_data)
+# This function has been removed as it was used with the old GroundManager
+# Ground visuals are now handled by the chunk system
 
 # Debug theme switching (development only)
 func _unhandled_input(event):

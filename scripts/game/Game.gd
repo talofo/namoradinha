@@ -5,6 +5,7 @@ extends Node2D
 
 # --- Core Systems ---
 var motion_profile_resolver: MotionProfileResolver
+var ground_created: bool = false  # Track if the shared ground has been created
 
 # --- Nodes ---
 @onready var camera_manager = $CameraManager
@@ -19,6 +20,9 @@ func _ready():
 	initialize_motion_system() # Keep existing motion system init
 	initialize_systems_with_resolver() # Pass resolver to relevant systems
 	
+	# Create a single shared ground for the entire level
+	create_shared_ground()
+	
 	# Connect to signals for content placement
 	connect_signals()
 	
@@ -31,6 +35,48 @@ func _ready():
 	# Spawn the player after a short delay to ensure MotionSystem is fully initialized
 	# This helps prevent timing issues with subsystem registration
 	get_tree().create_timer(0.1).timeout.connect(func(): player_spawner.spawn_player())
+
+# Create a single shared ground for the entire level
+func create_shared_ground():
+	# Create ground with collision shape
+	var ground = StaticBody2D.new()
+	ground.name = "SharedGround"
+	ground.position = Vector2(0, 540)  # Position at Y=540 to match previous implementation
+	ground.collision_layer = 1  # Set to appropriate layer for ground
+	ground.collision_mask = 0   # Ground doesn't need to detect collisions
+	add_child(ground)
+	
+	# Create collision shape for ground
+	var collision_shape = CollisionShape2D.new()
+	collision_shape.name = "CollisionShape2D"
+	ground.add_child(collision_shape)
+	
+	# Create rectangle shape with size based on chunk length
+	var shape = RectangleShape2D.new()
+	shape.size = Vector2(90000, 100)  # Width of 90000 to match previous implementation, height of 100
+	collision_shape.shape = shape
+	
+	# Create visual representation for the ground (semi-transparent for debugging)
+	var visual = ColorRect.new()
+	visual.size = Vector2(90000, 100)   # Match collision shape size
+	visual.position = Vector2(-45000, -50)  # Center the rect
+	visual.color = Color(0.5, 0.5, 0.5, 0.3)  # Semi-transparent gray
+	ground.add_child(visual)
+	
+	# Collect ground data for visuals
+	var ground_data = []
+	var data = {
+		"position": Vector2(0, 0),  # Relative to ground
+		"size": Vector2(90000, 100)  # Size of the ground
+	}
+	ground_data.append(data)
+	
+	# Emit signal for GroundVisualManager to create visuals
+	if environment_system and environment_system.ground_manager:
+		environment_system.ground_manager.apply_ground_visuals(ground_data)
+	
+	ground_created = true
+	print("Game: Created shared ground for the entire level")
 
 # Connect to signals
 func connect_signals():
@@ -46,43 +92,8 @@ func _on_request_chunk_instantiation(chunk_definition: ChunkDefinition, position
 	chunk_instance.global_position = Vector2(position.x, position.z)  # Convert Vector3 to Vector2
 	add_child(chunk_instance)
 	
-	# Create ground with collision shape
-	var ground = StaticBody2D.new()
-	ground.name = "Ground"
-	ground.position = Vector2(0, 540)  # Position at Y=540 to match GroundManager.gd
-	ground.collision_layer = 1  # Set to appropriate layer for ground
-	ground.collision_mask = 0   # Ground doesn't need to detect collisions
-	chunk_instance.add_child(ground)
-	
-	# Create collision shape for ground
-	var collision_shape = CollisionShape2D.new()
-	collision_shape.name = "CollisionShape2D"
-	ground.add_child(collision_shape)
-	
-	# Create rectangle shape with size based on chunk length
-	var shape = RectangleShape2D.new()
-	shape.size = Vector2(90000, 100)  # Width of 90000 to match GroundTile_Stage1.tscn, height of 100
-	collision_shape.shape = shape
-	
-	# Create visual representation for the ground (semi-transparent for debugging)
-	var visual = ColorRect.new()
-	visual.size = Vector2(90000, 100)   # Match collision shape size
-	visual.position = Vector2(-45000, -50)  # Center the rect
-	visual.color = Color(0.5, 0.5, 0.5, 0.3)  # Semi-transparent gray
-	ground.add_child(visual)
-	
-	# Collect ground data for visuals
-	var ground_data = []
-	var data = {
-		"position": Vector2(0, 0),  # Relative to chunk
-		"size": Vector2(90000, 100)  # Size of the ground
-	}
-	ground_data.append(data)
-	
-	# Emit signal for GroundVisualManager to create visuals
-	# This mimics what GroundManager.gd does with its ground_tiles_created signal
-	if environment_system and environment_system.ground_manager:
-		environment_system.ground_manager.apply_ground_visuals(ground_data)
+	# Note: We no longer create a ground for each chunk
+	# The shared ground is created once in create_shared_ground()
 	
 	# Process layout markers to place content
 	for marker in chunk_definition.layout_markers:

@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://dn7v1gtowq0c2"]
-
-[ext_resource type="Script" uid="uid://cxlkkhum2r1am" path="res://scripts/environment/ground/GroundManager.gd" id="1_wpaef"]
-
-[node name="GroundManager" type="Node2D"]
-script = ExtResource("1_wpaef")

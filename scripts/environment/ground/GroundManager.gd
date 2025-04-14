@@ -20,35 +20,16 @@ func _ready():
 
 # Loads and positions the ground tile based on the set stage_number
 func _load_ground_tile():
+	# DISABLED: Ground creation is now handled by the chunk system
+	# This prevents duplicate ground elements with collision shapes
+	
 	if stage_number == -1:
 		return
-
-	var scene_path := "res://environment/ground/stage%d/GroundTile_Stage%d.tscn" % [stage_number, stage_number]
-	var ground_scene := load(scene_path) as PackedScene
-
-	if not ground_scene:
-		return
-
-	var tile = ground_scene.instantiate()
-	add_child(tile)
-
-	# TEMPORARY: Place ground near screen center for visibility
-	tile.position = Vector2(0, 540)  # This makes it visible regardless of camera setup
-	# TODO: Replace with proper bottom alignment after CameraManager is in
-
-	await get_tree().process_frame
 	
-	# Collect position data for visuals
+	# Instead of creating a new ground tile, we'll just emit an empty ground_data array
+	# This ensures compatibility with systems expecting the signal
 	var ground_data = []
-	for child in get_children():
-		if child is StaticBody2D:
-			var collision_shape = child.get_node_or_null("CollisionShape2D")
-			if collision_shape and collision_shape.shape:
-				var data = {
-					"position": child.position,
-					"size": collision_shape.shape.extents * 2  # Adjust based on your collision shape
-				}
-				ground_data.append(data)
-	
-	# Emit signal with position data for the EnvironmentSystem
 	ground_tiles_created.emit(ground_data)
+	
+	# Log for debugging
+	print("GroundManager: Ground creation skipped - now handled by chunk system")
