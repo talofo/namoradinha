@@ -1,9 +1,8 @@
 class_name EnvironmentSystem
 extends Node2D
 
-# No need to preload classes that are globally available via class_name in Godot 4.4
-# Load the default ground config resource
-const DefaultGroundConfig = preload("res://resources/motion/profiles/ground/default_ground.tres")
+# In Godot 4.4+, resources should be loaded when needed rather than preloaded
+# We'll load the default ground config when required
 
 # All these classes are available globally via class_name
 
@@ -53,12 +52,9 @@ func _ready():
     GlobalSignals.biome_changed.connect(change_biome)
     
     # Connect to GroundManager for position data
-    # Find the GroundManager in the current stage
-    var stage_manager = get_node_or_null("/root/Game/StageManager")
-    if stage_manager and stage_manager.current_stage:
-        var ground_manager_physics = stage_manager.current_stage.find_child("GroundManager", true, false)
-        if ground_manager_physics and ground_manager_physics.has_signal("ground_tiles_created"):
-            ground_manager_physics.ground_tiles_created.connect(_on_ground_tiles_created)
+    # This will be handled by the chunk instantiation system now
+    # Listen for ground_tiles_created signals from any GroundManager that might be added
+    # The signal connection will be set up when chunks are instantiated
     
     # Apply default theme
     apply_theme_by_id("default")
@@ -71,14 +67,24 @@ func _ready():
             debug_overlay.environment_system = self
             add_child(debug_overlay)
 
-func apply_stage_config(config: StageConfig) -> void:
+func apply_stage_config(config) -> void:
     if !config:
-        push_error("EnvironmentSystem: Null StageConfig provided")
+        push_error("EnvironmentSystem: Null config provided")
         return
     
-    current_config = config
-    current_theme_id = config.theme_id
-    current_biome_id = config.biome_id
+    # Handle StageConfig (from environment system)
+    if config is StageConfig:
+        current_config = config
+        current_theme_id = config.theme_id
+        current_biome_id = config.biome_id
+    # Handle StageCompositionConfig (from stage composition system)
+    elif "theme" in config:
+        # Extract theme from StageCompositionConfig
+        current_theme_id = config.theme
+        current_biome_id = "default"  # Default biome if not specified
+    else:
+        push_error("EnvironmentSystem: Unknown config type provided")
+        return
     
     apply_theme_by_id(current_theme_id)
 
@@ -133,12 +139,17 @@ func _update_resolver_ground_config(biome_id: String) -> void:
             print("EnvironmentSystem: Set ground config for biome '%s'." % biome_id)
     else:
         push_warning("EnvironmentSystem: No GroundPhysicsConfig found for biome '%s' at path '%s'. Falling back to default." % [biome_id, biome_config_path])
-        # Fall back to the preloaded default config
-        if DefaultGroundConfig:
-            _motion_profile_resolver.set_ground_config(DefaultGroundConfig)
+        # Fall back to the default config
+        var default_config_path = "res://resources/motion/profiles/ground/default_ground.tres"
+        if ResourceLoader.exists(default_config_path):
+            var default_config = load(default_config_path)
+            if default_config:
+                _motion_profile_resolver.set_ground_config(default_config)
+            else:
+                push_error("EnvironmentSystem: DefaultGroundConfig could not be loaded for fallback.")
+                _motion_profile_resolver.set_ground_config(null) # Clear config as last resort
         else:
-            # This should ideally not happen if the default preload worked
-            push_error("EnvironmentSystem: DefaultGroundConfig could not be loaded for fallback.")
+            push_error("EnvironmentSystem: Default ground config not found at '%s'." % default_config_path)
             _motion_profile_resolver.set_ground_config(null) # Clear config as last resort
 
 
@@ -254,8 +265,13 @@ func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
     # Immediately update resolver with the initial biome's config if available
     if current_biome_id:
         _update_resolver_ground_config(current_biome_id)
-    elif DefaultGroundConfig: # If no biome set yet, use default
-        _motion_profile_resolver.set_ground_config(DefaultGroundConfig)
+    else:
+        # If no biome set yet, use default
+        var default_config_path = "res://resources/motion/profiles/ground/default_ground.tres"
+        if ResourceLoader.exists(default_config_path):
+            var default_config = load(default_config_path)
+            if default_config:
+                _motion_profile_resolver.set_ground_config(default_config)
         
     if debug_mode:
         print("EnvironmentSystem: MotionProfileResolver initialized.")

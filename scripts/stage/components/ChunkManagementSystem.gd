@@ -2,9 +2,7 @@ class_name ChunkManagementSystem
 extends Node
 
 # Import required classes
-const ChunkDefinition = preload("res://scripts/stage/resources/ChunkDefinition.gd")
-const StageCompositionConfig = preload("res://scripts/stage/resources/StageConfig.gd")
-const FlowAndDifficultyController = preload("res://scripts/stage/components/FlowAndDifficultyController.gd")
+# In Godot 4.4+, classes with class_name are globally available
 
 # Current stage configuration
 var _current_config: StageCompositionConfig = null

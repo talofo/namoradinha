@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://bx4lmn20tuduf" path="res://scripts/game/Game.gd" id="1_i75et"]
 [ext_resource type="PackedScene" uid="uid://vd7j71qvqcph" path="res://camera/CameraManager.tscn" id="1_m71xk"]
 [ext_resource type="PackedScene" uid="uid://d1ff87wiwwdx7" path="res://player/PlayerSpawner.tscn" id="2_i75et"]
-[ext_resource type="PackedScene" uid="uid://bu1h5sc0hr3qp" path="res://stages/StageManager.tscn" id="3_adwu5"]
+[ext_resource type="PackedScene" uid="uid://c8q6y8j5x7q5v" path="res://stage/StageCompositionSystem/StageCompositionSystem.tscn" id="3_adwu5"]
 [ext_resource type="PackedScene" path="res://environment/EnvironmentSystem.tscn" id="5_knu3h"]
 [ext_resource type="PackedScene" path="res://scripts/motion/MotionSystemNode.tscn" id="6_knu3h"]
 
@@ -15,7 +15,7 @@ script = ExtResource("1_i75et")
 [node name="PlayerSpawner" parent="." instance=ExtResource("2_i75et")]
 launch_power = 0.6
 
-[node name="StageManager" parent="." instance=ExtResource("3_adwu5")]
+[node name="StageCompositionSystem" parent="." instance=ExtResource("3_adwu5")]
 
 [node name="MotionSystem" parent="." instance=ExtResource("6_knu3h")]
 

@@ -2,9 +2,7 @@ class_name IContentDistributionStrategy
 extends RefCounted
 
 # Import required classes
-const ChunkDefinition = preload("res://scripts/stage/resources/ChunkDefinition.gd")
-const FlowAndDifficultyController = preload("res://scripts/stage/components/FlowAndDifficultyController.gd")
-const ContentDistribution = preload("res://scripts/stage/resources/ContentDistribution.gd")
+# In Godot 4.4+, classes with class_name are globally available
 
 # Virtual method to distribute content within a chunk
 # Parameters:

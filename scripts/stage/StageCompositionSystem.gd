@@ -2,10 +2,7 @@ class_name StageCompositionSystem
 extends Node
 
 # Import required classes
-const StageCompositionConfig = preload("res://scripts/stage/resources/StageConfig.gd")
-const FlowAndDifficultyController = preload("res://scripts/stage/components/FlowAndDifficultyController.gd")
-const StageCompositionManager = preload("res://scripts/stage/StageCompositionManager.gd")
-const StageDebugOverlay = preload("res://scripts/stage/debug/StageDebugOverlay.gd")
+# In Godot 4.4+, classes with class_name are globally available
 
 # Child components
 @onready var stage_manager: StageCompositionManager = $StageCompositionManager
@@ -16,7 +13,7 @@ var _debug_enabled: bool = false
 
 func _ready():
     # Connect to global signals
-    GlobalSignals.stage_ready.connect(_on_stage_ready)
+    GlobalSignals.stage_loaded.connect(_on_stage_loaded)
     GlobalSignals.stage_generation_failed.connect(_on_stage_generation_failed)
     GlobalSignals.flow_state_updated.connect(_on_flow_state_updated)
     
@@ -95,8 +92,8 @@ func set_debug_enabled(enabled: bool) -> void:
     if _debug_enabled:
         print("StageCompositionSystem: Debug mode %s" % ("enabled" if enabled else "disabled"))
 
-# Handle stage ready event
-func _on_stage_ready(config: StageCompositionConfig) -> void:
+# Handle stage loaded event
+func _on_stage_loaded(config) -> void:
     if _debug_enabled:
         print("StageCompositionSystem: Stage '%s' ready" % config.id)
     

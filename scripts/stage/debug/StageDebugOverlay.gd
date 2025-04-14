@@ -2,8 +2,7 @@ class_name StageDebugOverlay
 extends CanvasLayer
 
 # Import required classes
-const StageCompositionConfig = preload("res://scripts/stage/resources/StageConfig.gd")
-const FlowAndDifficultyController = preload("res://scripts/stage/components/FlowAndDifficultyController.gd")
+# In Godot 4.4+, classes with class_name are globally available
 
 # UI elements
 @onready var flow_label: Label = $FlowStateLabel

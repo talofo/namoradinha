@@ -2,11 +2,10 @@ class_name ContentDistributionSystem
 extends Node
 
 # Import required classes
-const ChunkDefinition = preload("res://scripts/stage/resources/ChunkDefinition.gd")
-const ContentDistribution = preload("res://scripts/stage/resources/ContentDistribution.gd")
-const FlowAndDifficultyController = preload("res://scripts/stage/components/FlowAndDifficultyController.gd")
-const IContentDistributionStrategy = preload("res://scripts/stage/strategies/IContentDistributionStrategy.gd")
-const WeightedRandomStrategy = preload("res://scripts/stage/strategies/WeightedRandomStrategy.gd")
+# In Godot 4.4+, classes with class_name are globally available
+
+# This class handles the distribution of content entities (obstacles, collectibles, etc.)
+# within chunks based on content distribution rules and flow state.
 
 # Current distribution strategy
 var _distribution_strategy: IContentDistributionStrategy

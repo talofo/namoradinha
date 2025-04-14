@@ -69,12 +69,12 @@ stage_system.set_debug_enabled(true)
 The system uses the following global signals (defined in GlobalSignals.gd):
 
 - `stage_generation_requested(config, game_mode)`: Emitted when a stage generation is requested.
-- `stage_ready(config)`: Emitted when a stage is ready for gameplay.
+- `stage_loaded(config)`: Emitted when a stage is ready for gameplay.
 - `stage_generation_failed(reason)`: Emitted when stage generation fails.
 - `flow_state_updated(flow_state)`: Emitted when the flow state changes.
 - `request_chunk_instantiation(chunk_definition, position)`: Emitted to request chunk instantiation.
 - `request_content_placement(content_category, content_type, position)`: Emitted to request content placement.
-- `biome_change_detected(old_biome, new_biome)`: Emitted when a biome change is detected.
+- `biome_changed(old_biome, new_biome)`: Emitted when a biome change is detected.
 - `story_stage_completed(stage_id)`: Emitted when a story stage is completed.
 - `gameplay_event_triggered(event_name, event_data)`: Emitted when a gameplay event is triggered.
 - `analytics_event(event_data)`: Emitted for analytics tracking.
@@ -83,7 +83,7 @@ The system uses the following global signals (defined in GlobalSignals.gd):
 
 The Stage Composition System is designed to integrate with other systems in the game:
 
-- **EnvironmentSystem**: The system can update the EnvironmentSystem with biome changes via the biome_change_detected signal.
+- **EnvironmentSystem**: The system can update the EnvironmentSystem with biome changes via the biome_changed signal.
 - **MotionSystem**: The system can update the MotionSystem with ground physics changes via the MotionProfileResolver.
 - **PlayerCharacter**: The system can track the player's position and performance metrics.
 

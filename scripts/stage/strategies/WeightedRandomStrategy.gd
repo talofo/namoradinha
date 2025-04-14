@@ -46,11 +46,11 @@ func distribute_content(
         if _debug_enabled:
             print("WeightedRandomStrategy: Placing %d items of category '%s'" % [target_count, category_name])
         
-        # Get allowed types for this category
-        var allowed_types = category["allowed_types"]
-        if allowed_types.is_empty():
+        # Get allowed entities for this category
+        var allowed_entities = category["allowed_entities"]
+        if allowed_entities.is_empty():
             if _debug_enabled:
-                print("WeightedRandomStrategy: No allowed types for category '%s', skipping" % category_name)
+                print("WeightedRandomStrategy: No allowed entities for category '%s', skipping" % category_name)
             continue
         
         # Get preferred marker tag for this category
@@ -61,9 +61,9 @@ func distribute_content(
         
         # Place items
         for i in range(target_count):
-            # Select a random type from allowed types
-            var type_index = _rng.randi() % allowed_types.size()
-            var content_type = allowed_types[type_index]
+            # Select a random entity from allowed entities
+            var entity_index = _rng.randi() % allowed_entities.size()
+            var content_type = allowed_entities[entity_index]
             
             # Try to place at a marker first
             var position = Vector3.ZERO
@@ -136,19 +136,19 @@ func _get_scaled_categories(content_rules: ContentDistribution, flow_state: Flow
                     var multiplier = flow_scaling["density_multiplier"][category_name]
                     categories[category_name]["base_ratio_weight"] *= multiplier
         
-        # Apply allowed types modifications
-        if flow_scaling.has("allowed_types"):
-            for category_name in flow_scaling["allowed_types"].keys():
+        # Apply allowed entities modifications
+        if flow_scaling.has("allowed_entities"):
+            for category_name in flow_scaling["allowed_entities"].keys():
                 if categories.has(category_name):
-                    var type_mods = flow_scaling["allowed_types"][category_name]
-                    for type_mod in type_mods:
-                        if type_mod.begins_with("+"):  # Add type
-                            var type_name = type_mod.substr(1)
-                            if not categories[category_name]["allowed_types"].has(type_name):
-                                categories[category_name]["allowed_types"].append(type_name)
-                        elif type_mod.begins_with("-"):  # Remove type
-                            var type_name = type_mod.substr(1)
-                            categories[category_name]["allowed_types"].erase(type_name)
+                    var entity_mods = flow_scaling["allowed_entities"][category_name]
+                    for entity_mod in entity_mods:
+                        if entity_mod.begins_with("+"):  # Add entity
+                            var entity_name = entity_mod.substr(1)
+                            if not categories[category_name]["allowed_entities"].has(entity_name):
+                                categories[category_name]["allowed_entities"].append(entity_name)
+                        elif entity_mod.begins_with("-"):  # Remove entity
+                            var entity_name = entity_mod.substr(1)
+                            categories[category_name]["allowed_entities"].erase(entity_name)
     
     # Apply global difficulty scaling
     if content_rules.difficulty_scaling.has("global_difficulty") and content_rules.difficulty_scaling["global_difficulty"].has(difficulty):

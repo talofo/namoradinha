@@ -14,3 +14,4 @@ export_presets.cfg
 
 # Optional: if you use VS Code
 .vscode/
+.qodo

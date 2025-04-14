@@ -7,17 +7,17 @@ script = ExtResource("1_yjk2p")
 distribution_id = "default"
 content_categories = {
 "boosts": {
-"allowed_types": ["SpeedPad"],
+"allowed_entities": ["SpeedPad"],
 "base_ratio_weight": 1.0,
 "placement_tag": "boost_marker"
 },
 "collectibles": {
-"allowed_types": ["Coin"],
+"allowed_entities": ["Coin"],
 "base_ratio_weight": 1.0,
 "placement_tag": "any"
 },
 "obstacles": {
-"allowed_types": ["Log"],
+"allowed_entities": ["Log", "Rock"],
 "base_ratio_weight": 2.0,
 "placement_tag": "obstacle_marker"
 }
@@ -48,7 +48,7 @@ placement_constraints = {
 difficulty_scaling = {
 "flow_state": {
 "MID": {
-"allowed_types": {
+"allowed_entities": {
 "obstacles": ["+Rock"]
 },
 "density_multiplier": {

@@ -2,7 +2,7 @@ class_name StageConfigSystem
 extends Node
 
 # Import required classes
-const StageCompositionConfig = preload("res://scripts/stage/resources/StageConfig.gd")
+# In Godot 4.4+, classes with class_name are globally available
 
 # Cache of loaded configs
 var _config_cache: Dictionary = {}

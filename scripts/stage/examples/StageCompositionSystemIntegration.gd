@@ -2,7 +2,7 @@ extends Node
 # Example script showing how to integrate the Stage Composition System into a game
 
 # Import required classes
-const FlowAndDifficultyController = preload("res://scripts/stage/components/FlowAndDifficultyController.gd")
+# In Godot 4.4+, classes with class_name are globally available
 
 # --- Core Systems ---
 @onready var stage_composition_system = $StageCompositionSystem
@@ -60,10 +60,10 @@ func initialize_stage_composition_system():
 # Connect to signals
 func connect_signals():
     # Connect to Stage Composition System signals
-    GlobalSignals.stage_ready.connect(_on_stage_ready)
+    GlobalSignals.stage_loaded.connect(_on_stage_loaded)
     GlobalSignals.stage_generation_failed.connect(_on_stage_generation_failed)
     GlobalSignals.story_stage_completed.connect(_on_story_stage_completed)
-    GlobalSignals.biome_change_detected.connect(_on_biome_change_detected)
+    GlobalSignals.biome_changed.connect(_on_biome_change_detected)
     GlobalSignals.request_chunk_instantiation.connect(_on_request_chunk_instantiation)
     GlobalSignals.request_content_placement.connect(_on_request_content_placement)
     
@@ -82,8 +82,8 @@ func start_game():
     if stage_composition_system:
         stage_composition_system.generate_stage(current_stage_id, current_game_mode)
 
-# Handle stage ready event
-func _on_stage_ready(config):
+# Handle stage loaded event
+func _on_stage_loaded(config):
     print("Stage ready: %s" % config.id)
     
     # Update environment system with the stage theme

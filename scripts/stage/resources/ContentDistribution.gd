@@ -2,11 +2,11 @@ class_name ContentDistribution
 extends Resource
 
 @export var distribution_id: String = "default"
-@export var content_categories: Dictionary = { # Define all placeable content types dynamically
-    "obstacles": {"base_ratio_weight": 2, "allowed_types": ["Log"], "placement_tag": "obstacle_marker"},
-    "boosts": {"base_ratio_weight": 1, "allowed_types": ["SpeedPad"], "placement_tag": "boost_marker"},
-    "collectibles": {"base_ratio_weight": 1, "allowed_types": ["Coin"], "placement_tag": "any"}, # "any" marker tag means less specific
-     # Add other categories (narrative_triggers, scoring_objects) here as needed, even if initially empty allowed_types
+@export var content_categories: Dictionary = { # Define all placeable content entities dynamically
+    "obstacles": {"base_ratio_weight": 2, "allowed_entities": ["Log"], "placement_tag": "obstacle_marker"},
+    "boosts": {"base_ratio_weight": 1, "allowed_entities": ["SpeedPad"], "placement_tag": "boost_marker"},
+    "collectibles": {"base_ratio_weight": 1, "allowed_entities": ["Coin"], "placement_tag": "any"}, # "any" marker tag means less specific
+     # Add other categories (narrative_triggers, scoring_objects) here as needed, even if initially empty allowed_entities
 }
 @export var placement_constraints: Dictionary = { # Rules governing placement
     "max_per_chunk": {"obstacles": 5, "boosts": 2, "collectibles": 10}, # Per-category limits
@@ -19,7 +19,7 @@ extends Resource
 }
 @export var difficulty_scaling: Dictionary = { # How rules change based on difficulty/flow context
     "flow_state": { # Keys: FlowState enum names (e.g., "MID")
-        "MID": {"density_multiplier": {"obstacles": 1.2}, "allowed_types": {"obstacles": ["+Rock"]}}, # '+' adds type
+        "MID": {"density_multiplier": {"obstacles": 1.2}, "allowed_entities": {"obstacles": ["+Rock"]}}, # '+' adds entity
     },
     "global_difficulty": { # Keys: StageConfig.target_difficulty (e.g., "hard")
         "hard": {"ratio_weights": {"obstacles": 3}, "max_per_chunk": {"obstacles": 7}}
@@ -37,9 +37,9 @@ func validate() -> bool:
         if not category.has("base_ratio_weight"):
             push_warning("ContentDistribution '%s': Category '%s' missing 'base_ratio_weight', using 1.0" % [distribution_id, category_name])
             category["base_ratio_weight"] = 1.0
-        if not category.has("allowed_types") or not category.allowed_types is Array:
-            push_warning("ContentDistribution '%s': Category '%s' missing or invalid 'allowed_types', using empty array" % [distribution_id, category_name])
-            category["allowed_types"] = []
+        if not category.has("allowed_entities") or not category.allowed_entities is Array:
+            push_warning("ContentDistribution '%s': Category '%s' missing or invalid 'allowed_entities', using empty array" % [distribution_id, category_name])
+            category["allowed_entities"] = []
         if not category.has("placement_tag"):
             push_warning("ContentDistribution '%s': Category '%s' missing 'placement_tag', using 'any'" % [distribution_id, category_name])
             category["placement_tag"] = "any"
