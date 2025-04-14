@@ -1,0 +1,69 @@
+[gd_resource type="Resource" script_class="ContentDistribution" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/stage/resources/ContentDistribution.gd" id="1_yjk2p"]
+
+[resource]
+script = ExtResource("1_yjk2p")
+distribution_id = "default"
+content_categories = {
+"boosts": {
+"allowed_types": ["SpeedPad"],
+"base_ratio_weight": 1.0,
+"placement_tag": "boost_marker"
+},
+"collectibles": {
+"allowed_types": ["Coin"],
+"base_ratio_weight": 1.0,
+"placement_tag": "any"
+},
+"obstacles": {
+"allowed_types": ["Log"],
+"base_ratio_weight": 2.0,
+"placement_tag": "obstacle_marker"
+}
+}
+placement_constraints = {
+"disallowed_patterns": ["BOOST_OBSTACLE_BOOST"],
+"max_per_chunk": {
+"boosts": 2,
+"collectibles": 10,
+"obstacles": 5
+},
+"minimum_spacing": {
+"any_content": {
+"distance": 5.0
+},
+"boost": {
+"distance": 100.0
+},
+"collectible": {
+"distance": 10.0
+},
+"obstacle": {
+"distance": 50.0
+}
+},
+"pacing_rules": {}
+}
+difficulty_scaling = {
+"flow_state": {
+"MID": {
+"allowed_types": {
+"obstacles": ["+Rock"]
+},
+"density_multiplier": {
+"obstacles": 1.2
+}
+}
+},
+"global_difficulty": {
+"hard": {
+"max_per_chunk": {
+"obstacles": 7
+},
+"ratio_weights": {
+"obstacles": 3
+}
+}
+}
+}
