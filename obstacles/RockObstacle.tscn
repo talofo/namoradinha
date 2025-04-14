@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3 uid="uid://c8q6y7x3jqnx8"]
+
+[ext_resource type="Script" path="res://scripts/obstacles/RockObstacle.gd" id="1_yvj5r"]
+[ext_resource type="Resource" uid="uid://dh8yvyqwu4yjx" path="res://resources/obstacles/WeakenerConfig.tres" id="2_aqmvp"]
+[ext_resource type="Resource" uid="uid://c6xt2yjsn7yjx" path="res://resources/obstacles/DeflectorConfig.tres" id="3_aqmvp"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_j8r6t"]
+radius = 32.0
+
+[node name="RockObstacle" type="StaticBody2D" groups=["obstacles"]]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_yvj5r")
+weakener_config = ExtResource("2_aqmvp")
+deflector_config = ExtResource("3_aqmvp")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_j8r6t")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+scale = Vector2(0.5, 0.5)
+
+[node name="DebugLabel" type="Label" parent="."]
+offset_left = -50.0
+offset_top = -70.0
+offset_right = 50.0
+offset_bottom = -44.0
+text = "Rock"
+horizontal_alignment = 1

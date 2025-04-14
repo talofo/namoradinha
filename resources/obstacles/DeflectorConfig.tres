@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="DeflectorConfig" load_steps=2 format=3 uid="uid://c6xt2yjsn7yjx"]
+
+[ext_resource type="Script" path="res://scripts/motion/subsystems/obstacle_system/configs/DeflectorConfig.gd" id="1_yvj5r"]
+
+[resource]
+script = ExtResource("1_yvj5r")
+deflect_angle = 15.0
+angle_variance = 5.0
+trigger_direction = "top"

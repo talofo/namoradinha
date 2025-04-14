@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="WeakenerConfig" load_steps=2 format=3 uid="uid://dh8yvyqwu4yjx"]
+
+[ext_resource type="Script" path="res://scripts/motion/subsystems/obstacle_system/configs/WeakenerConfig.gd" id="1_yvj5r"]
+
+[resource]
+script = ExtResource("1_yvj5r")
+velocity_multiplier = 0.6
+apply_to_x = true
+apply_to_y = true

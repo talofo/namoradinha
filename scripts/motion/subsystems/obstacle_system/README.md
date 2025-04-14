@@ -1,0 +1,149 @@
+# Obstacle System
+
+The Obstacle System is responsible for handling interactions between the player and obstacles in the game. It modifies player motion based on obstacle types and configurations.
+
+## Core Architecture
+
+The Obstacle System follows a modular, component-based design with clear separation of concerns:
+
+1. **ObstacleSystem**: Main entry point that implements IMotionSubsystem
+2. **ObstacleTypeRegistry**: Manages registration of different obstacle types
+3. **ObstacleCalculator**: Combines effects from multiple obstacle types
+4. **Obstacle Types**: Individual effect implementations (Weakener, Deflector, etc.)
+5. **Data Classes**: Context and outcome objects for passing data between components
+
+## Obstacle Types
+
+The system supports multiple obstacle types, each with a specific motion-altering effect:
+
+- **Weakener**: Reduces motion strength (velocity multiplier)
+- **Deflector**: Redirects trajectory (angle modification)
+- **Stopper**: (Future) Cancels all motion
+- **Dragger**: (Future) Applies drag over time
+- **Scrambler**: (Future) Adds unpredictability
+- **Flipper**: (Future) Transforms motion shape
+
+## Creating Obstacles
+
+### 1. Create Configuration Resources
+
+Create resource files for each obstacle type you want to use:
+
+```gdscript
+# WeakenerConfig.tres
+extends Resource
+class_name WeakenerConfig
+
+@export var velocity_multiplier: float = 0.6
+@export var apply_to_x: bool = true
+@export var apply_to_y: bool = true
+```
+
+```gdscript
+# DeflectorConfig.tres
+extends Resource
+class_name DeflectorConfig
+
+@export var deflect_angle: float = 15.0
+@export var angle_variance: float = 5.0
+@export var trigger_direction: String = "top"
+```
+
+### 2. Create Obstacle Script
+
+Create a script for your obstacle that implements the required methods:
+
+```gdscript
+extends Node2D
+
+@export var weakener_config: WeakenerConfig
+@export var deflector_config: DeflectorConfig
+
+func get_obstacle_types() -> Array:
+    return ["weakener", "deflector"]
+
+func get_obstacle_config() -> Dictionary:
+    var config = {}
+    
+    # Add weakener config
+    config["weakener"] = {
+        "velocity_multiplier": weakener_config.velocity_multiplier,
+        "apply_to_x": weakener_config.apply_to_x,
+        "apply_to_y": weakener_config.apply_to_y
+    }
+    
+    # Add deflector config
+    config["deflector"] = {
+        "deflect_angle": deflector_config.deflect_angle,
+        "angle_variance": deflector_config.angle_variance,
+        "trigger_direction": deflector_config.trigger_direction
+    }
+    
+    return config
+```
+
+### 3. Create Obstacle Scene
+
+Create a scene with:
+- StaticBody2D as the root node
+- CollisionShape2D for physics
+- Sprite2D for visuals
+- Add to the "obstacles" group
+- Attach your obstacle script
+- Assign configuration resources
+
+## Integration with Motion System
+
+The ObstacleSystem integrates with the MotionSystem through the IMotionSubsystem interface:
+
+1. Register the ObstacleSystem with the MotionSystemCore
+2. The ObstacleSystem will process collisions with obstacles
+3. Motion modifiers will be applied based on obstacle effects
+
+## Signals
+
+The ObstacleSystem emits the following signals:
+
+- `obstacle_hit(entity_id, obstacle_name, resulting_velocity)`: When an entity collides with an obstacle
+- `near_miss(entity_id, obstacle_name, distance)`: When an entity passes close to an obstacle without colliding
+
+## Example Usage
+
+```gdscript
+# In your game initialization code
+var obstacle_system = ObstacleSystem.new()
+motion_system_core.register_subsystem(obstacle_system)
+
+# Connect to signals if needed
+obstacle_system.obstacle_hit.connect(_on_obstacle_hit)
+obstacle_system.near_miss.connect(_on_near_miss)
+```
+
+## Adding New Obstacle Types
+
+To add a new obstacle type:
+
+1. Create a new script extending RefCounted that implements:
+   - `apply_effect(context, config) -> Vector2`
+   - `can_affect(context, config) -> bool`
+   - `get_debug_info(context, config, result_velocity) -> String`
+   - `get_type_name() -> String`
+
+2. Register the type with the ObstacleTypeRegistry:
+   ```gdscript
+   var my_type = MyObstacleType.new()
+   obstacle_type_registry.register_obstacle_type("my_type", my_type)
+   ```
+
+3. Create a configuration resource for the type
+
+4. Update obstacle scripts to include the new type in `get_obstacle_types()` and `get_obstacle_config()`
+
+## Testing
+
+The ObstacleSystem includes a test scene and script to verify functionality:
+
+- `ObstacleTestScene.tscn`: A scene with a player and a RockObstacle
+- `test_obstacle_system.gd`: A script that runs tests on the ObstacleSystem
+
+Run the test scene to verify that the ObstacleSystem is working correctly.
