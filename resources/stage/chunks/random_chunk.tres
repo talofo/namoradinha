@@ -15,7 +15,7 @@ layout_markers = Array[Dictionary]([{
 "tags": ["narrow", "obstacle_marker"]
 }, {
 "height_zone": "stratospheric",
-"intended_category": "obstacles",
+"intended_category": "flying_obstacles",
 "name": "ObstacleMarker2",
 "placement_mode": "fully-random",
 "position": Vector2(0, 75),

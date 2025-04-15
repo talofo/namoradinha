@@ -3,6 +3,8 @@ extends "res://scripts/stage/strategies/IContentDistributionStrategy.gd"
 
 # Random number generator for consistent randomization
 var _rng: RandomNumberGenerator = RandomNumberGenerator.new()
+# Store used positions to prevent duplicates
+var _used_positions = []
 
 func _init():
 	_rng.randomize()
@@ -21,6 +23,9 @@ func distribute_content(
 	if _debug_enabled:
 		print("WeightedRandomStrategy: Distributing content for chunk '%s' with flow state %s and difficulty %s" % 
 			  [chunk_definition.chunk_id, FlowAndDifficultyController.FlowState.keys()[flow_state], difficulty])
+	
+	# Clear used positions for this new distribution
+	_used_positions.clear()
 	
 	# Initialize result array
 	var placements = []
@@ -92,37 +97,121 @@ func distribute_content(
 							"height": position.y,
 							"width_offset": position.x
 						})
+						
+						# Store this position to avoid duplicates
+						_used_positions.append(position)
+						
 						placed = true
 						break
 			
 			# If no suitable marker found, generate a procedural position
 			if not placed:
-				# Try multiple random positions
-				for attempt in range(10):  # Limit attempts to avoid infinite loops
-					# Generate a random position along the chunk length
-					var x_offset = 0.0
-					var y_value = 0.0  # Always place on ground by default
+				# For obstacles (rocks), only place them in ground chunks
+				if category_name == "obstacles":
+					# Check if this is a ground chunk by looking at the chunk_id or checking for ground markers
+					var is_ground_chunk = false
 					
-					# Use a much wider range for rocks (obstacles)
-					if category_name == "obstacles":
-						x_offset = _rng.randf_range(-200.0, 200.0)  # Very wide spread for rocks
+					# Check if the chunk ID contains "ground"
+					if "ground" in chunk_definition.chunk_id.to_lower():
+						is_ground_chunk = true
 					else:
-						x_offset = _rng.randf_range(-30.0, 30.0)  # Standard range for other content
-					var z_offset = _rng.randf_range(0, chunk_definition.length)  # Along length
-					position = Vector3(x_offset, y_value, z_offset)
+						# Check if the chunk has any ground markers
+						for marker in chunk_definition.layout_markers:
+							if marker.has("height_zone") and marker["height_zone"] == "ground":
+								is_ground_chunk = true
+								break
 					
-					# Validate placement
-					if validate_placement(position, category_name, content_type, placements, constraints):
-						# Add to placements with explicit coordinate naming
-						placements.append({
-							"category": category_name,
-							"type": content_type,
-							"distance_along_chunk": position.z,
-							"height": position.y,
-							"width_offset": position.x
-						})
-						placed = true
+					if not is_ground_chunk:
+						if _debug_enabled:
+							print("WeightedRandomStrategy: Skipping procedural placement for obstacles in non-ground chunk '%s'" % chunk_definition.chunk_id)
 						break
+					
+					# Use sector-based placement for obstacles to ensure they're spread out
+					# Divide the available width into sectors based on target count
+					var total_width = 4000.0  # -2000 to 2000 = 4000 total width
+					var sector_width = total_width / target_count
+					var sector_start = -2000.0 + (i * sector_width)
+					var sector_end = sector_start + sector_width
+					
+					if _debug_enabled:
+						print("WeightedRandomStrategy: Using sector %d for obstacle: x range [%f, %f]" % [i, sector_start, sector_end])
+					
+					# Try multiple random positions within this sector
+					for attempt in range(15):  # More attempts for obstacles
+						# Generate a random position along the chunk length
+						var x_offset = 0.0
+						var y_value = 0.0  # Always place on ground by default
+						var z_offset = 0.0
+						
+						# For first attempt, use the sector-based approach
+						if attempt < 5:
+							# Place within the assigned sector
+							x_offset = _rng.randf_range(sector_start, sector_end)
+							z_offset = _rng.randf_range(0, chunk_definition.length)
+						else:
+							# For later attempts, expand the range to find any valid position
+							var range_expansion = 1.0 + (attempt - 5) * 0.2  # Expand by 20% each attempt
+							x_offset = _rng.randf_range(-2000.0 * range_expansion, 2000.0 * range_expansion)
+							z_offset = _rng.randf_range(0, chunk_definition.length)
+						
+						position = Vector3(x_offset, y_value, z_offset)
+						
+						# Check if this position is too close to any previously used position
+						var too_close_to_existing = false
+						for used_pos in _used_positions:
+							var dx = position.x - used_pos.x
+							var dz = position.z - used_pos.z
+							var distance = sqrt(dx*dx + dz*dz)
+							if distance < 1000.0:  # Increased minimum distance between obstacles from 100 to 1000
+								too_close_to_existing = true
+								break
+						
+						if too_close_to_existing:
+							if _debug_enabled and attempt == 14:
+								print("WeightedRandomStrategy: Position too close to existing position, trying again")
+							continue
+						
+						# Validate placement
+						if validate_placement(position, category_name, content_type, placements, constraints):
+							# Add to placements with explicit coordinate naming
+							placements.append({
+								"category": category_name,
+								"type": content_type,
+								"distance_along_chunk": position.z,
+								"height": position.y,
+								"width_offset": position.x
+							})
+							
+							# Store this position to avoid duplicates
+							_used_positions.append(position)
+							
+							placed = true
+							break
+				else:
+					# For non-obstacle content, use standard random placement
+					# Try multiple random positions
+					for attempt in range(10):  # Limit attempts to avoid infinite loops
+						# Generate a random position along the chunk length
+						var x_offset = 0.0
+						var y_value = 0.0  # Always place on ground by default
+						
+						# Standard range for other content
+						x_offset = _rng.randf_range(-30.0, 30.0)
+						var z_offset = _rng.randf_range(0, chunk_definition.length)  # Along length
+						position = Vector3(x_offset, y_value, z_offset)
+						
+						# Validate placement
+						if validate_placement(position, category_name, content_type, placements, constraints):
+							# Add to placements with explicit coordinate naming
+							placements.append({
+								"category": category_name,
+								"type": content_type,
+								"distance_along_chunk": position.z,
+								"height": position.y,
+								"width_offset": position.x
+							})
+							placed = true
+							break
 				
 				if not placed and _debug_enabled:
 					print("WeightedRandomStrategy: Failed to place item of type '%s' in category '%s' after multiple attempts" % 
@@ -226,7 +315,7 @@ func _calculate_target_counts(categories: Dictionary, constraints: Dictionary, c
 	
 	return target_counts
 
-# Find suitable markers in the chunk for a specific category
+	# Find suitable markers in the chunk for a specific category
 func _find_suitable_markers(chunk_definition: ChunkDefinition, category_name: String, placement_tag: String, content_rules: ContentDistribution = null) -> Array:
 	var suitable_markers = []
 	
@@ -244,6 +333,12 @@ func _find_suitable_markers(chunk_definition: ChunkDefinition, category_name: St
 		print("WeightedRandomStrategy: Chunk '%s' has %d layout markers" % [chunk_definition.chunk_id, chunk_definition.layout_markers.size()])
 	
 	for marker in chunk_definition.layout_markers:
+		# For obstacles (rocks), only use markers in the ground height zone
+		if category_name == "obstacles" and marker.has("height_zone") and marker["height_zone"] != "ground":
+			if _debug_enabled:
+				print("WeightedRandomStrategy: Skipping non-ground marker for obstacles in height zone '%s'" % marker["height_zone"])
+			continue
+			
 		# Check if marker has intended_category that matches (using singular form)
 		if marker.has("intended_category") and (marker["intended_category"] == category_name or marker["intended_category"] == singular_category_name):
 			suitable_markers.append(marker.duplicate())
@@ -294,8 +389,8 @@ func _find_suitable_markers(chunk_definition: ChunkDefinition, category_name: St
 				
 				# For obstacles (rocks), use a much wider range
 				if category_name == "obstacles":
-					x_min = -200.0
-					x_max = 200.0
+					x_min = -2000.0
+					x_max = 2000.0
 				
 				if content_rules and content_rules.randomization_ranges.has(category_name):
 					x_min = content_rules.randomization_ranges[category_name].get("x_min", x_min)
@@ -312,8 +407,8 @@ func _find_suitable_markers(chunk_definition: ChunkDefinition, category_name: St
 				
 				# For obstacles (rocks), use a much wider range
 				if category_name == "obstacles":
-					x_min = -200.0
-					x_max = 200.0
+					x_min = -2000.0
+					x_max = 2000.0
 				
 				if content_rules and content_rules.randomization_ranges.has(category_name):
 					x_min = content_rules.randomization_ranges[category_name].get("x_min", x_min)

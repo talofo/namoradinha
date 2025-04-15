@@ -121,17 +121,28 @@ func _set_instance_position(instance: Node, distance: float, height: float, widt
 	if instance is Node2D:
 		# In a 2D game, we need to map the 3D-like coordinates to 2D space
 		# width_offset is the x position (left/right)
-		# distance is the y position (forward/backward) - this is what was missing!
+		# distance should be used for sorting/depth, not vertical position
 		# height is the z position (up/down) - typically 0 for ground objects
 		
-		# Create a Vector2 with width_offset as x and distance as y
-		var position_2d = Vector2(width_offset, distance)
+		var position_2d
+		
+		# Special case for obstacles (like rocks) - always place at ground level (y=0)
+		if instance is RockObstacle or (instance.get_groups().has("obstacles")):
+			# For obstacles, use width_offset for X and always set Y to 0
+			position_2d = Vector2(width_offset, 0)
+			
+			# Use distance for z-index to handle depth sorting
+			# Higher distance = further away = lower z-index
+			instance.z_index = 1000 - int(distance / 10)
+		else:
+			# For other objects, use the original positioning
+			position_2d = Vector2(width_offset, distance)
+			
+			# Set a high z-index to ensure visibility
+			instance.z_index = 50
 		
 		# Set the position directly
 		instance.position = position_2d
-		
-		# Set a high z-index to ensure visibility
-		instance.z_index = 50
 		
 		if debug_enabled:
 			print("DEBUG: Set position of %s to (%s, %s)" % [instance.name, str(position_2d.x), str(position_2d.y)])

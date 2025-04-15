@@ -40,18 +40,18 @@ placement_constraints = {
 "distance": 10.0
 },
 "obstacle": {
-"distance": 100.0
+"distance": 1000.0
 },
 "obstacles": {
-"distance": 100.0
+"distance": 1000.0
 }
 },
 "pacing_rules": {}
 }
 randomization_ranges = {
 "obstacles": {
-"x_min": -200.0,
-"x_max": 200.0
+"x_min": -2000.0,
+"x_max": 2000.0
 },
 "collectibles": {
 "x_min": -5.0,
