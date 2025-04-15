@@ -1,0 +1,16 @@
+[gd_scene load_steps=2 format=3 uid="uid://dmanep8kwe0bu"]
+
+[ext_resource type="Script" uid="uid://dt7jjo1mfvpqc" path="res://scripts/debug/VisibleRocksTest.gd" id="1_script"]
+
+[node name="VisibleRocksTest" type="Node2D"]
+script = ExtResource("1_script")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+
+[node name="DebugInfo" type="Label" parent="."]
+offset_left = -500.0
+offset_top = -300.0
+offset_right = 500.0
+offset_bottom = -250.0
+text = "Rock Visibility Test - Press Space to toggle zoom"
+horizontal_alignment = 1

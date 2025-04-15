@@ -1,7 +1,7 @@
 # scripts/obstacles/RockObstacle.gd
 # Implementation of a rock obstacle that combines Weakener and Deflector types.
 class_name RockObstacle
-extends Node2D
+extends StaticBody2D
 
 # Configuration resources for the obstacle types
 @export var weakener_config: WeakenerConfig
@@ -72,3 +72,52 @@ func _ready() -> void:
 	# Ensure this node is in the "obstacles" group
 	if not is_in_group("obstacles"):
 		add_to_group("obstacles")
+	
+	# Set a high z-index to ensure visibility
+	z_index = 1000
+	
+	# Create a visual representation for the rock
+	_create_visual_representation()
+
+# Create a visual representation for the rock
+func _create_visual_representation() -> void:
+	# Get or create the sprite
+	var sprite = $Sprite2D
+	if not sprite:
+		sprite = Sprite2D.new()
+		sprite.name = "Sprite2D"
+		add_child(sprite)
+	
+	# Make sure we have a texture
+	if not sprite.texture:
+		var image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
+		image.fill(Color(0.6, 0.4, 0.2, 1.0))  # Brown rock color
+		
+		# Add some texture to make it look like a rock
+		for x in range(64):
+			for y in range(64):
+				var noise_value = (x * y) % 10 / 10.0
+				var current_color = image.get_pixel(x, y)
+				var new_color = current_color.darkened(noise_value * 0.3)
+				image.set_pixel(x, y, new_color)
+		
+		# Create a texture from the image
+		var texture = ImageTexture.create_from_image(image)
+		
+		# Assign the texture to the sprite
+		sprite.texture = texture
+	
+	# Ensure the sprite is visible and properly sized
+	sprite.visible = true
+	sprite.scale = Vector2(1.0, 1.0)
+	
+	# Add a simple outline to make it more visible
+	var outline = get_node_or_null("Outline")
+	if not outline:
+		outline = ColorRect.new()
+		outline.name = "Outline"
+		outline.size = Vector2(70, 70)
+		outline.position = Vector2(-35, -35)
+		outline.color = Color(0.3, 0.2, 0.1, 0.3)  # Semi-transparent dark brown
+		outline.z_index = -1  # Place behind the sprite
+		add_child(outline)

@@ -15,8 +15,8 @@ story_end_condition = {
 "value": 1000.0
 }
 chunk_selection = {
-"allowed_types": ["straight_easy", "curve_left_easy", "curve_right_easy"],
-"theme_tags": ["forest", "standard"]
+"allowed_types": ["straight", "straight_easy", "curve_left_easy", "curve_right_easy"],
+"theme_tags": ["standard"]
 }
 content_distribution_id = "default"
-debug_markers = false
+debug_markers = true

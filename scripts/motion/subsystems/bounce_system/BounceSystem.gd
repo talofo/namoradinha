@@ -21,8 +21,7 @@ func _init() -> void:
 # Initialize with the MotionProfileResolver
 func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
 	_motion_profile_resolver = resolver
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceSystem: MotionProfileResolver initialized.")
+	# Debug print removed
 
 # --- IMotionSubsystem Implementation ---
 
@@ -33,9 +32,7 @@ func on_register() -> void:
 	# Store reference to MotionSystem for accessing PhysicsConfig
 	if "_motion_system" in self and self._motion_system:
 		_core = self._motion_system
-		# Debug print to verify _core is set
-		if Engine.is_editor_hint() or OS.is_debug_build():
-			print("[DEBUG] BounceSystem: _core set to ", _core)
+		# Debug print removed
 
 func on_unregister() -> void:
 	_core = null
@@ -46,8 +43,7 @@ func get_continuous_modifiers(_delta: float) -> Array[MotionModifier]:
 
 # Updated to accept CollisionContext directly and use the new approach
 func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]:
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceSystem.get_collision_modifiers called")
+	# Debug print removed
 	var modifiers: Array[MotionModifier] = []
 
 	# --- Input Validation ---
@@ -55,8 +51,7 @@ func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]
 		printerr("BounceSystem: Invalid or incomplete CollisionContext received (player_node is required).")
 		return modifiers
 		
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceSystem: Context validation passed")
+	# Debug print removed
 
 	# --- Resolve Motion Profile ---
 	var resolved_profile = {}
@@ -72,16 +67,14 @@ func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]
 	# Attempt to get PhysicsConfig from the core system
 	if _core and _core.has_method("get_physics_config"):
 		physics_rules = _core.get_physics_config()
-		if physics_rules and (Engine.is_editor_hint() or OS.is_debug_build()):
-			print("[DEBUG] BounceSystem: Using PhysicsConfig from MotionSystem")
+		# Debug print removed
 	
 	# If still not found after checking core, try to load it directly
 	if not physics_rules:
 		var config_path = "res://resources/physics/default_physics.tres"
 		if ResourceLoader.exists(config_path):
 			physics_rules = load(config_path) as PhysicsConfig
-			if physics_rules and (Engine.is_editor_hint() or OS.is_debug_build()):
-				print("[DEBUG] BounceSystem: Loaded PhysicsConfig directly from ", config_path)
+			# Debug print removed
 	
 	# If still not found, use a default instance
 	if not physics_rules:
@@ -90,42 +83,33 @@ func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]
 
 	# Check if it's a floor collision based on the normal in the context
 	var normal: Vector2 = context.impact_surface_data.normal
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceSystem: Surface normal = ", normal, ", dot with UP = ", normal.dot(Vector2.UP))
+	# Debug print removed
 	# If the upward component of the normal (dot product with UP) is less than the threshold,
 	# it's considered a wall or ceiling, not a floor.
 	if normal.dot(Vector2.UP) < FLOOR_NORMAL_THRESHOLD: 
-		if Engine.is_editor_hint() or OS.is_debug_build():
-			print("[DEBUG] BounceSystem: Not a floor collision, skipping")
+		# Debug print removed
 		# Not a floor collision (or slope is too steep to be considered floor)
 		return modifiers
 		
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceSystem: Floor collision detected")
+	# Debug print removed
 	
 	# --- Perform Calculation ---
 	# Ensure generate_debug_data flag is set correctly based on engine state
 	context.generate_debug_data = Engine.is_editor_hint() or OS.is_debug_build()
 	
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceSystem: Calling BounceCalculator.calculate with resolved profile and physics rules")
+	# Debug print removed
 	var outcome: BounceOutcome = _calculator.calculate(context, resolved_profile, physics_rules)
 	
 	# Store the outcome for state tracking
 	_last_outcome = outcome
 	
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceSystem: BounceCalculator.calculate returned outcome with state: ", outcome.termination_state)
+	# Debug print removed
 
 	# --- Handle Outcome ---
 	if outcome:
-		# Log debug info if available
-		if outcome.debug_data and (Engine.is_editor_hint() or OS.is_debug_build()):
-			print("BounceSystem Debug: ", outcome.debug_data)
+		# Debug print removed
 
-		# Print debug info about the outcome state
-		if Engine.is_editor_hint() or OS.is_debug_build():
-			print("[DEBUG] BounceSystem: Outcome state is ", outcome.termination_state)
+		# Debug print removed
 
 		# Create a modifier to apply the calculated velocity
 		# Priority should be high to override other collision responses if bouncing/sliding.

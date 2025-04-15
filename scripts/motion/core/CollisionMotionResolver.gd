@@ -48,8 +48,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 				var surface_normal = collision_info.get("normal", Vector2.UP)
 				var material_type = collision_info.get("material", "default")
 				
-				if Engine.is_editor_hint() or OS.is_debug_build():
-					print("[DEBUG] CollisionMotionResolver: Creating CollisionSurfaceData with normal = ", surface_normal, ", material = ", material_type)
+				# Debug print removed
 				
 				# Get material properties from CollisionMaterialSystem if available
 				var elasticity = 0.9  # Default fallback
@@ -61,8 +60,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 					elasticity = material_properties.get("bounce", elasticity)
 					friction = material_properties.get("friction", friction)
 					
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] CollisionMotionResolver: Got material properties from CollisionMaterialSystem: elasticity = ", elasticity, ", friction = ", friction)
+					# Debug print removed
 				
 				# Create surface data with the normal and material properties
 				var surface_data = CollisionSurfaceData.new(
@@ -73,8 +71,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 					material_type
 				)
 				
-				if Engine.is_editor_hint() or OS.is_debug_build():
-					print("[DEBUG] CollisionMotionResolver: Created CollisionSurfaceData with elasticity = ", surface_data.elasticity, ", friction = ", surface_data.friction)
+				# Debug print removed
 				
 				# Get player_node from collision_info (added by PlayerCharacter)
 				var player_node = collision_info.get("player_node", null)
@@ -85,21 +82,18 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 				# First check if the collision_info already has a player_bounce_profile
 				if collision_info.has("player_bounce_profile") and collision_info.player_bounce_profile is PlayerBounceProfile:
 					player_profile = collision_info.player_bounce_profile
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] CollisionMotionResolver: Using player_bounce_profile from collision_info")
+					# Debug print removed
 				
 				# Next, try to get it from the player_node if it has a get_bounce_profile method
 				elif is_instance_valid(player_node) and player_node.has_method("get_bounce_profile"):
 					player_profile = player_node.get_bounce_profile()
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] CollisionMotionResolver: Got player_bounce_profile from player_node.get_bounce_profile()")
+					# Debug print removed
 				
 				# Next, try to get it from a profile registry in the core if available
 				elif _core.has_method("get_bounce_profile_for_entity"):
 					var entity_id = collision_info.get("entity_id", 0)
 					player_profile = _core.get_bounce_profile_for_entity(entity_id)
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] CollisionMotionResolver: Got player_bounce_profile from _core.get_bounce_profile_for_entity()")
+					# Debug print removed
 				
 				# Finally, create a default profile if none was found
 				if not player_profile:
@@ -112,8 +106,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 						1.2,                # horizontal_speed_modifier (increased)
 						0.8                 # vertical_speed_modifier (decreased)
 					)
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] CollisionMotionResolver: Created default PlayerBounceProfile")
+					# Debug print removed
 				
 				# Get gravity magnitude and construct the vector
 				var gravity_magnitude = _core.get_physics_config().get_gravity_for_entity("default", 1.0)
@@ -123,8 +116,7 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 					# Skip bounce system if player node is missing
 					modifiers = [] 
 				else:
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] CollisionMotionResolver: Creating CollisionContext for BounceSystem")
+					# Debug print removed
 					
 					# Create the context with all required data
 					var context = CollisionContext.new(
@@ -136,14 +128,12 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 						_core.debug_enabled
 					)
 					
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] CollisionMotionResolver: Calling BounceSystem.get_collision_modifiers")
+					# Debug print removed
 					
 					# Get modifiers from the BounceSystem
 					modifiers = subsystem.get_collision_modifiers(context)
 					
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] CollisionMotionResolver: BounceSystem returned ", modifiers.size(), " modifiers")
+					# Debug print removed
 			else:
 				# Other subsystems still receive the raw dictionary
 				modifiers = subsystem.get_collision_modifiers(collision_info)
@@ -187,8 +177,7 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 			if last_outcome:
 				is_terminated = last_outcome.is_terminated()
 				
-				if Engine.is_editor_hint() or OS.is_debug_build():
-					print("[DEBUG] CollisionMotionResolver: BounceSystem last_outcome state: ", last_outcome.termination_state)
+				# Debug print removed
 		
 		# If bounce is terminated or Y velocity is zero, transition to sliding
 		if is_terminated or is_zero_approx(collision_motion.y):
@@ -197,8 +186,7 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 			collision_motion.y = 0.0
 			result = _core.state_manager.transition_to_sliding(collision_motion)
 			
-			if Engine.is_editor_hint() or OS.is_debug_build():
-				print("[DEBUG] CollisionMotionResolver: Transitioning to sliding state with velocity: ", collision_motion)
+			# Debug print removed
 		else:
 			# Still bouncing
 			result["has_launched"] = true

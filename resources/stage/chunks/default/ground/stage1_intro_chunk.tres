@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="ChunkDefinition" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/stage/resources/ChunkDefinition.gd" id="1_yjk2p"]
+
+[resource]
+script = ExtResource("1_yjk2p")
+chunk_id = "stage1_intro_chunk"
+chunk_type = "straight"
+layout_markers = [{
+"height_zone": "ground",
+"intended_category": "obstacle",
+"name": "RockMarker1",
+"placement_mode": "stable-random",
+"position": Vector2(-8, 0),
+"tags": ["rock", "intro"]
+}, {
+"height_zone": "ground",
+"intended_category": "obstacle",
+"name": "RockMarker2",
+"placement_mode": "stable-random",
+"position": Vector2(8, 50),
+"tags": ["rock", "intro"]
+}]
+theme_tags = ["standard", "stage1", "intro"]
+difficulty_rating = 0.5
+length = 150.0
+transition_chunk = false

@@ -17,7 +17,7 @@ content_categories = {
 "placement_tag": "any"
 },
 "obstacles": {
-"allowed_entities": ["Log", "Rock"],
+"allowed_entities": ["Rock"],
 "base_ratio_weight": 2.0,
 "placement_tag": "obstacle_marker"
 }
@@ -40,10 +40,44 @@ placement_constraints = {
 "distance": 10.0
 },
 "obstacle": {
-"distance": 50.0
+"distance": 100.0
+},
+"obstacles": {
+"distance": 100.0
 }
 },
 "pacing_rules": {}
+}
+randomization_ranges = {
+"obstacles": {
+"x_min": -200.0,
+"x_max": 200.0
+},
+"collectibles": {
+"x_min": -5.0,
+"x_max": 5.0
+},
+"boosts": {
+"x_min": -3.0,
+"x_max": 3.0
+}
+}
+height_zones = {
+"underground": {
+"y_min": -20.0,
+"y_max": -1.0
+},
+"ground": {
+"y": 0.0
+},
+"air": {
+"y_min": 30.0,
+"y_max": 60.0
+},
+"stratospheric": {
+"y_min": 80.0,
+"y_max": 120.0
+}
 }
 difficulty_scaling = {
 "flow_state": {

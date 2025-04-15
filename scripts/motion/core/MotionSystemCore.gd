@@ -81,7 +81,7 @@ func get_physics_config() -> PhysicsConfig:
 	return physics_config
 
 func _ready() -> void:
-	set_debug_enabled(false)
+	set_debug_enabled(false) # Debug mode disabled by default
 
 	# Note: Subsystems are registered when initialize_subsystems() is called
 	# This allows for more dynamic control over when subsystems are loaded

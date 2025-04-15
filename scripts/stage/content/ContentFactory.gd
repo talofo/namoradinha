@@ -3,22 +3,22 @@ extends Node
 
 # Configuration
 var _content_paths: Dictionary = {
-	"obstacle": {
+	"obstacles": {
 		"Rock": "res://obstacles/RockObstacle.tscn"
 	},
-	"boost": {
+	"boosts": {
 		# Example: "SpeedPad": "res://boosts/SpeedPad.tscn"
 	},
-	"collectible": {
+	"collectibles": {
 		# Example: "Coin": "res://collectibles/Coin.tscn"
 	}
 }
 
 # Debug mode
-var debug_enabled: bool = false
+var debug_enabled: bool = true
 
 # Create a content instance based on category and type
-func create_content(content_category: String, content_type: String, position: Vector3, chunk_parent: Node = null) -> Node:
+func create_content(content_category: String, content_type: String, distance: float, height: float, width_offset: float, chunk_parent: Node = null) -> Node:
 	# Normalize category to lowercase for case-insensitive matching
 	var category = content_category.to_lower()
 	
@@ -37,15 +37,46 @@ func create_content(content_category: String, content_type: String, position: Ve
 	# Instantiate the content
 	var content_instance = content_scene.instantiate()
 	
-	# Set position based on node type
-	_set_instance_position(content_instance, position, chunk_parent)
+	# Set position based on node type using distance, height, and width_offset
+	_set_instance_position(content_instance, distance, height, width_offset, chunk_parent)
 	
 	# Add to parent if provided
 	if chunk_parent and chunk_parent.is_inside_tree():
+		print("ContentFactory: Adding %s/%s to parent %s" % [category, content_type, chunk_parent.name])
 		chunk_parent.add_child(content_instance)
+		
+		# Force process to ensure the node is properly added
+		content_instance.set_process(true)
+		content_instance.set_physics_process(true)
+		
+		# Verify the content was added to the scene tree
+		print("ContentFactory: Content added to parent, is in scene tree: %s" % str(content_instance.is_inside_tree()))
+	else:
+		# If no parent is provided or parent is not in tree, use GameSignalBus
+		print("ContentFactory: No valid parent for %s/%s, using GameSignalBus" % [category, content_type])
+		
+		# Get the GameSignalBus singleton
+		var game_signal_bus = Engine.get_singleton("GameSignalBus")
+		if game_signal_bus:
+			if game_signal_bus.has_method("add_content_to_scene"):
+				var success = game_signal_bus.add_content_to_scene(content_instance)
+				print("ContentFactory: Added via GameSignalBus: %s" % str(success))
+			else:
+				push_error("ContentFactory: GameSignalBus doesn't have add_content_to_scene method")
+				# Fallback: add directly to the scene root
+				get_tree().root.add_child(content_instance)
+				print("ContentFactory: Fallback - Added directly to scene root")
+		else:
+			push_error("ContentFactory: GameSignalBus singleton not available")
+			# Fallback: add directly to the scene root
+			get_tree().root.add_child(content_instance)
+			print("ContentFactory: Fallback - Added directly to scene root")
 	
 	if debug_enabled:
-		print("ContentFactory: Created %s/%s at position %s" % [category, content_type, str(position)])
+		print("ContentFactory: Created %s/%s at position (%s, %s)" % [category, content_type, str(distance), str(height)])
+		print("ContentFactory: DEBUG - Content is in scene tree: %s" % str(content_instance.is_inside_tree()))
+		print("ContentFactory: DEBUG - Content parent: %s" % (content_instance.get_parent().name if content_instance.get_parent() else "none"))
+		print("ContentFactory: DEBUG - Content z-index: %s" % str(content_instance.z_index if content_instance is Node2D else "N/A"))
 	
 	return content_instance
 
@@ -63,7 +94,11 @@ func _get_scene_path(category: String, content_type: String) -> String:
 			push_warning("ContentFactory: Unknown content type '%s' in category '%s'" % [content_type, category])
 		return ""
 	
-	return _content_paths[category][content_type]
+	var scene_path = _content_paths[category][content_type]
+	if debug_enabled:
+		print("DEBUG: Scene path for %s/%s: %s" % [category, content_type, scene_path])
+	
+	return scene_path
 
 # Load a scene from path
 func _load_scene(scene_path: String) -> PackedScene:
@@ -76,30 +111,32 @@ func _load_scene(scene_path: String) -> PackedScene:
 		push_error("ContentFactory: Resource at path is not a PackedScene: %s" % scene_path)
 		return null
 	
+	if debug_enabled:
+		print("DEBUG: Scene loaded successfully: %s" % scene_path)
+	
 	return scene
 
 # Set the position of an instance based on its type
-func _set_instance_position(instance: Node, position: Vector3, chunk_parent: Node) -> void:
+func _set_instance_position(instance: Node, distance: float, height: float, width_offset: float, chunk_parent: Node) -> void:
 	if instance is Node2D:
-		# Position relative to the chunk parent
-		if chunk_parent and chunk_parent is Node2D:
-			# Calculate local position within the chunk
-			var local_pos_2d = chunk_parent.to_local(Vector2(position.x, position.z))
-			instance.position = local_pos_2d
-		else: # Fallback if parent is invalid
-			instance.global_position = Vector2(position.x, position.z)
-	elif instance is Node3D:
-		# Position relative to the chunk parent (assuming parent is Node3D or spatial)
-		if chunk_parent and chunk_parent is Node3D:
-			instance.global_position = position # Set global first
-			instance.global_transform = chunk_parent.global_transform.inverse() * instance.global_transform # Then make relative
-		elif chunk_parent and chunk_parent is Node2D:
-			# Handle 3D content in 2D chunk parent (might need offset adjustments)
-			instance.global_position = position 
-		else: # Fallback
-			instance.global_position = position
+		# In a 2D game, we need to map the 3D-like coordinates to 2D space
+		# width_offset is the x position (left/right)
+		# distance is the y position (forward/backward) - this is what was missing!
+		# height is the z position (up/down) - typically 0 for ground objects
+		
+		# Create a Vector2 with width_offset as x and distance as y
+		var position_2d = Vector2(width_offset, distance)
+		
+		# Set the position directly
+		instance.position = position_2d
+		
+		# Set a high z-index to ensure visibility
+		instance.z_index = 50
+		
+		if debug_enabled:
+			print("DEBUG: Set position of %s to (%s, %s)" % [instance.name, str(position_2d.x), str(position_2d.y)])
 	else:
-		push_warning("ContentFactory: Instantiated content is not Node2D or Node3D. Cannot set position reliably.")
+		push_warning("ContentFactory: Instantiated content '%s' is not Node2D. Cannot set 2D position reliably." % instance.name)
 
 # Register a new content type
 func register_content_type(category: String, content_type: String, scene_path: String) -> void:

@@ -20,7 +20,7 @@ var _placement_history: Array = []
 const MAX_HISTORY_SIZE = 100
 
 # Debug flag
-var _debug_enabled: bool = false
+var _debug_enabled: bool = true
 
 func _ready():
     # Set default strategy
@@ -71,6 +71,8 @@ func distribute_content_for_chunk(chunk_definition: ChunkDefinition, distributio
               [chunk_definition.chunk_id, distribution_id])
         print("ContentDistributionSystem: Current flow state: %s, difficulty: %s" % 
               [FlowAndDifficultyController.FlowState.keys()[flow_state], difficulty])
+        print("DEBUG: Content rules for distribution '%s': %s" % [distribution_id, content_rules])
+        print("DEBUG: Chunk layout markers: %s" % str(chunk_definition.layout_markers))
     
     # Use strategy to distribute content
     var placements = _distribution_strategy.distribute_content(
@@ -80,7 +82,10 @@ func distribute_content_for_chunk(chunk_definition: ChunkDefinition, distributio
         content_rules,
         _placement_history
     )
-    
+
+    # DEBUG: Print all placements generated for this chunk
+    print("ContentDistributionSystem: Placements generated for chunk '%s': %s" % [chunk_definition.chunk_id, placements])
+
     # Update placement history
     for placement in placements:
         _placement_history.append(placement)
@@ -91,22 +96,22 @@ func distribute_content_for_chunk(chunk_definition: ChunkDefinition, distributio
     
     # Emit signals for each placement
     for placement in placements:
-        GlobalSignals.request_content_placement.emit(
-            placement["category"],
-            placement["type"],
-            placement["position"]
-        )
+        # Emit the entire placement dictionary
+        GlobalSignals.request_content_placement.emit(placement)
         
-        # Emit analytics event
-        GlobalSignals.analytics_event.emit({
+        # Emit analytics event with explicit coordinate fields
+        var analytics_data = {
             "event_type": "content_placed",
             "category": placement["category"],
             "content_type": placement["type"],
-            "position": placement["position"],
+            "distance_along_chunk": placement["distance_along_chunk"],
+            "height": placement["height"],
+            "width_offset": placement["width_offset"],
             "chunk_id": chunk_definition.chunk_id,
             "flow_state": FlowAndDifficultyController.FlowState.keys()[flow_state],
             "difficulty": difficulty
-        })
+        }
+        GlobalSignals.analytics_event.emit(analytics_data)
     
     if _debug_enabled:
         print("ContentDistributionSystem: Placed %d items for chunk '%s'" % [placements.size(), chunk_definition.chunk_id])

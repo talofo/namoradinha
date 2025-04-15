@@ -11,11 +11,22 @@ extends Resource
 @export var placement_constraints: Dictionary = { # Rules governing placement
     "max_per_chunk": {"obstacles": 5, "boosts": 2, "collectibles": 10}, # Per-category limits
     "minimum_spacing": { # Per-category and global minimum distances
-        "obstacle": {"distance": 50}, "boost": {"distance": 100}, "collectible": {"distance": 10},
+        "obstacles": {"distance": 50}, "boosts": {"distance": 100}, "collectibles": {"distance": 10},
         "any_content": {"distance": 5} # Overall minimum gap
     },
     "disallowed_patterns": ["BOOST_OBSTACLE_BOOST"], # Sequence rules (may need enhancement for categories)
     "pacing_rules": {} # Placeholder for future complex pacing logic (e.g., rest periods, guarantees)
+}
+@export var randomization_ranges: Dictionary = { # Ranges for randomized placement
+    "obstacles": {"x_min": -10.0, "x_max": 10.0},
+    "collectibles": {"x_min": -5.0, "x_max": 5.0},
+    "boosts": {"x_min": -3.0, "x_max": 3.0}
+}
+@export var height_zones: Dictionary = { # Height zones for different types of content
+    "underground": {"y_min": -20.0, "y_max": -1.0},
+    "ground": {"y": 0.0},
+    "air": {"y_min": 30.0, "y_max": 60.0},
+    "stratospheric": {"y_min": 80.0, "y_max": 120.0}
 }
 @export var difficulty_scaling: Dictionary = { # How rules change based on difficulty/flow context
     "flow_state": { # Keys: FlowState enum names (e.g., "MID")
@@ -58,6 +69,27 @@ func validate() -> bool:
         if not placement_constraints["max_per_chunk"].has(category_name):
             push_warning("ContentDistribution '%s': No max_per_chunk defined for category '%s', using 5" % [distribution_id, category_name])
             placement_constraints["max_per_chunk"][category_name] = 5
+    
+    # Validate randomization_ranges
+    if not randomization_ranges.has_all(content_categories.keys()):
+        for category_name in content_categories.keys():
+            if not randomization_ranges.has(category_name):
+                push_warning("ContentDistribution '%s': No randomization range defined for category '%s', using defaults" % [distribution_id, category_name])
+                randomization_ranges[category_name] = {"x_min": -5.0, "x_max": 5.0}
+    
+    # Validate height_zones
+    var required_zones = ["underground", "ground", "air", "stratospheric"]
+    for zone_name in required_zones:
+        if not height_zones.has(zone_name):
+            push_warning("ContentDistribution '%s': Missing height zone '%s', using defaults" % [distribution_id, zone_name])
+            if zone_name == "ground":
+                height_zones[zone_name] = {"y": 0.0}
+            elif zone_name == "underground":
+                height_zones[zone_name] = {"y_min": -20.0, "y_max": -1.0}
+            elif zone_name == "air":
+                height_zones[zone_name] = {"y_min": 30.0, "y_max": 60.0}
+            elif zone_name == "stratospheric":
+                height_zones[zone_name] = {"y_min": 80.0, "y_max": 120.0}
     
     # Validate difficulty_scaling
     if not difficulty_scaling.has("flow_state"):

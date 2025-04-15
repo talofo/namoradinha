@@ -92,9 +92,20 @@ func _create_ground_sprite(texture: Texture2D, tint: Color = Color.WHITE) -> voi
 func _create_fallback_ground() -> void:
 	# Create magenta debug visual
 	var fallback = ColorRect.new()
-	fallback.color = Color(1, 0, 1, 1)  # Magenta
+	fallback.color = Color(1, 0, 1, 0.7)  # Semi-transparent magenta
 	fallback.size = Vector2(2000, 100)   # Adjust to match ground size
 	fallback.position = Vector2(-1000, -50)  # Center it
+	
+	# Set a very low z-index to ensure it's behind other elements
+	fallback.z_index = -100
+	
+	# Add a label to indicate it's a fallback
+	var label = Label.new()
+	label.text = "FALLBACK GROUND"
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.size = fallback.size
+	fallback.add_child(label)
 	
 	if current_sprite:
 		current_sprite.queue_free()

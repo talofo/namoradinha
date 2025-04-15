@@ -111,3 +111,27 @@ To add a new flow state:
 1. Add it to the FlowState enum in FlowAndDifficultyController.
 2. Update the _string_to_flow_state method to handle the new state.
 3. Update the _calculate_flow_state method to use the new state.
+
+## Additional Features
+
+### Placement Modes
+
+The system supports different placement modes for content markers:
+
+- **non-random**: Content is placed exactly at the specified position.
+- **stable-random**: Content is placed at a randomized position, but the same each time.
+- **fully-random**: Content is placed at a completely random position each time.
+
+See [README_PLACEMENT_MODES.md](README_PLACEMENT_MODES.md) for more details.
+
+### Height Zones
+
+The system supports different height zones for content placement:
+
+- **underground**: Content is placed below the ground level.
+- **ground**: Content is placed exactly at ground level.
+- **air**: Content is placed in the air at a medium height.
+- **stratospheric**: Content is placed very high in the air.
+- **specified**: Content is placed at the exact y-coordinate specified in the marker.
+
+See [README_HEIGHT_ZONES.md](README_HEIGHT_ZONES.md) for more details.

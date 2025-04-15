@@ -72,13 +72,13 @@ func update_stage_config(config: StageCompositionConfig) -> void:
     config_info_label.text = info_text
 
 # Update player position display
-func update_player_position(position: Vector3) -> void:
-    position_label.text = "Position: (%.1f, %.1f, %.1f)" % [position.x, position.y, position.z]
+func update_player_position(position: Vector2) -> void:
+    position_label.text = "Position: (%.1f, %.1f)" % [position.x, position.y]
     
     # Update progress bar if we have a config
     if _current_config:
         var effective_length = _current_config.get_effective_length()
-        var progress = clamp(position.z / effective_length, 0.0, 1.0)
+        var progress = clamp(position.y / effective_length, 0.0, 1.0)
         progress_bar.value = progress * 100.0
 
 # Update performance metric display

@@ -3,6 +3,8 @@ extends Node
 
 # Import required classes
 # In Godot 4.4+, classes with class_name are globally available
+# Using ChunkResourceLoader for loading chunks
+const ChunkResourceLoader = preload("res://scripts/stage/resources/ChunkResourceLoader.gd")
 
 # Current stage configuration
 var _current_config: StageCompositionConfig = null
@@ -10,10 +12,16 @@ var _current_config: StageCompositionConfig = null
 # Flow controller reference
 var _flow_controller: FlowAndDifficultyController = null
 
+# Content distribution system reference
+var _content_distribution_system: ContentDistributionSystem = null
+
+# Chunk resource loader
+var _chunk_loader: ChunkResourceLoader = null
+
 # Chunk tracking
 var _active_chunks: Array = [] # Array of {chunk_definition, start_position, end_position}
-var _next_chunk_position: Vector3 = Vector3.ZERO
-var _player_position: Vector3 = Vector3.ZERO
+var _next_chunk_position: Vector2 = Vector2.ZERO
+var _player_position: Vector2 = Vector2.ZERO
 var _last_mandatory_event_index: int = -1
 
 # Preloading
@@ -24,16 +32,21 @@ var _cleanup_distance: float = 200.0 # Distance behind to keep chunks
 var _debug_enabled: bool = false
 
 func _ready():
-    pass
+    # Initialize chunk loader
+    _chunk_loader = ChunkResourceLoader.new()
 
-# Initialize with stage configuration and flow controller
-func initialize(config: StageCompositionConfig, flow_controller: FlowAndDifficultyController) -> void:
+# Initialize with stage configuration, flow controller, and content distribution system
+func initialize(config: StageCompositionConfig, flow_controller: FlowAndDifficultyController, content_distribution_system: ContentDistributionSystem) -> void:
     _current_config = config
     _flow_controller = flow_controller
+    _content_distribution_system = content_distribution_system
     _active_chunks.clear()
-    _next_chunk_position = Vector3.ZERO
-    _player_position = Vector3.ZERO
+    _next_chunk_position = Vector2.ZERO
+    _player_position = Vector2.ZERO
     _last_mandatory_event_index = -1
+    
+    # Set debug mode on chunk loader
+    _chunk_loader.set_debug_enabled(_debug_enabled)
     
     if _debug_enabled:
         print("ChunkManagementSystem: Initialized with config '%s'" % config.id)
@@ -58,16 +71,24 @@ func generate_next_chunk() -> void:
         return
     
     # Get current distance
-    var current_distance = _player_position.z
+    var current_distance = _player_position.y
     
     # Select next chunk
     var chunk_definition = select_next_chunk(current_distance)
     if not chunk_definition:
         push_error("ChunkManagementSystem: Failed to select next chunk")
         return
-    
+        
+    # Trigger content distribution for the selected chunk
+    if _content_distribution_system:
+        # Determine the correct distribution_id (likely from _current_config)
+        var distribution_id = _current_config.content_distribution_id if _current_config else "default" 
+        _content_distribution_system.distribute_content_for_chunk(chunk_definition, distribution_id)
+    else:
+        push_warning("ChunkManagementSystem: ContentDistributionSystem not set, cannot distribute content.")
+        
     # Calculate chunk end position
-    var chunk_end_position = _next_chunk_position + Vector3(0, 0, chunk_definition.length)
+    var chunk_end_position = _next_chunk_position + Vector2(0, chunk_definition.length)
     
     # Add to active chunks
     _active_chunks.append({
@@ -231,84 +252,34 @@ func _check_mandatory_events(current_distance: float) -> ChunkDefinition:
 
 # Find chunks matching the given criteria
 func _find_matching_chunks(allowed_types: Array, theme_tags: Array, theme: String) -> Array:
-    var matching_chunks = []
-    
-    # Get all chunk resources
-    var chunks_dir = "res://resources/stage/chunks/"
-    var dir = DirAccess.open(chunks_dir)
-    
-    if not dir:
-        push_error("ChunkManagementSystem: Failed to open chunks directory")
-        return matching_chunks
-    
-    dir.list_dir_begin()
-    var file_name = dir.get_next()
-    
-    while file_name != "":
-        if not dir.current_is_dir() and file_name.ends_with(".tres"):
-            var chunk_path = chunks_dir + file_name
-            var chunk = load(chunk_path)
-            
-            if chunk is ChunkDefinition:
-                # Check if chunk matches criteria
-                var type_match = allowed_types.is_empty() or allowed_types.has(chunk.chunk_type)
-                
-                var tag_match = theme_tags.is_empty()
-                if not tag_match:
-                    for tag in theme_tags:
-                        if chunk.theme_tags.has(tag):
-                            tag_match = true
-                            break
-                
-                if type_match and tag_match:
-                    matching_chunks.append(chunk)
-        
-        file_name = dir.get_next()
-    
-    dir.list_dir_end()
-    
-    return matching_chunks
+    # Use the chunk loader to find matching chunks
+    return _chunk_loader.find_matching_chunks(allowed_types, theme_tags)
 
 # Load a specific chunk definition by ID
 func _load_chunk_definition(chunk_id: String) -> ChunkDefinition:
-    # Try to load from path
-    var resource_path = "res://resources/stage/chunks/%s.tres" % chunk_id
-    
-    if ResourceLoader.exists(resource_path):
-        var resource = load(resource_path)
-        if resource is ChunkDefinition:
-            if resource.validate():
-                return resource
-            else:
-                push_warning("ChunkManagementSystem: Validation failed for '%s'" % resource_path)
-        else:
-            push_error("ChunkManagementSystem: Resource at '%s' is not a ChunkDefinition" % resource_path)
-    else:
-        push_warning("ChunkManagementSystem: Chunk not found at '%s'" % resource_path)
-    
-    # Try default path
-    return ChunkDefinition.get_default_resource()
+    # Use the chunk loader to load the chunk
+    return _chunk_loader.load_chunk_by_id(chunk_id)
 
 # Update player position and manage chunks
-func update_player_position(position: Vector3) -> void:
+func update_player_position(position: Vector2) -> void:
     _player_position = position
     
     # Check if we need to preload more chunks
     var furthest_chunk_end = _get_furthest_chunk_end()
-    if furthest_chunk_end.z - position.z < _preload_distance:
+    if furthest_chunk_end.y - position.y < _preload_distance:
         generate_next_chunk()
     
     # Clean up distant chunks
     cleanup_distant_chunks()
 
 # Get the end position of the furthest chunk
-func _get_furthest_chunk_end() -> Vector3:
+func _get_furthest_chunk_end() -> Vector2:
     if _active_chunks.is_empty():
-        return Vector3.ZERO
+        return Vector2.ZERO
     
     var furthest_end = _active_chunks[0].end_position
     for chunk_data in _active_chunks:
-        if chunk_data.end_position.z > furthest_end.z:
+        if chunk_data.end_position.y > furthest_end.y:
             furthest_end = chunk_data.end_position
     
     return furthest_end
@@ -319,7 +290,7 @@ func cleanup_distant_chunks() -> void:
     
     for i in range(_active_chunks.size()):
         var chunk_data = _active_chunks[i]
-        if _player_position.z - chunk_data.end_position.z > _cleanup_distance:
+        if _player_position.y - chunk_data.end_position.y > _cleanup_distance:
             chunks_to_remove.append(i)
     
     # Remove from end to start to avoid index issues
@@ -334,6 +305,8 @@ func cleanup_distant_chunks() -> void:
 # Enable/disable debug output
 func set_debug_enabled(enabled: bool) -> void:
     _debug_enabled = enabled
+    if _chunk_loader:
+        _chunk_loader.set_debug_enabled(enabled)
 
 # Set the preload and cleanup distances
 func set_streaming_distances(preload_distance: float, cleanup_distance: float) -> void:

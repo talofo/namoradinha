@@ -146,6 +146,18 @@ func _create_fallback_backgrounds() -> void:
         fallback.color = Color(1, 0, 1, alpha)  # Magenta with varying alpha
         
         fallback.size = Vector2(1920, 1080)  # Screen size
+        
+        # Set a very low z-index to ensure it's behind other elements
+        fallback.z_index = -100
+        
+        # Add a label to indicate it's a fallback
+        var label = Label.new()
+        label.text = "FALLBACK BACKGROUND"
+        label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+        label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+        label.size = fallback.size
+        fallback.add_child(label)
+        
         current_layer.add_child(fallback)
     
     # No transition to track

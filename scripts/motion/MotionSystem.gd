@@ -15,8 +15,8 @@ func _init() -> void:
 	_core.subsystem_unregistered.connect(func(subsystem_name): subsystem_unregistered.emit(subsystem_name))
 
 func _ready() -> void:
-	# Initialize with debug mode on by default
-	set_debug_enabled(true)
+	# Initialize with debug mode off by default
+	set_debug_enabled(false)
 
 	# Note: Subsystems are registered when MotionSystemCore.register_all_subsystems() is called externally (e.g., by Game.gd)
 

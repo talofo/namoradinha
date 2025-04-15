@@ -89,7 +89,8 @@ func _on_stage_generation_requested(config: StageCompositionConfig, game_mode: S
 	
 	# Initialize subsystems
 	content_distribution_system.initialize(_flow_controller)
-	chunk_management_system.initialize(config, _flow_controller)
+	# Pass content distribution system to chunk management
+	chunk_management_system.initialize(config, _flow_controller, content_distribution_system)
 	
 	# Clear any previous content
 	content_distribution_system.clear_placement_history()
@@ -114,12 +115,12 @@ func _on_stage_generation_requested(config: StageCompositionConfig, game_mode: S
 		print("StageCompositionManager: Stage '%s' generated successfully" % config.id)
 
 # Update player position
-func update_player_position(position: Vector3) -> void:
+func update_player_position(position: Vector2) -> void:
 	if not _current_stage_config or not _flow_controller:
 		return
 	
 	# Update flow controller
-	_flow_controller.update_position(position.z)
+	_flow_controller.update_position(position.y)
 	
 	# Update chunk management system
 	chunk_management_system.update_player_position(position)
@@ -127,7 +128,7 @@ func update_player_position(position: Vector3) -> void:
 	# Check for story mode end condition (distance type)
 	if _current_game_mode == GAME_MODE_STORY and _current_end_condition.get("type") == "distance":
 		var end_distance = _current_end_condition.get("value", 0.0)
-		if position.z >= end_distance:
+		if position.y >= end_distance:
 			_trigger_story_stage_complete()
 	
 	# Check for arcade mode transition

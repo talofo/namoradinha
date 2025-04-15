@@ -9,7 +9,7 @@ extends Node
 @onready var debug_overlay: StageDebugOverlay = $StageDebugOverlay if has_node("StageDebugOverlay") else null
 
 # Debug flag
-var _debug_enabled: bool = false
+var _debug_enabled: bool = true
 
 func _ready():
     # Connect to global signals
@@ -47,7 +47,7 @@ func generate_stage(config_id: String, game_mode: String = "story") -> void:
     stage_manager.generate_stage(config_id, game_mode)
 
 # Update player position
-func update_player_position(position: Vector3) -> void:
+func update_player_position(position: Vector2) -> void:
     if not stage_manager:
         return
     

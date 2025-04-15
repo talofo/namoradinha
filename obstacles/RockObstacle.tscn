@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://c8q6y7x3jqnx8"]
 
-[ext_resource type="Script" path="res://scripts/obstacles/RockObstacle.gd" id="1_yvj5r"]
+[ext_resource type="Script" uid="uid://ptc4ujkf7t01" path="res://scripts/obstacles/RockObstacle.gd" id="1_yvj5r"]
 [ext_resource type="Resource" uid="uid://dh8yvyqwu4yjx" path="res://resources/obstacles/WeakenerConfig.tres" id="2_aqmvp"]
 [ext_resource type="Resource" uid="uid://c6xt2yjsn7yjx" path="res://resources/obstacles/DeflectorConfig.tres" id="3_aqmvp"]
 

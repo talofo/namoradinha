@@ -28,11 +28,7 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 	# Use the actual surface normal from the impact data
 	var surface_normal: Vector2 = surface.normal.normalized()
 	
-	# Debug check to ensure we're getting a valid normal
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceCalculator: Using surface normal: ", surface_normal)
-		if surface_normal.is_equal_approx(Vector2.UP):
-			print("[DEBUG] BounceCalculator: Surface is flat (normal = UP)")
+	# Debug check removed
 	
 	# --- Debug Setup ---
 	var debug_data: BounceDebugData = null
@@ -153,20 +149,9 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 	# Calculate kinetic energy (velocity^2)
 	var kinetic_energy = calculated_velocity.length_squared()
 	
-	# Print debug information (only in debug mode)
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceCalculator: floor_position_y=", floor_position_y, ", max_height_y=", max_height_y)
-		print("[DEBUG] BounceCalculator: bounce_height=", bounce_height, ", threshold=", min_bounce_height_threshold)
-		print("[DEBUG] BounceCalculator: incoming_velocity=", incoming_velocity)
-		print("[DEBUG] BounceCalculator: effective_elasticity=", effective_elasticity)
-		print("[DEBUG] BounceCalculator: calculated_velocity=", calculated_velocity)
-		print("[DEBUG] BounceCalculator: kinetic_energy=", kinetic_energy, ", threshold=", min_bounce_kinetic_energy)
+	# Debug prints removed
 	
-	# Check if bounce height is below threshold or kinetic energy is too low
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] BounceCalculator: Checking termination conditions...")
-		print("[DEBUG] BounceCalculator: bounce_height < threshold: ", bounce_height, " < ", min_bounce_height_threshold)
-		print("[DEBUG] BounceCalculator: kinetic_energy < threshold: ", kinetic_energy, " < ", min_bounce_kinetic_energy)
+	# Debug prints removed
 	
 	# Transition to sliding if bounce height is too small or kinetic energy is too low
 	if bounce_height < min_bounce_height_threshold or kinetic_energy < min_bounce_kinetic_energy:
@@ -184,8 +169,7 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 					kinetic_energy, min_bounce_kinetic_energy]
 			debug_data.add_note("Entering SLIDING state.")
 			
-		if Engine.is_editor_hint() or OS.is_debug_build():
-			print("[DEBUG] BounceCalculator: Transitioning to SLIDING state. Reason: Bounce height too small")
+		# Debug print removed
 
 		# Check if sliding speed (now just horizontal speed) is also too low -> STOPPED
 		var sliding_speed = abs(final_velocity.x) # Check speed *before* potentially setting to zero
@@ -202,8 +186,7 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 	else:
 		# Sufficient energy to bounce
 		final_velocity = calculated_velocity # Keep the calculated bounce velocity
-		if Engine.is_editor_hint() or OS.is_debug_build():
-			print("[DEBUG] BounceCalculator: Continuing to bounce. Height: ", bounce_height)
+		# Debug print removed
 
 	# --- Create Outcome ---
 	var outcome = BounceOutcome.new(final_velocity, termination_state, debug_data)

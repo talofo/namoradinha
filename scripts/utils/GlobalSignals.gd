@@ -35,10 +35,11 @@ signal theme_changed(theme_id: String)
 # Content signals
 
 # Signal emitted to request chunk instantiation
-signal request_chunk_instantiation(chunk_definition: ChunkDefinition, position: Vector3)
+signal request_chunk_instantiation(chunk_definition: ChunkDefinition, position: Vector2)
 
 # Signal emitted to request content placement
-signal request_content_placement(content_category: String, content_type: String, position: Vector3)
+# Now accepts a dictionary with placement data (category, type, distance_along_chunk, height, width_offset)
+signal request_content_placement(placement_data: Dictionary)
 
 # Flow and difficulty signals
 # Signal emitted when the flow state changes

@@ -55,10 +55,6 @@ func _physics_process(delta: float) -> void:
 	if not has_launched and not is_sliding:
 		return
 		
-	# DEBUG: Print initial velocity at the start of the frame
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] Start of frame velocity: ", velocity)
-		
 	# Update timers
 	if boost_cooldown_timer > 0.0:
 		boost_cooldown_timer -= delta
@@ -105,19 +101,12 @@ func _physics_process(delta: float) -> void:
 		if post_bounce_timer > 0.0 and velocity.y < 0:
 			# Only take the X component from motion_result, keep our Y velocity
 			motion_result.velocity.y = velocity.y
-			if Engine.is_editor_hint() or OS.is_debug_build():
-				print("[DEBUG] Preserving upward velocity during post-bounce: ", velocity.y)
 		
 		# If we're sliding, ensure Y velocity is zero
 		if is_sliding:
 			motion_result.velocity.y = 0.0
-			if Engine.is_editor_hint() or OS.is_debug_build():
-				print("[DEBUG] Enforcing zero Y velocity during sliding")
 			
 		velocity = motion_result.velocity
-		# DEBUG: Print velocity after motion system resolution
-		if Engine.is_editor_hint() or OS.is_debug_build():
-			print("[DEBUG] After motion_system.resolve_frame_motion velocity: ", velocity)
 	if motion_result.has("has_launched"):
 		has_launched = motion_result.has_launched
 	if motion_result.has("is_sliding"):
@@ -125,9 +114,6 @@ func _physics_process(delta: float) -> void:
 			
 	# Store velocity *before* move_and_slide potentially modifies it
 	var velocity_before_slide = velocity
-	# DEBUG: Print velocity before move_and_slide
-	if Engine.is_editor_hint() or OS.is_debug_build():
-		print("[DEBUG] Before move_and_slide velocity: ", velocity_before_slide)
 
 	# Perform the actual movement and collision detection/response
 	move_and_slide()
@@ -136,9 +122,6 @@ func _physics_process(delta: float) -> void:
 	# In Godot, smaller Y values are higher up
 	if position.y < max_height_y:
 		max_height_y = position.y
-		if Engine.is_editor_hint() or OS.is_debug_build():
-			print("[DEBUG] Updated max_height_y to: ", max_height_y) # DEBUG PRINT
-			print("[DEBUG] Current bounce height: ", floor_position_y - max_height_y) # DEBUG PRINT
 
 	# Check for collisions that occurred during move_and_slide
 	# Skip collision handling if we're in the grace period
@@ -151,8 +134,6 @@ func _physics_process(delta: float) -> void:
 				# Using a threshold slightly less than 1.0 to account for minor slope variations
 				if collision.get_normal().dot(Vector2.UP) > 0.9: 
 					floor_position_y = position.y # Update floor position on contact
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] Floor collision detected. floor_position_y set to: ", floor_position_y) # DEBUG PRINT
 					
 					# Detect material type from collider
 					var material_type = _detect_floor_material_from_collider(collision.get_collider())
@@ -170,24 +151,14 @@ func _physics_process(delta: float) -> void:
 						"material": material_type,
 						"player_node": self # Added player_node reference
 					}
-					
-					if Engine.is_editor_hint() or OS.is_debug_build():
-						print("[DEBUG] PlayerCharacter: Detected material type: ", material_type)
 
 					# Let MotionSystem handle collision response using pre-slide velocity
 					if motion_system and motion_system.has_method("resolve_collision"):
-						if Engine.is_editor_hint() or OS.is_debug_build():
-							print("[PlayerCharacter._physics_process] Floor collision detected. Pre-slide vel: ", velocity_before_slide, " Normal: ", collision.get_normal()) # DEBUG PRINT
-							print("[PlayerCharacter._physics_process] Calling motion_system.resolve_collision with info: ", collision_info) # DEBUG PRINT
 						var collision_result = motion_system.resolve_collision(collision_info)
-						if Engine.is_editor_hint() or OS.is_debug_build():
-							print("[PlayerCharacter._physics_process] Collision result received: ", collision_result) # DEBUG PRINT
 
 						# Apply the collision result directly
 						if collision_result.has("velocity"):
-							if Engine.is_editor_hint() or OS.is_debug_build():
-								print("[PlayerCharacter._physics_process] Applying velocity from result: ", collision_result.velocity) # DEBUG PRINT
-								velocity = collision_result.velocity # OVERWRITE velocity modified by move_and_slide
+							velocity = collision_result.velocity # OVERWRITE velocity modified by move_and_slide
 							
 							# If we're bouncing (negative Y velocity), start the collision grace timer and post-bounce timer
 							if velocity.y < 0: 
@@ -197,16 +168,6 @@ func _physics_process(delta: float) -> void:
 								# This ensures we track the maximum height reached during this bounce
 								max_height_y = position.y
 								initial_bounce_position_y = position.y
-								
-								# Print debug info about bounce height
-								if Engine.is_editor_hint() or OS.is_debug_build():
-									print("[DEBUG] PlayerCharacter: Starting new bounce. Resetting max_height_y to ", max_height_y)
-									print("[DEBUG] PlayerCharacter: Current bounce height is 0 (just started)")
-									print("[PlayerCharacter._physics_process] Starting collision grace period: ", collision_grace_duration, "s") # DEBUG PRINT
-									print("[PlayerCharacter._physics_process] Starting post-bounce period: ", post_bounce_duration, "s") # DEBUG PRINT
-									print("[PlayerCharacter._physics_process] Reset max_height_y to: ", max_height_y) # DEBUG PRINT
-									# DEBUG: Print final velocity after bounce
-									print("[DEBUG] Final velocity after bounce: ", velocity)
 							
 							# Removed redundant check: velocity.y = 0.0 for sliding.
 							# The BounceCalculator/CollisionMotionResolver should provide the correct velocity vector.
@@ -217,8 +178,6 @@ func _physics_process(delta: float) -> void:
 							is_sliding = collision_result.is_sliding
 						if collision_result.has("max_height_y"):
 							max_height_y = collision_result.max_height_y
-							if Engine.is_editor_hint() or OS.is_debug_build():
-								print("[DEBUG] max_height_y updated from collision result to: ", max_height_y) # DEBUG PRINT
 							
 					# Handle only the first significant floor collision per frame
 					break 
@@ -271,8 +230,6 @@ func _try_boost() -> void:
 		velocity = result["resulting_velocity"]
 		boost_cooldown_timer = boost_cooldown_duration
 		# Visual effect removed to fix flickering issue
-		if Engine.is_editor_hint() or OS.is_debug_build():
-			print("Boost applied! New velocity: ", velocity)
 
 # Detect the material of the floor at the current position
 # This function attempts to determine the material type from the collider

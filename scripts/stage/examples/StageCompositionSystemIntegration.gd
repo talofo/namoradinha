@@ -152,7 +152,16 @@ func _on_request_chunk_instantiation(chunk_definition, position):
             add_child(chunk_instance)
 
 # Handle request content placement event
-func _on_request_content_placement(content_category, content_type, position):
+func _on_request_content_placement(placement_data: Dictionary):
+    # Extract values from the placement dictionary
+    var content_category = placement_data["category"]
+    var content_type = placement_data["type"]
+    var distance = placement_data["distance_along_chunk"]
+    var height = placement_data["height"]
+    
+    # Create a 2D position from distance and height
+    var position = Vector2(distance, height)
+    
     # Instantiate the content
     # This would typically involve loading a scene or creating objects
     # For example:

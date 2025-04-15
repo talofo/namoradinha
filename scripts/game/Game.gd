@@ -2,7 +2,7 @@ extends Node2D
 
 # Load required scripts
 const GameInitializerScript = preload("res://scripts/game/GameInitializer.gd")
-const GameSignalBusScript = preload("res://scripts/game/GameSignalBus.gd")
+# GameSignalBus is now an autoload singleton
 
 # --- Nodes ---
 @onready var camera_manager = $CameraManager
@@ -22,9 +22,10 @@ func _ready():
 	# Initialize core systems
 	_game_initializer.initialize_systems(self)
 	
-	# Connect signals
-	GameSignalBusScript.set_debug_enabled(OS.is_debug_build())
-	GameSignalBusScript.connect_game_signals(self)
+	# Connect signals using the GameSignalBus autoload singleton
+	var game_signal_bus = get_node("/root/GameSignalBus")
+	game_signal_bus.set_debug_enabled(OS.is_debug_build())
+	game_signal_bus.connect_game_signals(self)
 	
 	# Create a single shared ground for the entire level
 	if environment_system:

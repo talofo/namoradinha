@@ -3,9 +3,14 @@ extends Node
 
 # Import required classes
 # In Godot 4.4+, classes with class_name are globally available
+# Explicitly load the StageConfigGenerator script
+var _generator_script = load("res://scripts/stage/generators/StageConfigGenerator.gd")
 
 # Cache of loaded configs
 var _config_cache: Dictionary = {}
+
+# Cache of generated configs
+var _generated_configs: Dictionary = {}
 
 # Debug flag
 var _debug_enabled: bool = false
@@ -61,36 +66,52 @@ func get_config_by_theme(theme: String) -> StageCompositionConfig:
 
 # Create a new stage config programmatically
 func create_config(id: String, theme: String, difficulty: String = "low") -> StageCompositionConfig:
-    var config = StageCompositionConfig.new()
-    config.id = id
-    config.theme = theme
-    config.target_difficulty = difficulty
-    
-    # Set reasonable defaults
-    config.flow_profile = ["low", "rising", "mid", "high", "falling", "low"]
-    config.chunk_count_estimate = 10
-    config.launch_event_type = "player_start"
-    config.story_end_condition = {
-        "type": "distance",
-        "value": 1000.0
+    var params = {
+        "theme": theme,
+        "difficulty": difficulty
     }
     
-    # Set chunk selection based on theme
-    config.chunk_selection = {
-        "allowed_types": ["straight_easy", "curve_left_easy", "curve_right_easy"],
-        "theme_tags": [theme, "standard"]
-    }
+    var generator = _generator_script.new()
+    var config = generator.generate_stage_config(params)
     
-    config.content_distribution_id = "default"
-    
-    if not config.validate():
-        push_warning("StageConfigSystem: Validation failed for created config '%s'" % id)
+    # Override the generated ID if one was provided
+    if not id.is_empty():
+        config.id = id
     
     # Cache the config
-    _config_cache[id] = config
+    _config_cache[config.id] = config
     
     if _debug_enabled:
-        print("StageConfigSystem: Created new config '%s' with theme '%s'" % [id, theme])
+        print("StageConfigSystem: Created new config '%s' with theme '%s'" % [config.id, theme])
+    
+    return config
+
+# Generate a stage config for a specific stage number
+func generate_stage_config(stage_number: int) -> StageCompositionConfig:
+    # Check if we already have a generated config for this stage
+    var cache_key = "stage_%d" % stage_number
+    if _generated_configs.has(cache_key):
+        return _generated_configs[cache_key]
+    
+    # Generate a new config
+    var generator = _generator_script.new()
+    var config = generator.generate_for_stage(stage_number)
+    
+    # Cache the generated config
+    _generated_configs[cache_key] = config
+    
+    if _debug_enabled:
+        print("StageConfigSystem: Generated config for stage %d with difficulty '%s'" % [stage_number, config.target_difficulty])
+    
+    return config
+
+# Generate a stage config with custom parameters
+func generate_custom_stage(params: Dictionary) -> StageCompositionConfig:
+    var generator = _generator_script.new()
+    var config = generator.generate_stage_config(params)
+    
+    if _debug_enabled:
+        print("StageConfigSystem: Generated custom stage with ID '%s'" % config.id)
     
     return config
 
@@ -170,6 +191,7 @@ func list_available_configs() -> Array:
 # Clear the config cache
 func clear_cache() -> void:
     _config_cache.clear()
+    _generated_configs.clear()
     if _debug_enabled:
         print("StageConfigSystem: Cache cleared")
 
