@@ -18,7 +18,7 @@ func load_stage(stage_number: int) -> void:
 	current_stage = stage_resource.instantiate()
 	add_child(current_stage)
 
-	# Stage is now loaded, no need to configure GroundManager as it's handled by the chunk system
+	# Stage is now loaded, ground creation is handled by SharedGroundManager through the EnvironmentSystem
 	
 	# Create stage config for environment system
 	var config = StageConfig.new()

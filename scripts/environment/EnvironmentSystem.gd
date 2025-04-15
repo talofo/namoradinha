@@ -20,6 +20,9 @@ signal fallback_activated(manager_name, reason)
 @onready var background_manager = $BackgroundManager
 @onready var effects_manager = $EffectsManager
 
+# Ground management
+var shared_ground_manager = null
+
 # State tracking
 var current_theme_id: String = "default"
 var current_biome_id: String = "default"
@@ -249,6 +252,44 @@ func _unhandled_input(event):
         elif event.keycode == KEY_2:
             apply_theme_by_id("debug")
 
+
+# --- Ground Management ---
+
+# Create and initialize the shared ground manager
+func create_shared_ground_manager() -> Node:
+    if shared_ground_manager:
+        return shared_ground_manager
+    
+    # Load the SharedGroundManager script
+    var ground_manager_script = load("res://scripts/environment/ground/SharedGroundManager.gd")
+    if not ground_manager_script:
+        push_error("EnvironmentSystem: Failed to load SharedGroundManager script")
+        return null
+    
+    # Create a new SharedGroundManager
+    shared_ground_manager = ground_manager_script.new(self)
+    shared_ground_manager.set_debug_enabled(debug_mode)
+    
+    if debug_mode:
+        print("EnvironmentSystem: Created SharedGroundManager")
+    
+    return shared_ground_manager
+
+# Create a shared ground for the entire level
+func create_shared_ground(parent_node: Node) -> Node:
+    if not shared_ground_manager:
+        create_shared_ground_manager()
+    
+    if shared_ground_manager:
+        var ground = shared_ground_manager.create_shared_ground(parent_node)
+        
+        if debug_mode:
+            print("EnvironmentSystem: Created shared ground")
+        
+        return ground
+    
+    push_error("EnvironmentSystem: Failed to create shared ground - SharedGroundManager not available")
+    return null
 
 # --- Resolver Integration ---
 

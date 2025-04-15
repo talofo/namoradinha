@@ -4,7 +4,7 @@
 [ext_resource type="PackedScene" uid="uid://vd7j71qvqcph" path="res://camera/CameraManager.tscn" id="1_m71xk"]
 [ext_resource type="PackedScene" uid="uid://d1ff87wiwwdx7" path="res://player/PlayerSpawner.tscn" id="2_i75et"]
 [ext_resource type="PackedScene" uid="uid://c8q6y8j5x7q5v" path="res://stage/StageCompositionSystem/StageCompositionSystem.tscn" id="3_adwu5"]
-[ext_resource type="PackedScene" path="res://environment/EnvironmentSystem.tscn" id="5_knu3h"]
+[ext_resource type="PackedScene" uid="uid://cci2iy8sxg7rk" path="res://environment/EnvironmentSystem.tscn" id="5_knu3h"]
 [ext_resource type="PackedScene" path="res://scripts/motion/MotionSystemNode.tscn" id="6_knu3h"]
 
 [node name="Game" type="Node2D"]
