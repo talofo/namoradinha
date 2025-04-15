@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var player_character_scene: PackedScene = load("res://player/PlayerCharacter.tscn")
-@export var spawn_position: Vector2 = Vector2(-4500, 520) # Positioned just above the ground at y=540
+@export var spawn_position: Vector2 = Vector2(-4500, -50) # Positioned just above the ground at y=0 but height of 50. (was, Y=540)
 
 # Launch parameters (stored for UI and initial setup only)
 @export var launch_angle_degrees: float = 45.0  # Current angle in degrees (0-90)

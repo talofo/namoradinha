@@ -6,8 +6,8 @@ signal ground_created(ground_data: Array)
 
 # Configuration
 var ground_width: float = 90000.0
-var ground_height: float = 100.0
-var ground_y_position: float = 540.0
+var ground_height: float = 50.0
+var ground_y_position: float = 50.0
 
 # State tracking
 var _ground_created: bool = false
