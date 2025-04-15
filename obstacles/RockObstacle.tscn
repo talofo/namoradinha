@@ -8,8 +8,6 @@
 radius = 32.0
 
 [node name="RockObstacle" type="StaticBody2D" groups=["obstacles"]]
-collision_layer = 4
-collision_mask = 2
 script = ExtResource("1_yvj5r")
 weakener_config = ExtResource("2_aqmvp")
 deflector_config = ExtResource("3_aqmvp")
