@@ -38,7 +38,7 @@ There are several ways to define the material type of an object:
 4. **Implement a get_material_type method**:
    ```gdscript
    func get_material_type() -> String:
-       return "ice"
+	   return "ice"
    ```
 
 ### Available Material Types
@@ -57,9 +57,9 @@ You can register custom material types with the CollisionMaterialSystem:
 ```gdscript
 var collision_material_system = motion_system.get_subsystem("CollisionMaterialSystem")
 collision_material_system.register_material("metal", {
-    "friction": 0.3,
-    "bounce": 0.7,
-    "sound": "metal_impact"
+	"friction": 0.3,
+	"bounce": 0.7,
+	"sound": "metal_impact"
 })
 ```
 

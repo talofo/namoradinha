@@ -15,9 +15,6 @@ const GameInitializerScript = preload("res://scripts/game/GameInitializer.gd")
 var _game_initializer = null
 
 func _ready():
-	# Disable debug rocks
-	_disable_debug_rocks()
-	
 	# Create initializer
 	_game_initializer = GameInitializerScript.new()
 	_game_initializer.set_debug_enabled(OS.is_debug_build())
@@ -43,13 +40,3 @@ func _ready():
 	# Spawn the player after a short delay to ensure MotionSystem is fully initialized
 	# This helps prevent timing issues with subsystem registration
 	get_tree().create_timer(0.1).timeout.connect(func(): player_spawner.spawn_player())
-
-# Disable debug rocks by loading and instantiating the DisableDebugRocks scene
-func _disable_debug_rocks() -> void:
-	var disable_debug_rocks_scene = load("res://scenes/debug/DisableDebugRocks.tscn")
-	if disable_debug_rocks_scene:
-		var disable_debug_rocks_instance = disable_debug_rocks_scene.instantiate()
-		add_child(disable_debug_rocks_instance)
-		print("Game: Added DisableDebugRocks to disable debug rock creation scripts")
-	else:
-		push_error("Game: Failed to load DisableDebugRocks scene")

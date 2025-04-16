@@ -1,4 +1,4 @@
-class_name MotionResolver
+class_name MotionModifierResolver
 extends RefCounted
 
 # Debug flag to enable/disable debug prints

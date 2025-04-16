@@ -1,9 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://scripts/debug/RockObstacleTest.gd" id="1_yvj5r"]
-
-[node name="RockObstacleTest" type="Node2D"]
-script = ExtResource("1_yvj5r")
-
-[node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(0, 300)
