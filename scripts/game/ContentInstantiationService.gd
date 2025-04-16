@@ -1,3 +1,4 @@
+# Renamed from GameSignalBus to better reflect its role
 # No class_name to avoid conflict with autoload singleton
 extends Node
 
@@ -12,10 +13,10 @@ var game_node: Node = null
 var content_parent: Node = null
 
 func _ready():
-	print("GameSignalBus: Initialized as autoload singleton")
+	print("ContentInstantiationService: Initialized as autoload singleton")
 
-# Connect game signals
-func connect_game_signals(game_node_ref: Node) -> void:
+# Connect game signals (called by Game.gd)
+func initialize_service(game_node_ref: Node) -> void:
 	# Store reference to the game node
 	game_node = game_node_ref
 	
@@ -31,8 +32,8 @@ func connect_game_signals(game_node_ref: Node) -> void:
 	_connect_content_signals()
 	
 	if debug_enabled:
-		print("GameSignalBus: Game signals connected")
-		print("GameSignalBus: ContentParent created at " + str(content_parent.get_path()))
+		print("ContentInstantiationService: Service initialized")
+		print("ContentInstantiationService: ContentParent created at " + str(content_parent.get_path()))
 
 # Connect stage-related signals
 func _connect_stage_signals() -> void:
@@ -42,7 +43,7 @@ func _connect_stage_signals() -> void:
 	)
 	
 	if debug_enabled:
-		print("GameSignalBus: Stage signals connected")
+		print("ContentInstantiationService: Stage signals connected")
 
 # Connect content-related signals
 func _connect_content_signals() -> void:
@@ -52,7 +53,7 @@ func _connect_content_signals() -> void:
 	)
 	
 	if debug_enabled:
-		print("GameSignalBus: Content signals connected")
+		print("ContentInstantiationService: Content signals connected")
 
 # Create a callback for chunk instantiation
 func _create_chunk_instantiation_callback() -> Callable:
@@ -67,7 +68,8 @@ func _create_chunk_instantiation_callback() -> Callable:
 		chunk_instance.global_position = position
 		content_parent.add_child(chunk_instance)
 		
-		print("GameSignalBus: Created chunk " + chunk_definition.chunk_id + " at position " + str(position))
+		if debug_enabled:
+			print("ContentInstantiationService: Created chunk " + chunk_definition.chunk_id + " at position " + str(position))
 		
 		# NOTE: Removed redundant marker processing loop. 
 		# Content placement is now solely handled by ContentDistributionSystem.
@@ -77,13 +79,10 @@ func _create_content_placement_callback() -> Callable:
 	# Create a ContentFactory if it doesn't exist
 	var content_factory = _get_or_create_content_factory()
 	
-	# Debug print
-	print("DEBUG: Content factory exists: %s" % (content_factory != null))
-	
 	# Return the callback
 	return func(placement_data: Dictionary):
-		# Debug print
-		print("GameSignalBus: Received content placement request: %s" % str(placement_data))
+		if debug_enabled:
+			print("ContentInstantiationService: Received content placement request: %s" % str(placement_data))
 		
 		# Extract values from the placement dictionary
 		var content_category = placement_data["category"]
@@ -93,22 +92,19 @@ func _create_content_placement_callback() -> Callable:
 		var width_offset = placement_data["width_offset"]
 		var chunk_parent = placement_data.get("chunk_parent", null)
 		
-		# Debug print
-		print("DEBUG: Creating content with category=%s, type=%s, distance=%s, height=%s, width_offset=%s, chunk_parent=%s" % 
-			[content_category, content_type, str(distance), str(height), str(width_offset), str(chunk_parent)])
-		
 		# If no chunk parent is provided, use the content parent
 		if chunk_parent == null:
 			chunk_parent = content_parent
-			print("GameSignalBus: Using ContentParent as parent for " + content_category + "/" + content_type)
+			if debug_enabled:
+				print("ContentInstantiationService: Using ContentParent as parent for " + content_category + "/" + content_type)
 		
 		# Use the ContentFactory to create the content with explicit coordinates
 		var content = content_factory.create_content(content_category, content_type, distance, height, width_offset, chunk_parent)
 		
 		# Verify the content was created and added to the scene tree
-		if content:
-			print("GameSignalBus: Content created and added to scene tree: %s" % str(content.is_inside_tree()))
-			print("GameSignalBus: Content parent: %s" % (content.get_parent().name if content.get_parent() else "none"))
+		if content and debug_enabled:
+			print("ContentInstantiationService: Content created (%s) and added to scene tree: %s" % [content.name, str(content.is_inside_tree())])
+			print("ContentInstantiationService: Content parent: %s" % (content.get_parent().name if content.get_parent() else "none"))
 
 # Get or create a ContentFactory
 func _get_or_create_content_factory() -> Node:
@@ -119,7 +115,7 @@ func _get_or_create_content_factory() -> Node:
 	# Load the ContentFactory script
 	var factory_script = load("res://scripts/stage/content/ContentFactory.gd")
 	if not factory_script:
-		push_error("GameSignalBus: Failed to load ContentFactory script")
+		push_error("ContentInstantiationService: Failed to load ContentFactory script")
 		return null
 	
 	# Create a new ContentFactory
@@ -138,12 +134,14 @@ func set_debug_enabled(enabled: bool) -> void:
 func add_content_to_scene(content: Node) -> bool:
 	if content_parent and is_instance_valid(content_parent):
 		content_parent.add_child(content)
-		print("GameSignalBus: Added content to scene tree via ContentParent")
+		if debug_enabled:
+			print("ContentInstantiationService: Added content to scene tree via ContentParent")
 		return true
 	elif game_node and is_instance_valid(game_node):
 		game_node.add_child(content)
-		print("GameSignalBus: Added content to scene tree via game_node")
+		if debug_enabled:
+			print("ContentInstantiationService: Added content to scene tree via game_node")
 		return true
 	else:
-		push_error("GameSignalBus: Cannot add content to scene - no valid parent")
+		push_error("ContentInstantiationService: Cannot add content to scene - no valid parent")
 		return false

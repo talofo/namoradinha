@@ -110,6 +110,41 @@ func set_physics_config(config: PhysicsConfig) -> void:
 		if _debug_enabled:
 			print("MotionProfileResolver: Physics config updated")
 
+## Updates the ground config by loading the resource for the specified biome ID.
+## Handles fallback to the default ground config if the biome-specific one is not found.
+func update_ground_config_for_biome(biome_id: String) -> void:
+	if not biome_id or biome_id.is_empty():
+		push_warning("MotionProfileResolver: Invalid biome_id provided for ground config update.")
+		# Optionally, set to default here or leave as is
+		# set_ground_config(load("res://resources/motion/profiles/ground/default_ground.tres"))
+		return
+
+	# Construct the expected path for the biome's ground config resource
+	var biome_config_path = "res://resources/motion/profiles/ground/%s_ground.tres" % biome_id
+	var loaded_config: GroundPhysicsConfig = null
+
+	if ResourceLoader.exists(biome_config_path):
+		loaded_config = load(biome_config_path) as GroundPhysicsConfig
+
+	if loaded_config:
+		set_ground_config(loaded_config)
+		if _debug_enabled:
+			print("MotionProfileResolver: Set ground config for biome '%s' from '%s'." % [biome_id, biome_config_path])
+	else:
+		push_warning("MotionProfileResolver: No GroundPhysicsConfig found for biome '%s' at path '%s'. Falling back to default." % [biome_id, biome_config_path])
+		# Fall back to the default config
+		var default_config_path = "res://resources/motion/profiles/ground/default_ground.tres"
+		if ResourceLoader.exists(default_config_path):
+			var default_config = load(default_config_path) as GroundPhysicsConfig
+			if default_config:
+				set_ground_config(default_config)
+			else:
+				push_error("MotionProfileResolver: DefaultGroundConfig could not be loaded for fallback from '%s'." % default_config_path)
+				set_ground_config(null) # Clear config as last resort
+		else:
+			push_error("MotionProfileResolver: Default ground config not found at '%s'." % default_config_path)
+			set_ground_config(null) # Clear config as last resort
+
 # --- Cache Management ---
 
 ## Invalidates the cached motion profile.

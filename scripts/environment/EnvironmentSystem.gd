@@ -111,44 +111,14 @@ func change_biome(biome_id: String) -> void:
     current_biome_id = biome_id
     
     # Update MotionProfileResolver with the new biome's ground config
-    _update_resolver_ground_config(biome_id)
+    if _motion_profile_resolver:
+        _motion_profile_resolver.update_ground_config_for_biome(biome_id)
+    else:
+        push_warning("EnvironmentSystem: MotionProfileResolver not available to update ground config for biome '%s'." % biome_id)
     
     # In the future, biomes might affect theme selection
     # For now, just re-apply the current theme (existing logic)
     apply_theme_by_id(current_theme_id)
-
-
-## Loads and sets the ground config in the MotionProfileResolver based on biome ID.
-func _update_resolver_ground_config(biome_id: String) -> void:
-    if not _motion_profile_resolver:
-        push_warning("EnvironmentSystem: MotionProfileResolver not available to update ground config.")
-        return
-
-    # Construct the expected path for the biome's ground config resource
-    var biome_config_path = "res://resources/motion/profiles/ground/%s_ground.tres" % biome_id
-    
-    var biome_config: GroundPhysicsConfig = null
-    if ResourceLoader.exists(biome_config_path):
-        biome_config = load(biome_config_path) as GroundPhysicsConfig
-
-    if biome_config:
-        _motion_profile_resolver.set_ground_config(biome_config)
-        if debug_mode:
-            print("EnvironmentSystem: Set ground config for biome '%s'." % biome_id)
-    else:
-        push_warning("EnvironmentSystem: No GroundPhysicsConfig found for biome '%s' at path '%s'. Falling back to default." % [biome_id, biome_config_path])
-        # Fall back to the default config
-        var default_config_path = "res://resources/motion/profiles/ground/default_ground.tres"
-        if ResourceLoader.exists(default_config_path):
-            var default_config = load(default_config_path)
-            if default_config:
-                _motion_profile_resolver.set_ground_config(default_config)
-            else:
-                push_error("EnvironmentSystem: DefaultGroundConfig could not be loaded for fallback.")
-                _motion_profile_resolver.set_ground_config(null) # Clear config as last resort
-        else:
-            push_error("EnvironmentSystem: Default ground config not found at '%s'." % default_config_path)
-            _motion_profile_resolver.set_ground_config(null) # Clear config as last resort
 
 
 func _apply_theme(theme: EnvironmentTheme) -> void:
@@ -297,15 +267,8 @@ func create_shared_ground(parent_node: Node) -> Node:
 func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
     _motion_profile_resolver = resolver
     # Immediately update resolver with the initial biome's config if available
-    if current_biome_id:
-        _update_resolver_ground_config(current_biome_id)
-    else:
-        # If no biome set yet, use default
-        var default_config_path = "res://resources/motion/profiles/ground/default_ground.tres"
-        if ResourceLoader.exists(default_config_path):
-            var default_config = load(default_config_path)
-            if default_config:
-                _motion_profile_resolver.set_ground_config(default_config)
+    # If no biome set yet, update_ground_config_for_biome will handle fallback to default
+    _motion_profile_resolver.update_ground_config_for_biome(current_biome_id if current_biome_id else "default")
         
     if debug_mode:
         print("EnvironmentSystem: MotionProfileResolver initialized.")

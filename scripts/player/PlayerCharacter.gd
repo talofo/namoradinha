@@ -1,8 +1,6 @@
 class_name PlayerCharacter
 extends CharacterBody2D
 
-# BoostEffect is available globally via class_name
-
 # === REFERENCES ===
 var motion_system = null
 
@@ -39,8 +37,6 @@ func _ready():
 	floor_position_y = position.y
 	initial_bounce_position_y = position.y
 	
-	# Boost effect removed to fix flickering issue
-
 # Handle input for player actions
 func _unhandled_input(event: InputEvent) -> void:
 	# Check for boost input (Space key by default)
@@ -190,24 +186,7 @@ func _physics_process(delta: float) -> void:
 					break 
 
 	# Round position to integer pixels to prevent subpixel flickering
-	position = position.round() 
-
-# === VISUAL EFFECTS ===
-var boost_effect = null # Will be a BoostEffect instance
-
-# Create a boost effect for visual feedback
-func _create_boost_effect() -> void:
-	boost_effect = BoostEffect.new()
-	boost_effect.name = "BoostEffect"
-	add_child(boost_effect)
-
-# Show the boost effect with the specified boost type
-func _show_boost_effect(direction: Vector2, boost_type: String = "manual_air") -> void:
-	if not boost_effect:
-		return
-		
-	# Show the boost effect with the specified direction and type
-	boost_effect.show_effect(direction, boost_type)
+	position = position.round()
 
 # Try to apply a boost using the BoostSystem
 func _try_boost() -> void:
@@ -236,7 +215,6 @@ func _try_boost() -> void:
 	if result.has("success") and result["success"]:
 		velocity = result["resulting_velocity"]
 		boost_cooldown_timer = boost_cooldown_duration
-		# Visual effect removed to fix flickering issue
 
 # Detect the material of the floor at the current position
 # This function attempts to determine the material type from the collider

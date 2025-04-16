@@ -20,7 +20,7 @@ var _current_end_condition: Dictionary = {}
 var _listening_for_event: String = ""
 var _flow_controller: FlowAndDifficultyController = null
 var _player_node: Node = null
-var _motion_profile_resolver: MotionProfileResolver = null
+# Removed _motion_profile_resolver as it's no longer used here
 
 # Debug flag
 var _debug_enabled: bool = false
@@ -29,19 +29,13 @@ func _ready():
 	# Connect to global signals
 	GlobalSignals.stage_generation_requested.connect(_on_stage_generation_requested)
 	GlobalSignals.gameplay_event_triggered.connect(_on_gameplay_event_triggered)
-	GlobalSignals.biome_changed.connect(_on_biome_change_detected)
+	# Removed connection to biome_changed signal
 	
 	# Create flow controller
 	_flow_controller = FlowAndDifficultyController.new()
 	
 	if _debug_enabled:
 		print("StageCompositionManager: Ready")
-
-# Initialize with motion profile resolver
-func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
-	_motion_profile_resolver = resolver
-	if _debug_enabled:
-		print("StageCompositionManager: Initialized with MotionProfileResolver")
 
 # Generate a stage with the given configuration
 func generate_stage(config_id: String, game_mode: String = GAME_MODE_STORY) -> void:
@@ -169,21 +163,6 @@ func _on_gameplay_event_triggered(event_name: String, event_data: Dictionary) ->
 		"current_game_mode": _current_game_mode,
 		"listening_for_event": _listening_for_event
 	})
-
-# Handle biome changes
-func _on_biome_change_detected(old_biome: String, new_biome: String) -> void:
-	if _debug_enabled:
-		print("StageCompositionManager: Biome changed from '%s' to '%s'" % [old_biome, new_biome])
-	
-	# Update MotionProfileResolver with the new biome's ground config if available
-	if _motion_profile_resolver:
-		var biome_config_path = "res://resources/motion/profiles/ground/%s_ground.tres" % new_biome
-		if ResourceLoader.exists(biome_config_path):
-			var biome_config = load(biome_config_path)
-			if biome_config:
-				_motion_profile_resolver.set_ground_config(biome_config)
-				if _debug_enabled:
-					print("StageCompositionManager: Updated ground config for biome '%s'" % new_biome)
 
 # Trigger story stage completion
 func _trigger_story_stage_complete() -> void:
