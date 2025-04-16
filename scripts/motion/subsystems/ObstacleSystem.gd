@@ -184,9 +184,16 @@ func get_collision_modifiers(collision_info: Dictionary) -> Array:
 	if outcome.outcome_type == ObstacleOutcome.OutcomeType.UNAFFECTED:
 		return []
 		
-	# Create a motion modifier from the outcome
-	var modifier = MotionModifier.new()
-	modifier.set_velocity(outcome.resulting_velocity)
+	# Create a motion modifier from the outcome to set the absolute velocity
+	var modifier = MotionModifier.new(
+		"ObstacleSystem",           # source
+		"set_velocity",             # type (indicates absolute velocity set)
+		20,                         # priority (high, adjust if needed)
+		outcome.resulting_velocity, # vector (the new velocity)
+		1.0,                        # scalar (unused for this type)
+		false,                      # is_additive = false (replace current velocity)
+		-1                          # duration (instantaneous effect)
+	)
 	
 	return [modifier]
 

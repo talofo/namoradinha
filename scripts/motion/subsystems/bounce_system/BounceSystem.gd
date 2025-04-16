@@ -83,13 +83,17 @@ func get_collision_modifiers(context: CollisionContext) -> Array[MotionModifier]
 
 	# Check if it's a floor collision based on the normal in the context
 	var normal: Vector2 = context.impact_surface_data.normal
-	# Debug print removed
+	var dot_product = normal.dot(Vector2.UP)
+	print("BOUNCE SYSTEM - Normal: %s, Dot with UP: %.3f" % [normal, dot_product])
+	
 	# If the upward component of the normal (dot product with UP) is less than the threshold,
 	# it's considered a wall or ceiling, not a floor.
 	if normal.dot(Vector2.UP) < FLOOR_NORMAL_THRESHOLD: 
-		# Debug print removed
+		print("NOT A FLOOR in BounceSystem (< %.1f)" % FLOOR_NORMAL_THRESHOLD)
 		# Not a floor collision (or slope is too steep to be considered floor)
 		return modifiers
+	else:
+		print("IS A FLOOR in BounceSystem (>= %.1f)" % FLOOR_NORMAL_THRESHOLD)
 		
 	# Debug print removed
 	

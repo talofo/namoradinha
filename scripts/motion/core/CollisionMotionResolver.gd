@@ -61,14 +61,31 @@ func resolve_collision_motion(collision_info: Dictionary, subsystems: Dictionary
 					friction = material_properties.get("friction", friction)
 					
 					# Debug print removed
-				
-				# Create surface data with the normal and material properties
+
+				# Determine surface category based on collider group
+				var category = "other" # Default category
+				var collider = collision_info.get("collider") 
+				if is_instance_valid(collider):
+					if collider.is_in_group("ground"):
+						category = "ground"
+						print("DEBUG RESOLVER - Collider is in 'ground' group.")
+					elif collider.is_in_group("obstacles"): 
+						category = "obstacle"
+						print("DEBUG RESOLVER - Collider is in 'obstacles' group.")
+					# Add checks for other relevant groups if necessary (e.g., "walls")
+					else:
+						print("DEBUG RESOLVER - Collider is not in 'ground' or 'obstacles' group. Category: 'other'.")
+				else:
+					push_warning("CollisionMotionResolver: Collider instance not found in collision_info! Cannot determine category.") # Corrected indentation
+
+				# Create surface data with the normal, material properties, and category
 				var surface_data = CollisionSurfaceData.new(
 					surface_normal,
 					collision_info.get("position", Vector2.ZERO),
 					elasticity,
 					friction,
-					material_type
+					material_type,
+					category # Pass the determined category
 				)
 				
 				# Debug print removed
@@ -169,32 +186,55 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 
 		# Determine state based on resolved motion and BounceOutcome state
 		var bounce_system = _core.get_subsystem("BounceSystem")
-		var is_terminated = false
-		
-		# Check if we have a BounceSystem and if it has a last_outcome property
+		var outcome_state = BounceOutcome.STATE_BOUNCING # Default if no outcome or system
+
 		if bounce_system and bounce_system.has_method("get_last_outcome"):
 			var last_outcome = bounce_system.get_last_outcome()
 			if last_outcome:
-				is_terminated = last_outcome.is_terminated()
-				
-				# Debug print removed
-		
-		# If bounce is terminated or Y velocity is zero, transition to sliding
-		if is_terminated or is_zero_approx(collision_motion.y):
-			# Bounce stopped, transition to slide
-			# Ensure Y component is zero when transitioning to sliding
-			collision_motion.y = 0.0
-			result = _core.state_manager.transition_to_sliding(collision_motion)
-			
-			# Debug print removed
+				outcome_state = last_outcome.termination_state
+				print("DEBUG RESOLVER - BounceOutcome state: %s" % outcome_state)
+			else:
+				print("DEBUG RESOLVER - BounceSystem found, but no last_outcome available.")
 		else:
-			# Still bouncing
-			result["has_launched"] = true
-			result["is_sliding"] = false
-			# Update max_height_y only when bouncing continues upwards
-			if collision_motion.y < 0:
-				result["max_height_y"] = collision_info.get("position", Vector2.ZERO).y
-				
+			print("DEBUG RESOLVER - BounceSystem not found or doesn't have get_last_outcome.")
+
+		# Check the specific state to decide the next action
+		match outcome_state:
+			BounceOutcome.STATE_SLIDING:
+				print("TRANSITIONING TO SLIDING - Outcome state is SLIDING")
+				# Ensure Y component is zero when transitioning to sliding (Calculator might already do this, but safe)
+				collision_motion.y = 0.0 
+				result = _core.state_manager.transition_to_sliding(collision_motion)
+				# Result from state_manager should contain velocity, has_launched=false, is_sliding=true
+			BounceOutcome.STATE_STOPPED:
+				print("RESOLVER - Outcome state is STOPPED. Velocity already set by calculator.")
+				# Velocity should already be zero (or very small) from calculator. 
+				# No state transition needed here via state_manager, but update local state flags.
+				result["has_launched"] = false # No longer launched
+				result["is_sliding"] = false # Not sliding
+				result["velocity"] = collision_motion # Ensure we use the (likely zero) velocity from calculator
+			BounceOutcome.STATE_TERMINATED_NO_SLIDE:
+				print("RESOLVER - Outcome state is TERMINATED_NO_SLIDE. No sliding transition.")
+				# Keep the calculated velocity from collision_motion. Player becomes airborne/falls.
+				result["has_launched"] = true # Still considered 'launched' until properly grounded/stopped by other means
+				result["is_sliding"] = false
+				result["velocity"] = collision_motion # Ensure we use the velocity from calculator
+			BounceOutcome.STATE_BOUNCING:
+				# Still bouncing
+				print("RESOLVER - Outcome state is BOUNCING.")
+				result["has_launched"] = true
+				result["is_sliding"] = false
+				result["velocity"] = collision_motion # Ensure we use the velocity from calculator
+				# Update max_height_y only when bouncing continues upwards
+				if collision_motion.y < 0:
+					result["max_height_y"] = collision_info.get("position", Vector2.ZERO).y
+			_:
+				push_warning("Resolver: Unhandled BounceOutcome state '%s'" % outcome_state)
+				# Default fallback: treat as terminated without slide for safety?
+				result["has_launched"] = true 
+				result["is_sliding"] = false
+				result["velocity"] = collision_motion # Use calculated velocity
+
 	elif is_sliding:
 		# Entity is sliding, update sliding state
 		# Ensure Y component is zero during sliding

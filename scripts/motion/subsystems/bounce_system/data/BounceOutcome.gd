@@ -9,6 +9,7 @@ extends RefCounted
 const STATE_BOUNCING = "BOUNCING"
 const STATE_SLIDING = "SLIDING"
 const STATE_STOPPED = "STOPPED"
+const STATE_TERMINATED_NO_SLIDE = "TERMINATED_NO_SLIDE" # Added state for termination without sliding
 
 # The calculated velocity vector immediately after the bounce/impact resolution.
 # If termination_state is SLIDING or STOPPED, this represents the velocity entering that state.

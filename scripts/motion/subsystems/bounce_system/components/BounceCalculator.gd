@@ -148,47 +148,87 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 	
 	# Calculate kinetic energy (velocity^2)
 	var kinetic_energy = calculated_velocity.length_squared()
+	var surface_category = context.impact_surface_data.surface_category # Get the surface category
 	
-	# Debug prints removed
+	# Add detailed debug prints
+	print("DEBUG BOUNCE - Surface Category: %s" % surface_category)
+	print("DEBUG BOUNCE - Bounce height: %.2f, Min threshold: %.2f" % [bounce_height, min_bounce_height_threshold])
+	print("DEBUG BOUNCE - Kinetic energy: %.2f, Min threshold: %.2f" % [kinetic_energy, min_bounce_kinetic_energy])
+	print("DEBUG BOUNCE - Current Y velocity: %.2f" % calculated_velocity.y)
+	print("DEBUG BOUNCE - Max height Y: %.2f, Floor position Y: %.2f" % [max_height_y, floor_position_y])
 	
-	# Debug prints removed
-	
-	# Transition to sliding if bounce height is too small or kinetic energy is too low
-	if bounce_height < min_bounce_height_threshold or kinetic_energy < min_bounce_kinetic_energy:
-		# Bounce height too small, transition to sliding
-		termination_state = BounceOutcome.STATE_SLIDING
-		# Keep the calculated velocity which includes slope influence
-		final_velocity = calculated_velocity # Ensure we use the calculated velocity for sliding
-		
-		if debug_data:
-			if bounce_height < min_bounce_height_threshold:
-				debug_data.termination_reason = "Bounce height %.2f < threshold %.2f" % [
-					bounce_height, min_bounce_height_threshold]
-			else:
-				debug_data.termination_reason = "Kinetic energy %.2f < threshold %.2f" % [
-					kinetic_energy, min_bounce_kinetic_energy]
-			debug_data.add_note("Entering SLIDING state.")
-			
-		# Debug print removed
+	var terminate_bounce = false
+	var termination_reason_str = ""
 
-		# Check if sliding speed (now just horizontal speed) is also too low -> STOPPED
-		var sliding_speed = abs(final_velocity.x) # Check speed *before* potentially setting to zero
-		if sliding_speed < min_stop_speed:
-			termination_state = BounceOutcome.STATE_STOPPED
-			if debug_data:
-				# Append to existing reason if it exists
-				if debug_data.termination_reason:
-					debug_data.termination_reason += " | Sliding speed %.2f < threshold %.2f" % [sliding_speed, min_stop_speed]
-				else: # Should not happen based on logic, but safe fallback
-					debug_data.termination_reason = "Sliding speed %.2f < threshold %.2f" % [sliding_speed, min_stop_speed]
-				debug_data.add_note("Entering STOPPED state.")
-			final_velocity = Vector2.ZERO # Force stop *after* logging
+	# Apply termination logic based on surface category
+	match surface_category:
+		"ground", "other": # Treat "other" like ground for now
+			# Original logic for surfaces that allow sliding (ground, other)
+			if bounce_height < min_bounce_height_threshold:
+				terminate_bounce = true
+				termination_reason_str = "Bounce height %.2f < threshold %.2f" % [bounce_height, min_bounce_height_threshold]
+			elif kinetic_energy < min_bounce_kinetic_energy:
+				terminate_bounce = true
+				termination_reason_str = "Kinetic energy %.2f < threshold %.2f" % [kinetic_energy, min_bounce_kinetic_energy]
+		"obstacle":
+			# Stricter logic for surfaces that DON'T allow sliding (obstacles)
+			# Only terminate based on kinetic energy, ignore bounce height
+			if kinetic_energy < min_bounce_kinetic_energy:
+				terminate_bounce = true
+				termination_reason_str = "Kinetic energy %.2f < threshold %.2f (Obstacle - No Sliding)" % [kinetic_energy, min_bounce_kinetic_energy]
+		_: # Default case if category is unknown
+			push_warning("BounceCalculator: Unknown surface category '%s'. Applying default ground logic." % surface_category)
+			# Apply ground logic as a fallback
+			if bounce_height < min_bounce_height_threshold:
+				terminate_bounce = true
+				termination_reason_str = "Bounce height %.2f < threshold %.2f (Unknown Category)" % [bounce_height, min_bounce_height_threshold]
+			elif kinetic_energy < min_bounce_kinetic_energy:
+				terminate_bounce = true
+				termination_reason_str = "Kinetic energy %.2f < threshold %.2f (Unknown Category)" % [kinetic_energy, min_bounce_kinetic_energy]
+
+	if terminate_bounce:
+		print("DEBUG BOUNCE - TERMINATING: %s" % termination_reason_str)
+		
+		match surface_category:
+			"ground", "other":
+				# Transition to sliding for ground/other surfaces
+				termination_state = BounceOutcome.STATE_SLIDING
+				final_velocity = calculated_velocity # Keep calculated velocity for sliding start
+				if debug_data:
+					debug_data.termination_reason = termination_reason_str
+					debug_data.add_note("Entering SLIDING state.")
+				
+				# Check for STOPPED state based on sliding speed
+				var sliding_speed = abs(final_velocity.x) 
+				if sliding_speed < min_stop_speed:
+					termination_state = BounceOutcome.STATE_STOPPED
+					final_velocity = Vector2.ZERO # Force stop
+					if debug_data:
+						if debug_data.termination_reason: debug_data.termination_reason += " | "
+						debug_data.termination_reason += "Sliding speed %.2f < threshold %.2f" % [sliding_speed, min_stop_speed]
+						debug_data.add_note("Entering STOPPED state.")
+			"obstacle":
+				# Surface doesn't allow sliding, transition to a non-sliding terminated state
+				termination_state = BounceOutcome.STATE_TERMINATED_NO_SLIDE # Use the new state
+				final_velocity = calculated_velocity # Keep velocity, gravity will apply next frame
+				if debug_data:
+					debug_data.termination_reason = termination_reason_str
+					debug_data.add_note("Entering TERMINATED_NO_SLIDE state.")
+			_: # Fallback for unknown category
+				termination_state = BounceOutcome.STATE_SLIDING # Default to sliding
+				final_velocity = calculated_velocity 
+				if debug_data:
+					debug_data.termination_reason = termination_reason_str + " (Unknown Category - Defaulting to Sliding)"
+					debug_data.add_note("Entering SLIDING state (Fallback).")
+
 	else:
-		# Sufficient energy to bounce
-		final_velocity = calculated_velocity # Keep the calculated bounce velocity
-		# Debug print removed
+		# Sufficient energy/height to continue bouncing
+		termination_state = BounceOutcome.STATE_BOUNCING
+		final_velocity = calculated_velocity
+		if debug_data: debug_data.add_note("Continuing BOUNCING state.")
 
 	# --- Create Outcome ---
+	# Ensure BounceOutcome handles the new state STATE_TERMINATED_NO_SLIDE
 	var outcome = BounceOutcome.new(final_velocity, termination_state, debug_data)
 	
 	return outcome

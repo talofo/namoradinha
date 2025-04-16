@@ -130,9 +130,15 @@ func _physics_process(delta: float) -> void:
 		for i in range(collision_count):
 			var collision: KinematicCollision2D = get_slide_collision(i)
 			if collision:
+				# Add debug prints
+				var normal = collision.get_normal()
+				var dot_product = normal.dot(Vector2.UP)
+				print("COLLISION - Normal: %s, Dot with UP: %.3f" % [normal, dot_product])
+				
 				# Check if it's a floor collision (normal pointing sufficiently upwards)
 				# Using a threshold slightly less than 1.0 to account for minor slope variations
 				if collision.get_normal().dot(Vector2.UP) > 0.9: 
+					print("FLOOR COLLISION DETECTED in PlayerCharacter")
 					floor_position_y = position.y # Update floor position on contact
 					
 					# Detect material type from collider
@@ -149,7 +155,8 @@ func _physics_process(delta: float) -> void:
 						"max_height_y": max_height_y,
 						"floor_position_y": floor_position_y,
 						"material": material_type,
-						"player_node": self # Added player_node reference
+						"player_node": self, # Added player_node reference
+						"collider": collision.get_collider() # Added reference to the actual collider node
 					}
 
 					# Let MotionSystem handle collision response using pre-slide velocity
