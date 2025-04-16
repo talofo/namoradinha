@@ -190,9 +190,46 @@ func get_material_properties(material_type: String) -> Dictionary:
 # collision_info: Information about the collision
 # Returns: The material type as a string
 func detect_material_from_collision(collision_info: Dictionary) -> String:
-	# In a real implementation, this would check the collision object's properties
-	# For now, just return the material from collision_info or "default"
-	return collision_info.get("material", "default")
+	# If material is already specified in the collision info, use it
+	if collision_info.has("material"):
+		return collision_info.get("material")
+	
+	# Get the collider from the collision info
+	var collider = collision_info.get("collider")
+	if not collider:
+		return "default"
+	
+	# Check if the collider has a material_type property
+	if collider.get("material_type"):
+		return collider.material_type
+	
+	# Check if the collider has a collision_material property
+	if collider.get("collision_material"):
+		return collider.collision_material
+	
+	# Check if the collider is in specific groups
+	if collider.is_in_group("ice"):
+		return "ice"
+	elif collider.is_in_group("mud"):
+		return "mud"
+	elif collider.is_in_group("rubber"):
+		return "rubber"
+	
+	# Check if the collider has a script with a get_material_type method
+	if collider.has_method("get_material_type"):
+		return collider.get_material_type()
+	
+	# Check the collider's name for material hints (least reliable method)
+	var collider_name = collider.name.to_lower()
+	if "ice" in collider_name:
+		return "ice"
+	elif "mud" in collider_name:
+		return "mud"
+	elif "rubber" in collider_name:
+		return "rubber"
+	
+	# Fallback to default
+	return "default"
 
 # Update material properties
 # material_type: Type of material

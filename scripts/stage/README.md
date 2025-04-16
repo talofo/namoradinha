@@ -1,137 +1,220 @@
 # Stage Composition System
 
-The Stage Composition System is a modular framework for procedurally generating and managing game stages with dynamic content distribution, flow control, and difficulty scaling.
+The Stage Composition System is responsible for dynamically generating and managing the game stage. It handles chunk creation, content distribution, and flow/difficulty adjustment based on player performance.
 
 ## Architecture
 
-The system is composed of several interconnected components:
+The Stage Composition System follows a layered architecture with specialized subsystems:
 
-1. **StageCompositionSystem**: The main facade that provides the public API for the system.
-2. **StageCompositionManager**: The central coordinator that manages the subsystems and handles stage generation, player position updates, and game mode transitions.
-3. **ChunkManagementSystem**: Responsible for selecting, generating, and managing chunks based on the stage configuration and player position.
-4. **ContentDistributionSystem**: Handles the distribution of content (obstacles, collectibles, boosts, etc.) within chunks based on flow state and difficulty.
-5. **StageConfigSystem**: Manages the loading, validation, and retrieval of stage configuration resources.
-6. **FlowAndDifficultyController**: Controls the flow state and difficulty of the stage based on player position and performance metrics.
-7. **StageDebugOverlay**: Provides a visual overlay for debugging the system during development.
+```mermaid
+graph TD
+    StageCompositionSystem[StageCompositionSystem] --> StageCompositionManager
+    
+    StageCompositionManager --> ChunkManagementSystem
+    StageCompositionManager --> ContentDistributionSystem
+    StageCompositionManager --> StageConfigSystem
+    StageCompositionManager --> FlowAndDifficultyController
+    
+    ChunkManagementSystem -.->|request_chunk_instantiation| GlobalSignals
+    ContentDistributionSystem -.->|request_content_placement| GlobalSignals
+    
+    GlobalSignals -.-> ContentInstantiationService
+    ContentInstantiationService --> ContentFactory
+```
 
-## Resource Types
+### Core Components
 
-The system uses several resource types to configure its behavior:
+1. **StageCompositionSystem (`StageCompositionSystem.gd`)**: 
+   - Facade that provides a simplified interface to the rest of the game
+   - Delegates most calls to the StageCompositionManager
 
-1. **StageCompositionConfig**: Defines the overall configuration for a stage, including theme, difficulty, flow profile, and end conditions.
-2. **ChunkDefinition**: Defines a chunk of the stage, including its layout markers, theme tags, and difficulty rating.
-3. **ContentDistribution**: Defines the rules for distributing content within chunks, including content categories, placement constraints, and difficulty scaling.
+2. **StageCompositionManager (`StageCompositionManager.gd`)**: 
+   - Central component that coordinates stage generation and management
+   - Handles game modes (story, arcade) and stage transitions
+   - Manages the flow and difficulty of the stage
+
+3. **Subsystems**:
+   - **ChunkManagementSystem**: Manages the creation, placement, and recycling of stage chunks
+   - **ContentDistributionSystem**: Determines what content (obstacles, items, etc.) to place in each chunk
+   - **StageConfigSystem**: Loads and manages stage configuration resources
+   - **FlowAndDifficultyController**: Adjusts difficulty based on player performance
+
+4. **Content Creation**:
+   - Stage components emit signals to request content creation
+   - `GlobalSignals` routes these requests to the `ContentInstantiationService`
+   - `ContentFactory` creates the actual content objects
+
+## Stage Generation Process
+
+The stage generation process follows these steps:
+
+1. A stage generation is requested with a config ID and game mode
+2. The `StageConfigSystem` loads the corresponding `StageCompositionConfig`
+3. The `FlowAndDifficultyController` is initialized with the config's parameters
+4. The `ChunkManagementSystem` generates initial chunks
+5. As the player moves, new chunks are generated ahead and old ones recycled
+6. The `ContentDistributionSystem` populates chunks with content based on the current difficulty and flow state
+
+## Configuration
+
+The Stage Composition System is configured through several resource files:
+
+- **StageCompositionConfig (`resources/stage/configs/*.tres`)**: Defines stage parameters
+- **ChunkDefinition (`resources/stage/chunks/*.tres`)**: Defines chunk layouts
+- **ContentDistribution (`resources/stage/content_distributions/*.tres`)**: Defines content placement rules
+
+## Game Modes
+
+The system supports different game modes:
+
+1. **Story Mode**:
+   - Has a defined end condition (distance or event)
+   - Follows a predetermined difficulty curve
+   - Can transition to cutscenes or other stages
+
+2. **Arcade Mode**:
+   - Potentially endless
+   - Dynamically adjusts difficulty based on player performance
+   - Can transition to other arcade stages for variety
+
+## Flow and Difficulty
+
+The `FlowAndDifficultyController` adjusts the stage difficulty based on player performance:
+
+1. **Flow States**:
+   - FLOW_EASY: Player is struggling, reduce difficulty
+   - FLOW_BALANCED: Player is performing as expected
+   - FLOW_CHALLENGING: Player is excelling, increase difficulty
+
+2. **Performance Metrics**:
+   - Speed
+   - Height
+   - Combo chains
+   - Obstacle avoidance
+   - Collection rate
+
+3. **Difficulty Adjustments**:
+   - Content density
+   - Obstacle complexity
+   - Reward placement
+   - Special event frequency
 
 ## Usage
 
-### Basic Usage
+### Generating a Stage
+
+To generate a stage:
 
 ```gdscript
-# Get a reference to the StageCompositionSystem
-var stage_system = $StageCompositionSystem
+# Using the StageCompositionSystem
+stage_composition_system.generate_stage("default_stage", "story")
 
-# Initialize with a motion profile resolver (optional)
-stage_system.initialize_with_resolver(motion_profile_resolver)
+# Or via GlobalSignals
+var config = stage_config_system.get_config("default_stage")
+GlobalSignals.stage_generation_requested.emit(config, "arcade")
+```
 
-# Set the player node for tracking
-stage_system.set_player_node(player)
+### Updating Player Position
 
-# Generate a stage
-stage_system.generate_stage("forest_stage", "story")
+The system needs to know the player's position to generate chunks ahead:
 
-# Update player position (call this in _process or similar)
-stage_system.update_player_position(player.global_position)
+```gdscript
+# In the player's _physics_process
+stage_composition_system.update_player_position(position)
+```
 
-# Record a performance event
-stage_system.record_performance_event(
-    FlowAndDifficultyController.PerformanceMetric.PLAYER_SPEED,
-    player.velocity.length()
+### Recording Performance
+
+To enable dynamic difficulty adjustment:
+
+```gdscript
+# When the player performs an action
+stage_composition_system.record_performance_event(
+    FlowAndDifficultyController.PerformanceMetric.SPEED,
+    player_speed
 )
 ```
 
-### Game Mode Support
+### Creating a Custom Stage
 
-The system supports two game modes:
+To create a custom stage:
 
-1. **Story Mode**: A linear progression with a defined end condition (distance or event).
-2. **Arcade Mode**: A continuous mode with stage transitions based on the next_stage_logic in the StageCompositionConfig.
+1. Create a new `StageCompositionConfig` resource
+2. Set the stage parameters (length, theme, difficulty, etc.)
+3. Define the content distribution
+4. Add chunk definitions
+5. Save the config to `resources/stage/configs/`
 
-### Debug Mode
+## Chunk System
 
-Enable debug mode to visualize the system's state:
+The chunk system is responsible for the physical layout of the stage:
+
+1. **Chunk Definition**:
+   - Defines the physical structure of a chunk
+   - Can include predefined platforms, obstacles, etc.
+   - Can define marker points for dynamic content placement
+
+2. **Chunk Management**:
+   - Chunks are instantiated ahead of the player
+   - Old chunks are recycled when they're far behind the player
+   - Chunks are positioned to create a continuous stage
+
+3. **Chunk Types**:
+   - **Default Chunks**: Standard chunks with basic layouts
+   - **Random Chunks**: Chunks with randomized elements
+   - **Varied Chunks**: Chunks with multiple possible configurations
+   - **Special Chunks**: Chunks for specific events or challenges
+
+## Content Distribution
+
+The content distribution system determines what content to place in each chunk:
+
+1. **Content Categories**:
+   - Obstacles: Impede player progress
+   - Collectibles: Provide rewards
+   - Power-ups: Grant temporary abilities
+   - Decorations: Visual elements with no gameplay effect
+
+2. **Distribution Rules**:
+   - Based on difficulty level
+   - Influenced by flow state
+   - Can be biome/theme specific
+   - Can create patterns or sequences
+
+3. **Placement Strategies**:
+   - Grid-based placement
+   - Height zone placement
+   - Pattern-based placement
+   - Random placement with constraints
+
+## Analytics
+
+The Stage Composition System emits analytics events to track player progress and system performance:
 
 ```gdscript
-stage_system.set_debug_enabled(true)
+GlobalSignals.analytics_event.emit({
+    "event_type": "stage_generated",
+    "stage_id": config.id,
+    "game_mode": game_mode,
+    "theme": config.theme,
+    "difficulty": config.target_difficulty
+})
 ```
 
-## Signals
+These events can be used for debugging, balancing, and player behavior analysis.
 
-The system uses the following global signals (defined in GlobalSignals.gd):
+## Debugging
 
-- `stage_generation_requested(config, game_mode)`: Emitted when a stage generation is requested.
-- `stage_loaded(config)`: Emitted when a stage is ready for gameplay.
-- `stage_generation_failed(reason)`: Emitted when stage generation fails.
-- `flow_state_updated(flow_state)`: Emitted when the flow state changes.
-- `request_chunk_instantiation(chunk_definition, position)`: Emitted to request chunk instantiation.
-- `request_content_placement(content_category, content_type, position)`: Emitted to request content placement.
-- `biome_changed(old_biome, new_biome)`: Emitted when a biome change is detected.
-- `story_stage_completed(stage_id)`: Emitted when a story stage is completed.
-- `gameplay_event_triggered(event_name, event_data)`: Emitted when a gameplay event is triggered.
-- `analytics_event(event_data)`: Emitted for analytics tracking.
+The system includes debugging functionality:
 
-## Integration with Other Systems
+1. **Debug Overlay**: Shows information about chunks, content, flow state, etc.
+2. **Debug Methods**: Methods to inspect the current state of the system
+3. **Debug Prints**: Detailed logging when debug mode is enabled
 
-The Stage Composition System is designed to integrate with other systems in the game:
+## Best Practices
 
-- **EnvironmentSystem**: The system can update the EnvironmentSystem with biome changes via the biome_changed signal.
-- **MotionSystem**: The system can update the MotionSystem with ground physics changes via the MotionProfileResolver.
-- **PlayerCharacter**: The system can track the player's position and performance metrics.
-
-## Extending the System
-
-### Adding New Content Types
-
-To add a new content type:
-
-1. Add it to the content_categories dictionary in a ContentDistribution resource.
-2. Implement the necessary logic to handle the new content type in your game.
-
-### Adding New Distribution Strategies
-
-To add a new distribution strategy:
-
-1. Create a new class that extends IContentDistributionStrategy.
-2. Implement the distribute_content method.
-3. Add the strategy to the ContentDistributionSystem's set_distribution_strategy method.
-
-### Adding New Flow States
-
-To add a new flow state:
-
-1. Add it to the FlowState enum in FlowAndDifficultyController.
-2. Update the _string_to_flow_state method to handle the new state.
-3. Update the _calculate_flow_state method to use the new state.
-
-## Additional Features
-
-### Placement Modes
-
-The system supports different placement modes for content markers:
-
-- **non-random**: Content is placed exactly at the specified position.
-- **stable-random**: Content is placed at a randomized position, but the same each time.
-- **fully-random**: Content is placed at a completely random position each time.
-
-See [README_PLACEMENT_MODES.md](README_PLACEMENT_MODES.md) for more details.
-
-### Height Zones
-
-The system supports different height zones for content placement:
-
-- **underground**: Content is placed below the ground level.
-- **ground**: Content is placed exactly at ground level.
-- **air**: Content is placed in the air at a medium height.
-- **stratospheric**: Content is placed very high in the air.
-- **specified**: Content is placed at the exact y-coordinate specified in the marker.
-
-See [README_HEIGHT_ZONES.md](README_HEIGHT_ZONES.md) for more details.
+1. **Config-Driven Design**: Use configuration resources rather than hardcoded values
+2. **Balanced Difficulty**: Ensure the difficulty curve is smooth and responsive
+3. **Performance Optimization**: Recycle chunks and content to minimize instantiation
+4. **Visual Consistency**: Coordinate with the Environment System for theme consistency
+5. **Extensibility**: Design chunk and content systems to be easily extended
