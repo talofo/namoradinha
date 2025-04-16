@@ -21,6 +21,7 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 	var min_bounce_height_threshold: float = resolved_profile.get("min_bounce_height_threshold", physics_rules.min_bounce_height_threshold)
 	var min_bounce_kinetic_energy: float = resolved_profile.get("min_bounce_kinetic_energy", physics_rules.min_bounce_kinetic_energy)
 	var min_stop_speed: float = resolved_profile.get("min_stop_speed", physics_rules.min_stop_speed)
+	var min_slide_speed: float = resolved_profile.get("min_slide_speed", physics_rules.min_slide_speed)
 	var horizontal_preservation: float = resolved_profile.get("horizontal_preservation", physics_rules.horizontal_preservation)
 	
 	var incoming_velocity: Vector2 = motion_state.velocity
@@ -41,6 +42,7 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 		debug_data.add_note("Profile Angle Adjustment: %.2f (unused with flat ground)" % profile.bounce_angle_adjustment)
 		debug_data.add_note("Min Bounce Height Threshold: %.2f" % min_bounce_height_threshold)
 		debug_data.add_note("Min Bounce Kinetic Energy: %.2f" % min_bounce_kinetic_energy)
+		debug_data.add_note("Min Slide Speed: %.2f" % min_slide_speed)
 		debug_data.add_note("Min Stop Speed: %.2f" % min_stop_speed)
 		debug_data.add_note("Horizontal Preservation: %.2f" % horizontal_preservation)
 
@@ -167,9 +169,11 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 			if bounce_height < min_bounce_height_threshold:
 				terminate_bounce = true
 				termination_reason_str = "Bounce height %.2f < threshold %.2f" % [bounce_height, min_bounce_height_threshold]
+				print("DEBUG BOUNCE - TERMINATING due to bounce height: %.2f < %.2f" % [bounce_height, min_bounce_height_threshold])
 			elif kinetic_energy < min_bounce_kinetic_energy:
 				terminate_bounce = true
 				termination_reason_str = "Kinetic energy %.2f < threshold %.2f" % [kinetic_energy, min_bounce_kinetic_energy]
+				print("DEBUG BOUNCE - TERMINATING due to kinetic energy: %.2f < %.2f" % [kinetic_energy, min_bounce_kinetic_energy])
 		"obstacle":
 			# Stricter logic for surfaces that DON'T allow sliding (obstacles)
 			# Only terminate based on kinetic energy, ignore bounce height
@@ -191,22 +195,39 @@ func calculate(context: CollisionContext, resolved_profile: Dictionary, physics_
 		
 		match surface_category:
 			"ground", "other":
-				# Transition to sliding for ground/other surfaces
-				termination_state = BounceOutcome.STATE_SLIDING
-				final_velocity = calculated_velocity # Keep calculated velocity for sliding start
-				if debug_data:
-					debug_data.termination_reason = termination_reason_str
-					debug_data.add_note("Entering SLIDING state.")
+				# Check if we have enough speed to slide
+				var horizontal_speed = abs(calculated_velocity.x)
 				
-				# Check for STOPPED state based on sliding speed
-				var sliding_speed = abs(final_velocity.x) 
-				if sliding_speed < min_stop_speed:
+				# First check if we have enough speed to slide
+				if horizontal_speed >= min_slide_speed:
+					# We have enough speed to slide, now check if it's above the stop threshold
+					if horizontal_speed >= min_stop_speed:
+						# Transition to sliding for ground/other surfaces
+						termination_state = BounceOutcome.STATE_SLIDING
+						final_velocity = calculated_velocity # Keep calculated velocity for sliding start
+						if debug_data:
+							debug_data.termination_reason = termination_reason_str
+							debug_data.add_note("Entering SLIDING state. Horizontal speed %.2f >= min_slide_speed %.2f" % [horizontal_speed, min_slide_speed])
+						
+						print("DEBUG BOUNCE - Entering SLIDING state. Speed: %.2f" % horizontal_speed)
+					else:
+						# Speed is enough to slide but below stop threshold, still stop
+						termination_state = BounceOutcome.STATE_STOPPED
+						final_velocity = Vector2.ZERO # Force stop
+						if debug_data:
+							debug_data.termination_reason = termination_reason_str + " | Horizontal speed %.2f < min_stop_speed %.2f" % [horizontal_speed, min_stop_speed]
+							debug_data.add_note("Entering STOPPED state (below stop threshold).")
+						
+						print("DEBUG BOUNCE - Speed above slide threshold but below stop threshold: %.2f < %.2f" % [horizontal_speed, min_stop_speed])
+				else:
+					# Not enough speed to slide, go directly to stopped
 					termination_state = BounceOutcome.STATE_STOPPED
 					final_velocity = Vector2.ZERO # Force stop
 					if debug_data:
-						if debug_data.termination_reason: debug_data.termination_reason += " | "
-						debug_data.termination_reason += "Sliding speed %.2f < threshold %.2f" % [sliding_speed, min_stop_speed]
-						debug_data.add_note("Entering STOPPED state.")
+						debug_data.termination_reason = termination_reason_str + " | Horizontal speed %.2f < min_slide_speed %.2f" % [horizontal_speed, min_slide_speed]
+						debug_data.add_note("Entering STOPPED state (insufficient slide speed).")
+					
+					print("DEBUG BOUNCE - Not enough speed to slide: %.2f < %.2f" % [horizontal_speed, min_slide_speed])
 			"obstacle":
 				# Surface doesn't allow sliding, transition to a non-sliding terminated state
 				termination_state = BounceOutcome.STATE_TERMINATED_NO_SLIDE # Use the new state

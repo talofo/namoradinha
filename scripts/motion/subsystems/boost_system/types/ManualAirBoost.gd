@@ -8,11 +8,17 @@ extends RefCounted
 
 # No need to preload classes that are globally available via class_name
 
-# Default values - used as fallbacks if not found in motion_profile
-const DEFAULT_RISING_BOOST_STRENGTH = 300.0
-const DEFAULT_FALLING_BOOST_STRENGTH = 500.0
-const DEFAULT_RISING_BOOST_ANGLE = 45.0  # Degrees upward from horizontal
-const DEFAULT_FALLING_BOOST_ANGLE = -60.0 # Degrees downward from horizontal
+# Reference to motion system for config access
+var _motion_system = null
+
+func set_motion_system(motion_system) -> void:
+	_motion_system = motion_system
+
+# Get physics config if available
+func _get_physics_config():
+	if _motion_system and _motion_system.has_method("get_physics_config"):
+		return _motion_system.get_physics_config()
+	return null
 
 # Future enhancement point: Add apex detection if needed
 # const APEX_VELOCITY_THRESHOLD = 10.0
@@ -30,14 +36,27 @@ func calculate_boost_vector(boost_context: BoostContext) -> Vector2:
 
 	# Simple approach: Treat based on is_rising flag
 	# Future enhancement point: Add special apex handling here if needed
+	# Get physics config for fallback values
+	var physics_config = _get_physics_config()
+	
 	if boost_context.is_rising:
-		# Get values from motion_profile with fallbacks to defaults
-		boost_strength = motion_profile.get("manual_air_boost_rising_strength", DEFAULT_RISING_BOOST_STRENGTH)
-		boost_angle_degrees = motion_profile.get("manual_air_boost_rising_angle", DEFAULT_RISING_BOOST_ANGLE)
+		# Get values from motion_profile with fallbacks to physics config
+		var default_rising_strength = physics_config.manual_air_boost_rising_strength if physics_config else 300.0
+		var default_rising_angle = physics_config.manual_air_boost_rising_angle if physics_config else 45.0
+		
+		boost_strength = motion_profile.get("manual_air_boost_rising_strength", default_rising_strength)
+		boost_angle_degrees = motion_profile.get("manual_air_boost_rising_angle", default_rising_angle)
+		
+		print("DEBUG: Using rising boost - Strength: %.2f, Angle: %.2f" % [boost_strength, boost_angle_degrees])
 	else:
 		# Falling (and apex, using the simpler approach)
-		boost_strength = motion_profile.get("manual_air_boost_falling_strength", DEFAULT_FALLING_BOOST_STRENGTH)
-		boost_angle_degrees = motion_profile.get("manual_air_boost_falling_angle", DEFAULT_FALLING_BOOST_ANGLE)
+		var default_falling_strength = physics_config.manual_air_boost_falling_strength if physics_config else 800.0
+		var default_falling_angle = physics_config.manual_air_boost_falling_angle if physics_config else -60.0
+		
+		boost_strength = motion_profile.get("manual_air_boost_falling_strength", default_falling_strength)
+		boost_angle_degrees = motion_profile.get("manual_air_boost_falling_angle", default_falling_angle)
+		
+		print("DEBUG: Using falling boost - Strength: %.2f, Angle: %.2f" % [boost_strength, boost_angle_degrees])
 
 	# Convert angle to radians for trigonometric functions
 	var boost_angle_radians = deg_to_rad(boost_angle_degrees)

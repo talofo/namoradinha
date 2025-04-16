@@ -239,7 +239,13 @@ func resolve_collision(collision_info: Dictionary, subsystems: Dictionary) -> Di
 		# Entity is sliding, update sliding state
 		# Ensure Y component is zero during sliding
 		velocity.y = 0.0
-		var delta = collision_info.get("delta", 0.016) # Use delta from context or fallback to ~60fps
+		# Get delta from context or use frame_rate_adjustment from physics config
+		var physics_config = _core.get_physics_config()
+		var default_delta = 1.0 / physics_config.frame_rate_adjustment if physics_config else 0.016
+		var delta = collision_info.get("delta", default_delta)
+		
+		print("DEBUG: Using delta for sliding state: %.4f (from context: %s)" % [delta, collision_info.has("delta")])
+		
 		result = _core.state_manager.update_sliding_state(velocity, delta, material_type)
 	
 	return result

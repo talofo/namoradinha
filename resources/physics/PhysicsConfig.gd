@@ -2,49 +2,52 @@ class_name PhysicsConfig
 extends Resource
 
 # Basic physics parameters
-@export var gravity: float = 980.0
-@export var default_ground_friction: float = 0.1  # Lower value means longer slides
-@export var default_stop_threshold: float = 0.1  # Lower value means player will slide longer before stopping
+@export var gravity: float = 980.0  # Base gravity value used throughout the physics system
+@export var default_ground_friction: float = 0.1  # Base friction for ground surfaces (lower = longer slides)
+@export var default_stop_threshold: float = 0.1  # Speed threshold for stopping sliding motion (lower = longer slides)
 
 # Bounce physics
-@export var first_bounce_ratio: float = 0.9  # First bounce height relative to max launch height (higher = higher bounces)
-@export var subsequent_bounce_ratio: float = 0.8  # Subsequent bounce height relative to previous (higher = more bounces)
-@export var min_bounce_height_threshold: float = 20.0  # Minimum height for a bounce to occur (lower = more bounces)
-@export var min_slide_speed: float = 150.0  # Minimum speed for sliding (lower = slides start at lower speeds)
-@export var horizontal_preservation: float = 0.98  # How much horizontal velocity is preserved per bounce (higher = longer slides)
-@export var min_bounce_energy_ratio: float = 0.7  # Minimum ratio of normal velocity to maintain after bounce (higher = more energetic bounces)
-@export var min_bounce_kinetic_energy: float = 2000.0  # Minimum kinetic energy required to continue bouncing (lower = more bounces)
-@export var min_stop_speed: float = 5.0  # Minimum speed below which the entity transitions from sliding to stopped (lower = longer slides)
+# NOTE: first_bounce_ratio and subsequent_bounce_ratio are currently unused
+# The bounce behavior is controlled by effective_elasticity (surface.elasticity * profile.bounciness_multiplier)
+@export var first_bounce_ratio: float = 0.9  # UNUSED: First bounce height relative to max launch height
+@export var subsequent_bounce_ratio: float = 0.8  # UNUSED: Subsequent bounce height relative to previous
+
+@export var min_bounce_height_threshold: float = 75.0  # Minimum height for a bounce to continue (lower = more bounces)
+@export var min_slide_speed: float = 150.0  # Minimum horizontal speed required to enter sliding state
+@export var horizontal_preservation: float = 0.98  # Multiplier for horizontal velocity preservation per bounce
+@export var min_bounce_energy_ratio: float = 0.7  # Minimum ratio of energy to preserve in bounce calculations
+@export var min_bounce_kinetic_energy: float = 5000.0  # Minimum kinetic energy to continue bouncing
+@export var min_stop_speed: float = 10.0  # Speed threshold to transition from sliding to stopped
 
 # Sliding physics 
-@export var deceleration_base: float = 0.1  # Base deceleration factor (lower = slower deceleration)
-@export var deceleration_speed_factor: float = 0.0003  # How much speed affects deceleration (lower = less speed-based deceleration)
-@export var max_deceleration_factor: float = 0.15  # Maximum deceleration per frame (lower = gentler deceleration cap)
-@export var frame_rate_adjustment: float = 60.0  # Base frame rate for physics calculations
+@export var deceleration_base: float = 0.1  # Base deceleration factor for sliding
+@export var deceleration_speed_factor: float = 0.0003  # How much speed affects deceleration rate
+@export var max_deceleration_factor: float = 0.15  # Maximum deceleration factor per frame
+@export var frame_rate_adjustment: float = 60.0  # Target frame rate for physics calculations
 
 # Launch physics
-@export var default_launch_strength: float = 1500.0
-@export var default_launch_angle_degrees: float = 45.0
+@export var default_launch_strength: float = 1500.0  # Base strength for entity launches
+@export var default_launch_angle_degrees: float = 45.0  # Default angle for entity launches (in degrees)
 
-# Boost physics (from ManualAirBoost)
-@export var manual_air_boost_rising_strength: float = 300.0
-@export var manual_air_boost_rising_angle: float = 45.0
-@export var manual_air_boost_falling_strength: float = 800.0  # Higher value = stronger downward boost = higher next bounce
-@export var manual_air_boost_falling_angle: float = -60.0
+# Boost physics (used by AirBoostType)
+@export var manual_air_boost_rising_strength: float = 300.0  # Strength of boost when rising
+@export var manual_air_boost_rising_angle: float = 45.0  # Angle of boost when rising (degrees)
+@export var manual_air_boost_falling_strength: float = 800.0  # Strength of boost when falling
+@export var manual_air_boost_falling_angle: float = -60.0  # Angle of boost when falling (degrees)
 
-# Material properties (from CollisionMaterialSystem)
-@export var default_material_friction: float = 0.3
-@export var default_material_bounce: float = 0.8  # Higher value = bouncier surfaces
-@export var ice_material_friction: float = 0.05  # Very low friction for ice
-@export var ice_material_bounce: float = 0.9  # Very bouncy ice
-@export var mud_material_friction: float = 1.5  # High friction for mud
-@export var mud_material_bounce: float = 0.3  # Low bounce for mud
-@export var rubber_material_friction: float = 1.0
-@export var rubber_material_bounce: float = 0.95  # Very bouncy rubber
+# Material properties (used by CollisionMaterialSystem)
+@export var default_material_friction: float = 0.3  # Default friction for surfaces
+@export var default_material_bounce: float = 0.8  # Default bounciness for surfaces
+@export var ice_material_friction: float = 0.05  # Friction for ice surfaces
+@export var ice_material_bounce: float = 0.9  # Bounciness for ice surfaces
+@export var mud_material_friction: float = 1.5  # Friction for mud surfaces
+@export var mud_material_bounce: float = 0.3  # Bounciness for mud surfaces
+@export var rubber_material_friction: float = 1.0  # Friction for rubber surfaces
+@export var rubber_material_bounce: float = 0.95  # Bounciness for rubber surfaces
 
 # Entity specific defaults
-@export var default_mass: float = 1.0
-@export var default_size_factor: float = 1.0
+@export var default_mass: float = 1.0  # Default mass for physics entities
+@export var default_size_factor: float = 1.0  # Default size scaling factor (currently unused)
 
 # Override parameters for specific entity types
 # Format: { "entity_type": { "param_name": value } }
