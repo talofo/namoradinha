@@ -4,7 +4,7 @@ extends Node
 # Import required classes
 # In Godot 4.4+, classes with class_name are globally available
 # Explicitly load the StageConfigGenerator script
-var _generator_script = load("res://scripts/stage/generators/StageConfigGenerator.gd")
+var _generator_script = load("res://scripts/stage/components/StageConfigGenerator.gd")
 
 # Cache of loaded configs
 var _config_cache: Dictionary = {}

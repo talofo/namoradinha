@@ -37,7 +37,8 @@ graph TD
 
 3. **Ground Management**:
    - **SharedGroundManager**: Creates and manages a shared ground for the entire level
-   - Note: Ground visuals are now primarily handled by the chunk system in StageCompositionSystem
+   - **GroundVisualManager**: Handles visual representation of ground surfaces
+   - Note: Ground visuals are now primarily handled by the chunk system in StageCompositionSystem, which has replaced the old GroundManager functionality
 
 4. **Configuration**:
    - **ThemeDatabase**: Collection of all available environment themes
@@ -61,12 +62,33 @@ The Environment System uses a theme-based approach to visual styling:
    - Each manager handles its specific visual elements
    - Transitions are coordinated to ensure smooth visual changes
 
-## Integration with Physics
+## Integration with Physics and Stage Systems
+
+The Environment System integrates with other systems in several ways:
+
+### Physics Integration
 
 The Environment System integrates with the physics system through the `MotionProfileResolver`:
 
 1. When a biome changes, the Environment System updates the ground physics configuration in the `MotionProfileResolver`
 2. This affects how the player character interacts with the environment (friction, bounce, etc.)
+
+### Stage Composition Integration
+
+The Environment System works alongside the Stage Composition System:
+
+1. **Division of Responsibilities**:
+   - Environment System: Handles theme application, visual transitions, and biome physics
+   - Stage Composition System: Handles chunk generation, content distribution, and ground structure
+
+2. **Architectural Evolution**:
+   - The old GroundManager functionality has been replaced by the chunk system in StageCompositionSystem
+   - GroundVisualManager now focuses on visual representation rather than structural management
+   - SharedGroundManager provides a simplified ground collision layer for the entire level
+
+3. **Communication Flow**:
+   - Stage events trigger environment changes via GlobalSignals
+   - Environment changes (like biome updates) affect stage generation parameters
 
 ## Usage
 

@@ -1,4 +1,6 @@
 extends Node
+# DEPRECATED: This example file is no longer needed and will be removed in a future update.
+# The information from this example has been moved to the Stage Composition System README.md.
 # Example script showing how to integrate the Stage Composition System into a game
 
 # Import required classes

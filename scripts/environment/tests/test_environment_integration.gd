@@ -79,8 +79,6 @@ func _ready():
 	else:
 		print("  [PASS]")
 		
-	# Ground data integration test is no longer needed as GroundManager has been removed
-	print("Skipping test: test_ground_data_integration (GroundManager has been removed)")
 
 	# --- Summary ---
 	print("\n--- Test Summary ---")

@@ -211,9 +211,6 @@ func _on_manager_fallback(reason: String) -> void:
     
     fallback_activated.emit(manager_name, reason)
 
-# This function has been removed as it was used with the old GroundManager
-# Ground visuals are now handled by the chunk system
-
 # Debug theme switching (development only)
 func _unhandled_input(event):
     if OS.is_debug_build() and event is InputEventKey and event.pressed:

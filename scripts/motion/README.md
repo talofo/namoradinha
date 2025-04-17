@@ -23,7 +23,6 @@ graph TD
     Subsystems --> LaunchSystem
     Subsystems --> ObstacleSystem
     Subsystems --> CollisionMaterialSystem
-    Subsystems --> PlayerStatusModifierSystem
     
     MotionProfileResolver --> PhysicsConfig
     MotionProfileResolver --> GroundPhysicsConfig
@@ -59,7 +58,6 @@ The Motion System uses a subsystem architecture to allow for modular extension o
 - **LaunchSystem**: Handles launching the player
 - **ObstacleSystem**: Handles interactions with obstacles
 - **CollisionMaterialSystem**: Handles material-specific collision responses
-- **PlayerStatusModifierSystem**: Handles player status effects that affect motion
 
 Each subsystem implements the `IMotionSubsystem` interface and can provide modifiers that affect motion calculations.
 
@@ -199,3 +197,35 @@ This will output detailed information about motion calculations, subsystem regis
 3. **Subsystem Independence**: Design subsystems to be independent of each other. Use signal dependencies for communication.
 4. **Profile-Based Configuration**: Use the `MotionProfileResolver` for context-specific motion parameters rather than hardcoding values.
 5. **Error Handling**: Check return values and handle errors gracefully.
+
+## Potential Expansions
+
+The Motion System is designed to be extensible. Here are some potential expansions that could be implemented in the future:
+
+### Player Status Modifier System
+
+A subsystem for managing temporary status modifiers that affect player attributes and behavior.
+
+**Features:**
+- Manages temporary status modifiers with durations (shields, invincibility, speed boosts, slowing effects)
+- Applies and removes modifiers based on their lifetime
+- Provides motion modifiers that affect player movement and behavior
+
+**Implementation:**
+1. Create a `PlayerStatusModifierSystem` class implementing the `IMotionSubsystem` interface
+2. Define specific modifier types in a dedicated directory (e.g., `scripts/player_status_modifiers/`)
+3. Implement an interface for status modifiers (e.g., `IPlayerStatusModifier`)
+4. Register the system in `MotionSystemCore.gd`
+
+**Example Usage:**
+```gdscript
+var status_system = motion_system.get_subsystem("PlayerStatusModifierSystem")
+if status_system:
+    status_system.apply_modifier("shield", 10.0, 1.0) # Apply shield for 10 seconds at full strength
+```
+
+### Other Potential Subsystems
+
+- **EquipmentSystem**: Handle equipment that affects player movement
+- **TraitSystem**: Manage permanent player traits that modify motion
+- **EnvironmentalForceSystem**: Handle environmental forces like wind, currents, etc.

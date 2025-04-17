@@ -2,6 +2,15 @@
 
 The Stage Composition System is responsible for dynamically generating and managing the game stage. It handles chunk creation, content distribution, and flow/difficulty adjustment based on player performance.
 
+## Directory Structure
+
+The Stage Composition System follows this directory structure:
+
+- `scripts/stage/` - Contains all GDScript (.gd) files for the Stage Composition System
+- `stage/` - Contains all scene (.tscn) files that use those scripts
+
+This separation of scripts and scenes is a standard pattern throughout the project.
+
 ## Architecture
 
 The Stage Composition System follows a layered architecture with specialized subsystems:
@@ -218,3 +227,36 @@ The system includes debugging functionality:
 3. **Performance Optimization**: Recycle chunks and content to minimize instantiation
 4. **Visual Consistency**: Coordinate with the Environment System for theme consistency
 5. **Extensibility**: Design chunk and content systems to be easily extended
+
+## System Integration
+
+To integrate the Stage Composition System into a game:
+
+1. Add the StageCompositionSystem scene to your game scene
+2. Initialize it with the player node for tracking:
+   ```gdscript
+   # Set the player node for tracking
+   stage_composition_system.set_player_node(player_character)
+   ```
+3. Generate a stage with the desired configuration:
+   ```gdscript
+   # Generate the initial stage
+   stage_composition_system.generate_stage("default_stage", "story")
+   ```
+4. Update the player position in your game loop:
+   ```gdscript
+   # In _process or _physics_process
+   stage_composition_system.update_player_position(player_character.global_position)
+   ```
+5. Record performance metrics to enable dynamic difficulty adjustment:
+   ```gdscript
+   # When player collects items, hits obstacles, etc.
+   stage_composition_system.record_performance_event(
+       FlowAndDifficultyController.PerformanceMetric.COLLECTIBLE_COLLECTION_RATE,
+       1.0
+   )
+   ```
+
+## Deprecated Systems
+
+Note that the older `scripts/stages/StageManager.gd` is deprecated and should not be used for new development. All new code should use the Stage Composition System instead.

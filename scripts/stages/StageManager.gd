@@ -1,5 +1,9 @@
 extends Node2D
 
+# DEPRECATED: This class is deprecated and will be removed in a future update.
+# New code should use the StageCompositionSystem instead.
+# This is currently only kept for backward compatibility with existing tests.
+
 # StageConfig is available globally via class_name
 
 var current_stage: Node = null

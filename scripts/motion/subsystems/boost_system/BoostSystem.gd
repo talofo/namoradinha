@@ -18,9 +18,6 @@ var _boost_calculator: BoostCalculator = null
 var _boost_type_registry: BoostTypeRegistry = null
 var _motion_profile_resolver: MotionProfileResolver = null # Added resolver reference
 
-# Configuration (Old - to be removed or adapted)
-# var _physics_config = null # Will be set via set_physics_config
-
 # Initialization logic
 func _init() -> void:
 	_boost_calculator = BoostCalculator.new()
