@@ -21,11 +21,11 @@ extends RefCounted
 #   ...
 # ]
 func distribute_content(
-	chunk_definition: ChunkDefinition, 
-	flow_state: FlowAndDifficultyController.FlowState, 
-	difficulty: String, 
-	content_rules: ContentDistribution, 
-	current_placements_history: Array
+	_chunk_definition: ChunkDefinition, 
+	_flow_state: FlowAndDifficultyController.FlowState, 
+	_difficulty: String, 
+	_content_rules: ContentDistribution, 
+	_current_placements_history: Array
 ) -> Array:
 	push_error("IContentDistributionStrategy.distribute_content: Method not implemented")
 	return []

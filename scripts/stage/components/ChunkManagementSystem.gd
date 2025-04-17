@@ -3,8 +3,8 @@ extends Node
 
 # Import required classes
 # In Godot 4.4+, classes with class_name are globally available
-# Using ChunkResourceLoader for loading chunks
-const ChunkResourceLoader = preload("res://scripts/stage/resources/ChunkResourceLoader.gd")
+# Using ChunkResourceLoaderClass for loading chunks to avoid name conflict with global class
+const ChunkResourceLoaderClass = preload("res://scripts/stage/resources/ChunkResourceLoader.gd")
 
 # Current stage configuration
 var _current_config: StageCompositionConfig = null
@@ -16,7 +16,7 @@ var _flow_controller: FlowAndDifficultyController = null
 var _content_distribution_system: ContentDistributionSystem = null
 
 # Chunk resource loader
-var _chunk_loader: ChunkResourceLoader = null
+var _chunk_loader: ChunkResourceLoaderClass = null
 
 # Chunk tracking
 var _active_chunks: Array = [] # Array of {chunk_definition, start_position, end_position}
@@ -33,7 +33,7 @@ var _debug_enabled: bool = false
 
 func _ready():
     # Initialize chunk loader
-    _chunk_loader = ChunkResourceLoader.new()
+    _chunk_loader = ChunkResourceLoaderClass.new()
 
 # Initialize with stage configuration, flow controller, and content distribution system
 func initialize(config: StageCompositionConfig, flow_controller: FlowAndDifficultyController, content_distribution_system: ContentDistributionSystem) -> void:
@@ -251,7 +251,7 @@ func _check_mandatory_events(current_distance: float) -> ChunkDefinition:
     return null
 
 # Find chunks matching the given criteria
-func _find_matching_chunks(allowed_types: Array, theme_tags: Array, theme: String) -> Array:
+func _find_matching_chunks(allowed_types: Array, theme_tags: Array, _theme: String) -> Array:
     # Use the chunk loader to find matching chunks
     return _chunk_loader.find_matching_chunks(allowed_types, theme_tags)
 

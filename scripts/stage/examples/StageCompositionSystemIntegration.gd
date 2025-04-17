@@ -26,7 +26,7 @@ func _ready():
     # Start the game
     start_game()
 
-func _process(delta):
+func _process(_delta):
     # Update player position in the Stage Composition System
     if player_character and stage_composition_system:
         stage_composition_system.update_player_position(player_character.global_position)
@@ -174,7 +174,7 @@ func _on_request_content_placement(placement_data: Dictionary):
         add_child(content_instance)
 
 # Handle collectible collected event
-func _on_collectible_collected(collectible_type):
+func _on_collectible_collected(_collectible_type):
     # Record the performance event
     if stage_composition_system:
         stage_composition_system.record_performance_event(
@@ -183,7 +183,7 @@ func _on_collectible_collected(collectible_type):
         )
 
 # Handle obstacle hit event
-func _on_obstacle_hit(obstacle_type):
+func _on_obstacle_hit(_obstacle_type):
     # Record the performance event
     if stage_composition_system:
         stage_composition_system.record_performance_event(
@@ -192,7 +192,7 @@ func _on_obstacle_hit(obstacle_type):
         )
 
 # Handle boost used event
-func _on_boost_used(boost_type):
+func _on_boost_used(_boost_type):
     # Record the performance event
     if stage_composition_system:
         stage_composition_system.record_performance_event(

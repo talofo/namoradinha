@@ -13,6 +13,7 @@ signal fallback_activated(reason)
 var current_sprite: CanvasItem = null
 var active_tween: Tween = null
 var current_theme_id: String = ""
+var _debug_enabled: bool = false
 
 func _ready():
 	# Ensure sprite container exists
@@ -20,7 +21,7 @@ func _ready():
 		add_child(Node2D.new())
 
 func apply_theme(theme: EnvironmentTheme) -> void:
-	if !theme:
+	if not theme:
 		push_error("GroundVisualManager: Null theme provided")
 		_create_fallback_ground() # Create fallback even if theme is null
 		fallback_activated.emit("Null theme provided")
@@ -28,10 +29,13 @@ func apply_theme(theme: EnvironmentTheme) -> void:
 	
 	current_theme_id = theme.theme_id
 	
-	if !theme.ground_texture:
-		push_warning("Ground texture missing in theme: " + theme.theme_id)
-		_create_fallback_ground()
-		fallback_activated.emit("Missing ground texture in theme: " + theme.theme_id)
+	if not theme.ground_texture:
+		# Instead of just warning, create a placeholder texture
+		var placeholder_texture = _create_placeholder_texture(Color(0.5, 0.3, 0.1, 1.0))  # Brown color for ground
+		_apply_ground_texture(placeholder_texture, theme.ground_tint)
+		# Use print instead of warning for less severe notification
+		if _debug_enabled:
+			print("GroundVisualManager: Ground texture missing in theme: " + theme.theme_id + " (using placeholder)")
 		return
 	
 	# Apply the texture, with transition if needed
@@ -52,7 +56,7 @@ func apply_ground_visuals(ground_data: Array) -> void:
 	if get_parent() and get_parent().has_method("get_theme_by_id"):
 		theme = get_parent().get_theme_by_id(current_theme_id)
 	
-	if !theme || !theme.ground_texture:
+	if not theme or not theme.ground_texture:
 		_create_fallback_ground()
 		fallback_activated.emit("Cannot apply ground visuals - missing theme or texture")
 		return
@@ -89,10 +93,24 @@ func _create_ground_sprite(texture: Texture2D, tint: Color = Color.WHITE) -> voi
 	current_sprite = sprite
 	transition_completed.emit()
 
+func _create_placeholder_texture(color: Color = Color(0.5, 0.3, 0.1, 1.0)) -> Texture2D:
+	# Create a simple 64x64 texture with the given color
+	var image = Image.create(64, 64, false, Image.FORMAT_RGBA8)
+	image.fill(color)
+	
+	# Add some noise/pattern to make it look less flat
+	for x in range(64):
+		for y in range(64):
+			var noise_value = (x + y) % 8 / 8.0 * 0.2
+			var pixel_color = color.lightened(noise_value)
+			image.set_pixel(x, y, pixel_color)
+	
+	return ImageTexture.create_from_image(image)
+
 func _create_fallback_ground() -> void:
-	# Create magenta debug visual
+	# Create brown debug visual instead of magenta
 	var fallback = ColorRect.new()
-	fallback.color = Color(1, 0, 1, 0.7)  # Semi-transparent magenta
+	fallback.color = Color(0.5, 0.3, 0.1, 0.7)  # Semi-transparent brown
 	fallback.size = Vector2(2000, 100)   # Adjust to match ground size
 	fallback.position = Vector2(-1000, -50)  # Center it
 	
@@ -140,3 +158,7 @@ func _transition_to_new_texture(new_texture: Texture2D, new_tint: Color = Color.
 			old_sprite.queue_free()
 			transition_completed.emit()
 	)
+
+# Enable/disable debug output
+func set_debug_enabled(enabled: bool) -> void:
+	_debug_enabled = enabled

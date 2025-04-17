@@ -28,7 +28,7 @@ func _ready():
 			debug_overlay.visible = true
 
 # Initialize with motion profile resolver
-func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
+func initialize_with_resolver(_resolver: MotionProfileResolver) -> void:
 	# No longer needed; StageCompositionManager does not require resolver injection.
 	if _debug_enabled:
 		print("StageCompositionSystem: initialize_with_resolver called, but no action taken (StageCompositionManager does not use resolver).")

@@ -118,7 +118,7 @@ func _calculate_flow_state() -> FlowState:
     var base_flow_state = _string_to_flow_state(_flow_profile[profile_index])
     
     # Apply performance modifiers if we have meaningful data
-    var performance_modifier = _calculate_performance_modifier()
+    var _performance_modifier = _calculate_performance_modifier()
     
     # For now, we'll just use the base flow state from the profile
     # In a more advanced implementation, we could adjust up/down based on performance

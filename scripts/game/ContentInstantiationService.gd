@@ -58,7 +58,7 @@ func _connect_content_signals() -> void:
 # Create a callback for chunk instantiation
 func _create_chunk_instantiation_callback() -> Callable:
 	# Create a ContentFactory if it doesn't exist
-	var content_factory = _get_or_create_content_factory()
+	var _content_factory = _get_or_create_content_factory()
 	
 	# Return the callback
 	return func(chunk_definition: ChunkDefinition, position: Vector2):

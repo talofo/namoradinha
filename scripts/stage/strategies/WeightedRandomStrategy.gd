@@ -18,7 +18,7 @@ func distribute_content(
 	flow_state: FlowAndDifficultyController.FlowState, 
 	difficulty: String, 
 	content_rules: ContentDistribution, 
-	current_placements_history: Array
+	_current_placements_history: Array
 ) -> Array:
 	if _debug_enabled:
 		print("WeightedRandomStrategy: Distributing content for chunk '%s' with flow state %s and difficulty %s" % 

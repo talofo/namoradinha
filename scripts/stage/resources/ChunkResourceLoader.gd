@@ -109,9 +109,30 @@ func _find_matching_in_directory(dir_path: String, matching_chunks: Array, allow
 	var dir = DirAccess.open(dir_path)
 	
 	if not dir:
-		if _debug_enabled:
-			push_warning("ChunkResourceLoader: Failed to open directory '%s'" % dir_path)
-		return
+		# Instead of just warning, check if this is a known directory that should exist
+		var dir_parts = dir_path.split("/")
+		var last_part = dir_parts[dir_parts.size() - 1] if dir_parts.size() > 0 else ""
+		
+		# Only show warning for directories that are expected to exist
+		if last_part in _height_zones:
+			if _debug_enabled:
+				print("ChunkResourceLoader: Creating directory '%s' (was missing)" % dir_path)
+			
+			# Try to create the directory if it's a known height zone
+			var parent_dir = dir_path.get_base_dir()
+			if DirAccess.dir_exists_absolute(parent_dir):
+				# Create the directory
+				DirAccess.make_dir_recursive_absolute(dir_path)
+				if _debug_enabled:
+					print("ChunkResourceLoader: Created directory '%s'" % dir_path)
+				
+				# Try opening again
+				dir = DirAccess.open(dir_path)
+				if not dir:
+					return
+		else:
+			# For unknown directories, just return silently
+			return
 	
 	dir.list_dir_begin()
 	var file_name = dir.get_next()

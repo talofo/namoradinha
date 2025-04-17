@@ -44,9 +44,9 @@ func calculate_deceleration(speed: float, delta: float, effective_friction: floa
 	if not physics_config:
 		# Fallback to simple physics-based model if no config
 		var gravity = _core.default_gravity
-		var deceleration = effective_friction * gravity * delta
-		deceleration = min(deceleration, speed)
-		return deceleration
+		var fallback_deceleration = effective_friction * gravity * delta
+		fallback_deceleration = min(fallback_deceleration, speed)
+		return fallback_deceleration
 	
 	# Get deceleration parameters from physics config
 	var base_decel = physics_config.deceleration_base

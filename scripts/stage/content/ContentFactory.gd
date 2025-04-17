@@ -75,8 +75,18 @@ func create_content(content_category: String, content_type: String, distance: fl
 	if debug_enabled:
 		print("ContentFactory: Created %s/%s at position (%s, %s)" % [category, content_type, str(distance), str(height)])
 		print("ContentFactory: DEBUG - Content is in scene tree: %s" % str(content_instance.is_inside_tree()))
-		print("ContentFactory: DEBUG - Content parent: %s" % (content_instance.get_parent().name if content_instance.get_parent() else "none"))
-		print("ContentFactory: DEBUG - Content z-index: %s" % str(content_instance.z_index if content_instance is Node2D else "N/A"))
+		
+		# Fix for incompatible ternary warning - use explicit variable assignment
+		var parent_name = "none"
+		if content_instance.get_parent():
+			parent_name = content_instance.get_parent().name
+		print("ContentFactory: DEBUG - Content parent: %s" % parent_name)
+		
+		# Fix for incompatible ternary warning - use explicit variable assignment
+		var z_index_str = "N/A"
+		if content_instance is Node2D:
+			z_index_str = str(content_instance.z_index)
+		print("ContentFactory: DEBUG - Content z-index: %s" % z_index_str)
 	
 	return content_instance
 
@@ -90,9 +100,21 @@ func _get_scene_path(category: String, content_type: String) -> String:
 	
 	# Check if content type exists in the category
 	if not _content_paths[category].has(content_type):
-		if debug_enabled:
-			push_warning("ContentFactory: Unknown content type '%s' in category '%s'" % [content_type, category])
-		return ""
+		# Instead of just warning, register a placeholder for this content type
+		if category == "boosts" and content_type == "SpeedPad":
+			# Create a placeholder entry for SpeedPad
+			register_content_type(category, content_type, "res://obstacles/RockObstacle.tscn")
+			if debug_enabled:
+				print("ContentFactory: Created placeholder for %s/%s" % [category, content_type])
+		elif category == "collectibles" and content_type == "Coin":
+			# Create a placeholder entry for Coin
+			register_content_type(category, content_type, "res://obstacles/RockObstacle.tscn")
+			if debug_enabled:
+				print("ContentFactory: Created placeholder for %s/%s" % [category, content_type])
+		else:
+			if debug_enabled:
+				push_warning("ContentFactory: Unknown content type '%s' in category '%s'" % [content_type, category])
+			return ""
 	
 	var scene_path = _content_paths[category][content_type]
 	if debug_enabled:
@@ -117,7 +139,7 @@ func _load_scene(scene_path: String) -> PackedScene:
 	return scene
 
 # Set the position of an instance based on its type
-func _set_instance_position(instance: Node, distance: float, height: float, width_offset: float, chunk_parent: Node) -> void:
+func _set_instance_position(instance: Node, distance: float, _height: float, width_offset: float, _chunk_parent: Node) -> void:
 	if instance is Node2D:
 		# In a 2D game, we need to map the 3D-like coordinates to 2D space
 		# width_offset is the x position (left/right)

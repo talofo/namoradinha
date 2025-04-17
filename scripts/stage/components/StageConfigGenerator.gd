@@ -82,7 +82,7 @@ func _get_theme_tags_for_difficulty(difficulty: String) -> Array[String]:
 	return tags
 
 # Get appropriate intro chunk based on difficulty
-func _get_intro_chunk_for_difficulty(difficulty: String) -> String:
+func _get_intro_chunk_for_difficulty(_difficulty: String) -> String:
 	# Always use sparse rocks for intro regardless of difficulty
 	return "sparse_rocks"
 
