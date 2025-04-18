@@ -13,6 +13,10 @@ signal entity_launched(entity_id: int, launch_vector: Vector2, position: Vector2
 # Physics configuration resource
 var physics_config: PhysicsConfig
 
+# Enforce forward movement (no negative X velocity)
+var enforce_forward_movement: bool = true
+var _forward_motion_constraint = load("res://scripts/motion/core/ForwardMotionConstraint.gd")
+
 # Legacy parameters - will be used as fallbacks if no config is loaded
 var default_gravity: float = 1200.0
 var default_ground_friction: float = 0.2  # Friction coefficient - lower means longer slides
@@ -79,6 +83,10 @@ func _init() -> void:
 # Returns the loaded physics configuration resource
 func get_physics_config() -> PhysicsConfig:
 	return physics_config
+
+# Set forward movement enforcement (called by Game/StageManager)
+func set_forward_movement_enforcement(enforce: bool) -> void:
+	enforce_forward_movement = enforce
 
 func _ready() -> void:
 	set_debug_enabled(false) # Debug mode disabled by default
@@ -240,16 +248,13 @@ func resolve_continuous_motion(player_node: Node, delta: float, is_sliding: bool
 		push_warning("MotionSystemCore: MotionProfileResolver not available in resolve_continuous_motion.")
 
 	# Pass relevant profile parameters to the continuous resolver
-	# The continuous_resolver needs to be updated to accept these.
-	# For now, we pass the profile in the context dictionary.
 	var context = {
 		"profile": motion_profile,
 		"is_sliding": is_sliding
-		# Add other relevant context if needed by continuous_resolver
 	}
-	# Assuming continuous_resolver.resolve signature is updated to accept context dictionary
-	return continuous_resolver.resolve(delta, context, _subsystems)
-
+	var velocity = continuous_resolver.resolve(delta, context, _subsystems)
+	# Enforce forward movement if enabled
+	return _forward_motion_constraint.enforce(velocity, enforce_forward_movement)
 
 # Resolve frame motion (called every physics frame)
 # context: Dictionary containing motion context (position, velocity, delta, etc.)
@@ -261,7 +266,10 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 # collision_info: Information about the collision
 # Returns: Dictionary containing collision result (velocity, has_launched, is_sliding, etc.)
 func resolve_collision(collision_info: Dictionary) -> Dictionary:
-	return collision_resolver.resolve_collision(collision_info, _subsystems)
+	var result = collision_resolver.resolve_collision(collision_info, _subsystems)
+	if result.has("velocity"):
+		result.velocity = _forward_motion_constraint.enforce(result.velocity, enforce_forward_movement)
+	return result
 
 # Resolve a scalar value (like friction) with modifiers from all subsystems
 # type: The type of scalar to resolve (e.g., "friction", "bounce")

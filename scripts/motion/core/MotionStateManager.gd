@@ -55,6 +55,10 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 	# Round velocity values to reduce visual jittering from small incremental changes
 	result["velocity"] = _core.physics_calculator.round_velocity(result["velocity"])
 
+	# Enforce forward movement if enabled
+	if _core and _core._forward_motion_constraint and _core.enforce_forward_movement and result.has("velocity"):
+		result["velocity"] = _core._forward_motion_constraint.enforce(result["velocity"], _core.enforce_forward_movement)
+
 	return result
 
 # Handle state transition from bouncing to sliding
