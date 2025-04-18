@@ -13,4 +13,5 @@ export_presets.cfg
 *.converted_res
 
 # Optional: if you use VS Code
-.vscode/
+.vscode/.qodo
+.qodo/
