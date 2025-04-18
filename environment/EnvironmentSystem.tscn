@@ -1,0 +1,18 @@
+[gd_scene load_steps=6 format=3 uid="uid://cci2iy8sxg7rk"]
+
+[ext_resource type="Script" uid="uid://p2gu0locbvh8" path="res://scripts/environment/EnvironmentSystem.gd" id="1_yjk2e"]
+[ext_resource type="PackedScene" path="res://environment/managers/GroundVisualManager.tscn" id="2_yjk2e"]
+[ext_resource type="PackedScene" path="res://environment/managers/BackgroundManager.tscn" id="3_yjk2e"]
+[ext_resource type="PackedScene" path="res://environment/managers/EffectsManager.tscn" id="4_yjk2e"]
+[ext_resource type="Resource" path="res://resources/environment/theme_database.tres" id="5_yjk2e"]
+
+[node name="EnvironmentSystem" type="Node2D"]
+script = ExtResource("1_yjk2e")
+debug_mode = true
+theme_database = ExtResource("5_yjk2e")
+
+[node name="GroundVisualManager" parent="." instance=ExtResource("2_yjk2e")]
+
+[node name="BackgroundManager" parent="." instance=ExtResource("3_yjk2e")]
+
+[node name="EffectsManager" parent="." instance=ExtResource("4_yjk2e")]

@@ -1,0 +1,25 @@
+[gd_scene load_steps=7 format=3 uid="uid://c8q6y8j5x7q5v"]
+
+[ext_resource type="Script" uid="uid://bkl36qcm3naps" path="res://scripts/stage/StageCompositionSystem.gd" id="1_yjk2p"]
+[ext_resource type="Script" uid="uid://c5tuykef8oiuq" path="res://scripts/stage/StageCompositionManager.gd" id="2_yjk2p"]
+[ext_resource type="Script" uid="uid://c680jxc8y2asf" path="res://scripts/stage/components/ChunkManagementSystem.gd" id="3_yjk2p"]
+[ext_resource type="Script" uid="uid://d38j4e26imcix" path="res://scripts/stage/components/ContentDistributionSystem.gd" id="4_yjk2p"]
+[ext_resource type="Script" uid="uid://b3s6p14x22hdt" path="res://scripts/stage/components/StageConfigSystem.gd" id="5_yjk2p"]
+[ext_resource type="PackedScene" path="res://stage/debug/StageDebugOverlay.tscn" id="6_yjk2p"]
+
+[node name="StageCompositionSystem" type="Node"]
+script = ExtResource("1_yjk2p")
+
+[node name="StageCompositionManager" type="Node" parent="."]
+script = ExtResource("2_yjk2p")
+
+[node name="ChunkManagementSystem" type="Node" parent="StageCompositionManager"]
+script = ExtResource("3_yjk2p")
+
+[node name="ContentDistributionSystem" type="Node" parent="StageCompositionManager"]
+script = ExtResource("4_yjk2p")
+
+[node name="StageConfigSystem" type="Node" parent="StageCompositionManager"]
+script = ExtResource("5_yjk2p")
+
+[node name="StageDebugOverlay" parent="." instance=ExtResource("6_yjk2p")]

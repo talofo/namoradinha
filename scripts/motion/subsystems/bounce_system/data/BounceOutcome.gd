@@ -1,7 +1,7 @@
 class_name BounceOutcome
 extends RefCounted
 
-const BounceDebugDataClass = preload("res://scripts/motion/subsystems/bounce_system/data/BounceDebugData.gd")
+# BounceDebugData is available globally via class_name
 
 ## Represents the result of a bounce calculation.
 
@@ -9,6 +9,7 @@ const BounceDebugDataClass = preload("res://scripts/motion/subsystems/bounce_sys
 const STATE_BOUNCING = "BOUNCING"
 const STATE_SLIDING = "SLIDING"
 const STATE_STOPPED = "STOPPED"
+const STATE_TERMINATED_NO_SLIDE = "TERMINATED_NO_SLIDE" # Added state for termination without sliding
 
 # The calculated velocity vector immediately after the bounce/impact resolution.
 # If termination_state is SLIDING or STOPPED, this represents the velocity entering that state.

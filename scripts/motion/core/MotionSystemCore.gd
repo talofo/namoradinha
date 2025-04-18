@@ -1,9 +1,7 @@
 class_name MotionSystemCore
 extends Node
 
-# Reference to physics config class
-# Using LoadedPhysicsConfig to avoid shadowing the global class name
-const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
+# No need to preload classes that are globally available via class_name in Godot 4.4
 
 signal subsystem_registered(subsystem_name: String)
 signal subsystem_unregistered(subsystem_name: String)
@@ -13,7 +11,7 @@ signal subsystem_unregistered(subsystem_name: String)
 signal entity_launched(entity_id: int, launch_vector: Vector2, position: Vector2)
 
 # Physics configuration resource
-var physics_config: LoadedPhysicsConfig
+var physics_config: PhysicsConfig
 
 # Legacy parameters - will be used as fallbacks if no config is loaded
 var default_gravity: float = 1200.0
@@ -35,11 +33,11 @@ var _subsystem_paths = [
 	# Then register dependent subsystems
 	"res://scripts/motion/subsystems/bounce_system/BounceSystem.gd",  # Path to the new BounceSystem script
 	"res://scripts/motion/subsystems/boost_system/BoostSystem.gd",    # Path to the new BoostSystem script
-	# "res://scripts/motion/subsystems/ObstacleSystem.gd", # Removed placeholder
+	"res://scripts/motion/subsystems/ObstacleSystem.gd", # ObstacleSystem now active
 	# "res://scripts/motion/subsystems/EquipmentSystem.gd", # Removed placeholder
 	# "res://scripts/motion/subsystems/TraitSystem.gd", # Removed placeholder
 	# "res://scripts/motion/subsystems/EnvironmentalForceSystem.gd", # Removed placeholder
-	"res://scripts/motion/subsystems/player_status_modifier_system/PlayerStatusModifierSystem.gd", # Updated path
+	# "res://scripts/motion/subsystems/player_status_modifier_system/PlayerStatusModifierSystem.gd", # Removed - see README.md for future expansion
 	"res://scripts/motion/subsystems/collision_material_system/CollisionMaterialSystem.gd" # Updated path
 ]
 
@@ -52,21 +50,25 @@ var state_manager = null
 var continuous_resolver = null
 var collision_resolver = null
 var debugger = null
+var _motion_profile_resolver: MotionProfileResolver = null # Added resolver reference
 
 func _init() -> void:
 	# Load physics configuration
 	var config_path = "res://resources/physics/default_physics.tres"
 	if ResourceLoader.exists(config_path):
-		physics_config = load(config_path) as LoadedPhysicsConfig
+		physics_config = load(config_path) as PhysicsConfig
 		if physics_config:
 			# Update legacy parameters from config
 			default_gravity = physics_config.gravity
 			default_ground_friction = physics_config.default_ground_friction
 			default_stop_threshold = physics_config.default_stop_threshold
+			
+			if debug_enabled or OS.is_debug_build():
+				print("MotionSystemCore: Loaded PhysicsConfig from ", config_path)
 		else:
-			pass # Config load failed, using defaults
+			push_warning("MotionSystemCore: Failed to load PhysicsConfig as resource. Using defaults.")
 	else:
-		pass # Config file doesn't exist, using defaults
+		push_warning("MotionSystemCore: PhysicsConfig file not found at ", config_path, ". Using defaults.")
 
 	physics_calculator = load("res://scripts/motion/core/PhysicsCalculator.gd").new(self)
 	state_manager = load("res://scripts/motion/core/MotionStateManager.gd").new(self)
@@ -75,11 +77,11 @@ func _init() -> void:
 	debugger = load("res://scripts/motion/core/MotionDebugger.gd").new(self)
 
 # Returns the loaded physics configuration resource
-func get_physics_config() -> LoadedPhysicsConfig:
+func get_physics_config() -> PhysicsConfig:
 	return physics_config
 
 func _ready() -> void:
-	set_debug_enabled(false)
+	set_debug_enabled(false) # Debug mode disabled by default
 
 	# Note: Subsystems are registered when initialize_subsystems() is called
 	# This allows for more dynamic control over when subsystems are loaded
@@ -106,6 +108,14 @@ func register_subsystem(subsystem) -> bool:
 		pass # Subsystem doesn't have _motion_system variable
 
 	_subsystems[subsystem_name] = subsystem
+	
+	# Pass PhysicsConfig if the subsystem needs it
+	if physics_config and subsystem.has_method("set_physics_config"):
+		subsystem.set_physics_config(physics_config)
+		if debug_enabled:
+			print("MotionSystemCore: Passed PhysicsConfig to %s" % subsystem_name)
+			
+	# Call the subsystem's registration hook
 	subsystem.on_register()
 
 	# Connect signals based on dependencies
@@ -210,10 +220,36 @@ func get_all_subsystems() -> Dictionary:
 
 # Resolve continuous motion (called every physics frame)
 # delta: Time since last frame
+# player_node: The player node for context (needed by profile resolver)
+# delta: Time since last frame
 # is_sliding: Whether the entity is currently sliding
 # Returns: The final motion vector
-func resolve_continuous_motion(delta: float, is_sliding: bool = false) -> Vector2:
-	return continuous_resolver.resolve(delta, is_sliding, _subsystems)
+func resolve_continuous_motion(player_node: Node, delta: float, is_sliding: bool = false) -> Vector2:
+	# Resolve motion profile first
+	var motion_profile = {}
+	if _motion_profile_resolver:
+		# Ensure player_node is valid before passing
+		if is_instance_valid(player_node):
+			motion_profile = _motion_profile_resolver.resolve_motion_profile(player_node)
+		else:
+			push_error("MotionSystemCore: Invalid player_node in resolve_continuous_motion.")
+			motion_profile = MotionProfileResolver.DEFAULTS.duplicate() # Use defaults if player invalid
+	else:
+		# Fallback if resolver is not set (should not happen in normal operation)
+		motion_profile = MotionProfileResolver.DEFAULTS.duplicate()
+		push_warning("MotionSystemCore: MotionProfileResolver not available in resolve_continuous_motion.")
+
+	# Pass relevant profile parameters to the continuous resolver
+	# The continuous_resolver needs to be updated to accept these.
+	# For now, we pass the profile in the context dictionary.
+	var context = {
+		"profile": motion_profile,
+		"is_sliding": is_sliding
+		# Add other relevant context if needed by continuous_resolver
+	}
+	# Assuming continuous_resolver.resolve signature is updated to accept context dictionary
+	return continuous_resolver.resolve(delta, context, _subsystems)
+
 
 # Resolve frame motion (called every physics frame)
 # context: Dictionary containing motion context (position, velocity, delta, etc.)
@@ -257,3 +293,12 @@ func register_all_subsystems() -> int:
 			pass # Subsystem path doesn't exist
 
 	return success_count
+
+
+# --- Resolver Integration ---
+
+## Called by Game.gd (or similar) to provide the resolver instance.
+func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
+	_motion_profile_resolver = resolver
+	if debug_enabled:
+		print("MotionSystemCore: MotionProfileResolver initialized.")

@@ -1,0 +1,93 @@
+# Collision Materials System
+
+This system provides a way to define and detect different material types for collision surfaces in the game. It affects physics properties like friction and bounce, as well as sound effects when collisions occur.
+
+## Overview
+
+The Collision Materials System consists of:
+
+1. **CollisionMaterialSystem**: A subsystem of the MotionSystem that manages material properties and provides modifiers for collision events.
+2. **MaterialType**: A component that can be attached to objects to explicitly define their material type.
+3. **DefaultMaterial**: A base implementation that provides default material properties.
+
+## How to Use
+
+### Defining Material Types
+
+There are several ways to define the material type of an object:
+
+1. **Attach a MaterialType component** (recommended):
+   ```gdscript
+   # In the editor, add a MaterialType node to your object
+   # Or in code:
+   var material_type = MaterialType.new()
+   material_type.material_type = "ice"
+   your_node.add_child(material_type)
+   ```
+
+2. **Set the material_type property**:
+   ```gdscript
+   your_node.material_type = "mud"
+   ```
+
+3. **Add the node to a material group**:
+   ```gdscript
+   your_node.add_to_group("rubber")
+   ```
+
+4. **Implement a get_material_type method**:
+   ```gdscript
+   func get_material_type() -> String:
+	   return "ice"
+   ```
+
+### Available Material Types
+
+The system comes with these predefined material types:
+
+- **default**: Standard surface with moderate friction and bounce.
+- **ice**: Slippery surface with low friction and high bounce.
+- **mud**: Sticky surface with high friction and low bounce.
+- **rubber**: Bouncy surface with high friction and very high bounce.
+
+### Registering Custom Materials
+
+You can register custom material types with the CollisionMaterialSystem:
+
+```gdscript
+var collision_material_system = motion_system.get_subsystem("CollisionMaterialSystem")
+collision_material_system.register_material("metal", {
+	"friction": 0.3,
+	"bounce": 0.7,
+	"sound": "metal_impact"
+})
+```
+
+### Material Detection
+
+When a collision occurs, the system detects the material type in this order:
+
+1. Check if the material is already specified in the collision info.
+2. Check if the collider has a `material_type` property.
+3. Check if the collider has a `collision_material` property.
+4. Check if the collider is in a material group (e.g., "ice", "mud").
+5. Check if the collider has a `get_material_type()` method.
+6. Check the collider's name for material hints (least reliable).
+7. Fallback to "default" if no material is detected.
+
+## Integration with Physics
+
+The CollisionMaterialSystem provides modifiers for the MotionSystem that affect:
+
+- **Friction**: How quickly an object slows down when sliding.
+- **Bounce**: How much energy is preserved when bouncing off a surface.
+- **Sound**: What sound effect to play on impact.
+
+These properties are loaded from the PhysicsConfig resource, with fallbacks to default values if the config is missing.
+
+## Best Practices
+
+1. Use the MaterialType component for explicit material definition.
+2. Avoid relying on node names for material detection.
+3. Register custom materials at startup for consistency.
+4. Use the CollisionMaterialSystem's API for material detection rather than implementing your own.

@@ -1,9 +1,7 @@
 class_name PhysicsCalculator
 extends RefCounted
 
-# Reference to physics config class
-# Using LoadedPhysicsConfig to avoid shadowing the global class name
-const LoadedPhysicsConfig = preload("res://resources/physics/PhysicsConfig.gd")
+# PhysicsConfig is available globally via class_name
 
 # Reference to the motion system core
 var _core = null
@@ -42,10 +40,36 @@ func apply_gravity(velocity: Vector2, delta: float, entity_type: String = "defau
 # Returns: The deceleration value
 func calculate_deceleration(speed: float, delta: float, effective_friction: float) -> float:
 	var physics_config = _core.get_physics_config()
-	var gravity = physics_config.gravity if physics_config else _core.default_gravity
 	
-	# Physics-based deceleration model: proportional to effective friction and gravity
-	var deceleration = effective_friction * gravity * delta
+	if not physics_config:
+		# Fallback to simple physics-based model if no config
+		var gravity = _core.default_gravity
+		var fallback_deceleration = effective_friction * gravity * delta
+		fallback_deceleration = min(fallback_deceleration, speed)
+		return fallback_deceleration
+	
+	# Get deceleration parameters from physics config
+	var base_decel = physics_config.deceleration_base
+	var speed_factor = physics_config.deceleration_speed_factor
+	var max_factor = physics_config.max_deceleration_factor
+	var frame_adjustment = physics_config.frame_rate_adjustment
+	
+	# Calculate deceleration using the parameters from config
+	# Base deceleration + speed-based component
+	var decel_factor = base_decel + (speed * speed_factor)
+	
+	# Cap at maximum deceleration factor
+	decel_factor = min(decel_factor, max_factor)
+	
+	# Apply to current speed, adjusted for framerate
+	var target_fps = frame_adjustment
+	var current_fps = 1.0 / delta
+	var fps_ratio = target_fps / current_fps
+	
+	var deceleration = speed * decel_factor * fps_ratio
+	
+	# Debug output
+	print("DEBUG: Deceleration calculation - Speed: %.2f, Factor: %.4f, Result: %.2f" % [speed, decel_factor, deceleration])
 	
 	# Ensure deceleration doesn't reverse velocity direction in one frame
 	deceleration = min(deceleration, speed)

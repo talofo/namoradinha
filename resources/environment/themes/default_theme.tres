@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnvironmentTheme" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://resources/environment/EnvironmentTheme.gd" id="1_yjk2e"]
+
+[resource]
+script = ExtResource("1_yjk2e")
+theme_id = "default"
+ground_tint = Color(1, 1, 1, 1)
+use_single_background = true
+background_tint = Color(1, 1, 1, 1)
+parallax_ratio = Vector2(0.5, 0.5)
+enable_effects = false
+effect_type = ""

@@ -1,0 +1,103 @@
+[gd_resource type="Resource" script_class="ContentDistribution" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/stage/resources/ContentDistribution.gd" id="1_yjk2p"]
+
+[resource]
+script = ExtResource("1_yjk2p")
+distribution_id = "default"
+content_categories = {
+"boosts": {
+"allowed_entities": ["SpeedPad"],
+"base_ratio_weight": 1.0,
+"placement_tag": "boost_marker"
+},
+"collectibles": {
+"allowed_entities": ["Coin"],
+"base_ratio_weight": 1.0,
+"placement_tag": "any"
+},
+"obstacles": {
+"allowed_entities": ["Rock"],
+"base_ratio_weight": 2.0,
+"placement_tag": "obstacle_marker"
+}
+}
+placement_constraints = {
+"disallowed_patterns": ["BOOST_OBSTACLE_BOOST"],
+"max_per_chunk": {
+"boosts": 2,
+"collectibles": 10,
+"obstacles": 5
+},
+"minimum_spacing": {
+"any_content": {
+"distance": 5.0
+},
+"boost": {
+"distance": 100.0
+},
+"collectible": {
+"distance": 10.0
+},
+"obstacle": {
+"distance": 1000.0
+},
+"obstacles": {
+"distance": 1000.0
+}
+},
+"pacing_rules": {}
+}
+randomization_ranges = {
+"obstacles": {
+"x_min": -2000.0,
+"x_max": 2000.0
+},
+"collectibles": {
+"x_min": -5.0,
+"x_max": 5.0
+},
+"boosts": {
+"x_min": -3.0,
+"x_max": 3.0
+}
+}
+height_zones = {
+"underground": {
+"y_min": -20.0,
+"y_max": -1.0
+},
+"ground": {
+"y": 0.0
+},
+"air": {
+"y_min": 30.0,
+"y_max": 60.0
+},
+"stratospheric": {
+"y_min": 80.0,
+"y_max": 120.0
+}
+}
+difficulty_scaling = {
+"flow_state": {
+"MID": {
+"allowed_entities": {
+"obstacles": ["+Rock"]
+},
+"density_multiplier": {
+"obstacles": 1.2
+}
+}
+},
+"global_difficulty": {
+"hard": {
+"max_per_chunk": {
+"obstacles": 7
+},
+"ratio_weights": {
+"obstacles": 3
+}
+}
+}
+}

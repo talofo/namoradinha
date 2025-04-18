@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://mmwdbdejnh3c"]
-
-[ext_resource type="PackedScene" uid="uid://dn7v1gtowq0c2" path="res://environment/ground/GroundManager.tscn" id="1_x4d3g"]
-
-[node name="Stage1" type="Node2D"]
-
-[node name="GroundManager" parent="." instance=ExtResource("1_x4d3g")]

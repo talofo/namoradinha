@@ -4,7 +4,7 @@ extends RefCounted
 # Reference to the motion system core
 var _core = null
 
-# Debug flag to enable/disable debug prints
+# Debug flag to enable/disable debug prints (disabled by default)
 var debug_enabled: bool = false
 
 func _init(core) -> void:

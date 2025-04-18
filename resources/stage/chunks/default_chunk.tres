@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ChunkDefinition" load_steps=2 format=3 uid="uid://bnoelol6dgsip"]
+
+[ext_resource type="Script" uid="uid://vyj4d3n0mqnd" path="res://scripts/stage/resources/ChunkDefinition.gd" id="1_yjk2p"]
+
+[resource]
+script = ExtResource("1_yjk2p")
+chunk_id = "default_chunk"
+chunk_type = "straight"
+layout_markers = Array[Dictionary]([{
+"height_zone": "ground",
+"intended_category": "obstacles",
+"name": "ObstacleMarker1",
+"placement_mode": "stable-random",
+"position": Vector2(2, 25),
+"tags": ["narrow", "obstacle_marker"]
+}])
+theme_tags = Array[String](["standard"])
+difficulty_rating = 1.0
+length = 100.0
+transition_chunk = false

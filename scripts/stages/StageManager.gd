@@ -1,5 +1,11 @@
 extends Node2D
 
+# DEPRECATED: This class is deprecated and will be removed in a future update.
+# New code should use the StageCompositionSystem instead.
+# This is currently only kept for backward compatibility with existing tests.
+
+# StageConfig is available globally via class_name
+
 var current_stage: Node = null
 
 func load_stage(stage_number: int) -> void:
@@ -16,11 +22,18 @@ func load_stage(stage_number: int) -> void:
 	current_stage = stage_resource.instantiate()
 	add_child(current_stage)
 
-	# Find the GroundManager within the loaded stage and set its number
-	# Assuming the GroundManager node is named "GroundManager" within the stage scene
-	var ground_manager = current_stage.find_child("GroundManager", true, false)
-	if ground_manager and ground_manager.has_method("set_stage_number"):
-		ground_manager.set_stage_number(stage_number)
-	else:
-		push_warning("GroundManager node not found or missing set_stage_number method in stage " + str(stage_number))
-		pass
+	# Stage is now loaded, ground creation is handled by SharedGroundManager through the EnvironmentSystem
+	
+	# Create stage config for environment system
+	var config = StageConfig.new()
+	config.stage_id = stage_number
+	
+	# Map stage_id to theme_id (customize as needed)
+	match stage_number:
+		1:
+			config.theme_id = "default"
+		_:
+			config.theme_id = "default"
+	
+	# Emit signal that will be caught by EnvironmentSystem
+	GlobalSignals.stage_loaded.emit(config)

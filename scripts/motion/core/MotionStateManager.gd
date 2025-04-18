@@ -13,24 +13,38 @@ func _init(core) -> void:
 func resolve_frame_motion(context: Dictionary) -> Dictionary:
 	var result = {}
 	
-	# Apply gravity if entity is launched
+	# Apply gravity if entity is launched and not in post-bounce period
 	if context.has("has_launched") and context.get("has_launched"):
-		var velocity = context.get("velocity", Vector2.ZERO)
-		var delta = context.get("delta", 0.01) # Fallback to 0.01 if no delta
-
-		# Get appropriate gravity based on entity type and mass
-		var entity_type = context.get("entity_type", "default")
-		var mass = context.get("mass", _core.physics_config.default_mass if _core.physics_config else 1.0)
+		var skip_gravity = context.get("skip_gravity", false)
 		
-		# Apply gravity
-		velocity = _core.physics_calculator.apply_gravity(velocity, delta, entity_type, mass)
-		result["velocity"] = velocity
+		if not skip_gravity:
+			var velocity = context.get("velocity", Vector2.ZERO)
+			var delta = context.get("delta", 0.01) # Fallback to 0.01 if no delta
+
+			# Get appropriate gravity based on entity type and mass
+			var entity_type = context.get("entity_type", "default")
+			var mass = context.get("mass", _core.physics_config.default_mass if _core.physics_config else 1.0)
+			
+			# Apply gravity
+			velocity = _core.physics_calculator.apply_gravity(velocity, delta, entity_type, mass)
+			result["velocity"] = velocity
+		else:
+			# Skip gravity, just pass through the current velocity
+			result["velocity"] = context.get("velocity", Vector2.ZERO)
 
 	# Get continuous motion modifiers
-	var motion_delta = _core.resolve_continuous_motion(
-		context.get("delta", 0.0), 
-		context.get("is_sliding", false)
-	)
+	var motion_delta: Vector2 = Vector2.ZERO # Declare motion_delta with default value
+	var player_node = context.get("player_node", null) # Extract player_node from context
+	if not is_instance_valid(player_node):
+		push_error("MotionStateManager: Invalid player_node in context for resolve_continuous_motion.")
+		# If player node is invalid, we can't resolve profile, skip continuous motion step
+		motion_delta = Vector2.ZERO 
+	else:
+		motion_delta = _core.resolve_continuous_motion(
+			player_node, # Pass player_node first
+			context.get("delta", 0.0),
+			context.get("is_sliding", false)
+		)
 	
 	# Apply continuous motion modifiers to velocity
 	if result.has("velocity"):
@@ -49,8 +63,8 @@ func resolve_frame_motion(context: Dictionary) -> Dictionary:
 func transition_to_sliding(velocity: Vector2) -> Dictionary:
 	var result = {}
 	
-	# Preserve x-velocity with a small reduction to make the transition smoother
-	var preserved_x_velocity = velocity.x * 0.98  # No velocity clamping to allow for unlimited jump heights
+	# Preserve x-velocity with minimal reduction to allow for longer slides
+	var preserved_x_velocity = velocity.x * 0.99  # Increased from 0.98 to 0.99 for longer slides
 	result["velocity"] = Vector2(preserved_x_velocity, 0.0)
 	result["has_launched"] = false
 	result["is_sliding"] = true
