@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://c8yvfgx2xqnkw"]
+
+[ext_resource type="Script" path="res://visual_background/VisualBackgroundSystem.gd" id="1_yvs2p"]
+[ext_resource type="Script" path="res://visual_background/ParallaxLayerController.gd" id="2_yvs2p"]
+
+[node name="VisualBackgroundSystem" type="Node2D"]
+script = ExtResource("1_yvs2p")
+
+[node name="ParallaxLayerController" type="ParallaxBackground" parent="."]
+script = ExtResource("2_yvs2p")

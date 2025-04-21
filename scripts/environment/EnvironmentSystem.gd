@@ -18,6 +18,7 @@ signal fallback_activated(manager_name, reason)
 # Child components
 @onready var ground_manager: GroundVisualManager = $GroundVisualManager
 @onready var effects_manager = $EffectsManager
+@onready var visual_background_system = $VisualBackgroundSystem
 
 # Ground management
 var shared_ground_manager = null
@@ -43,6 +44,9 @@ func _ready():
     if effects_manager:
         effects_manager.transition_completed.connect(_on_effects_transition_completed)
         effects_manager.fallback_activated.connect(_on_manager_fallback)
+    
+    if visual_background_system:
+        visual_background_system.transition_completed.connect(_on_background_transition_completed)
     
     # Connect to global signals
     GlobalSignals.stage_loaded.connect(apply_stage_config)
@@ -98,6 +102,9 @@ func get_theme_by_id(theme_id: String) -> EnvironmentTheme:
         return theme_database.get_theme(theme_id)
     return null
 
+func get_theme_database() -> ThemeDatabase:
+    return theme_database
+
 func change_biome(biome_id: String) -> void:
     if current_biome_id == biome_id and _motion_profile_resolver and _motion_profile_resolver._ground_config and _motion_profile_resolver._ground_config.biome_id == biome_id:
         # Avoid redundant updates if biome hasn't actually changed
@@ -133,8 +140,14 @@ func _apply_theme(theme: EnvironmentTheme) -> void:
     else:
         _on_manager_transition_completed("ground")
     
-    # Background manager has been removed
-    _on_manager_transition_completed("background")
+    # Apply to visual background system
+    if visual_background_system:
+        var visual_bg_theme = _get_visual_background_theme(theme.theme_id)
+        if visual_bg_theme:
+            visual_background_system.apply_theme(visual_bg_theme)
+        # The visual_background_system will emit its own transition_completed signal
+    else:
+        _on_manager_transition_completed("background")
     
     # Apply to effects manager
     if effects_manager:
@@ -145,6 +158,12 @@ func _apply_theme(theme: EnvironmentTheme) -> void:
     # Signal that visuals are being updated
     visuals_updated.emit(theme.theme_id, current_biome_id)
 
+# Get the visual background theme configuration
+func _get_visual_background_theme(theme_id: String) -> Resource:
+    if theme_database:
+        return theme_database.get_visual_background_theme(theme_id)
+    return null
+
 func _start_transition() -> void:
     _active_transition = true
     _pending_transitions.clear()
@@ -152,7 +171,8 @@ func _start_transition() -> void:
     # Register expected transitions
     if ground_manager:
         _pending_transitions["ground"] = true
-    # Background manager has been removed
+    if visual_background_system:
+        _pending_transitions["background"] = true
     if effects_manager:
         _pending_transitions["effects"] = true
     
@@ -165,6 +185,9 @@ func _on_ground_transition_completed() -> void:
 
 func _on_effects_transition_completed() -> void:
     _on_manager_transition_completed("effects")
+
+func _on_background_transition_completed() -> void:
+    _on_manager_transition_completed("background")
 
 func _on_manager_transition_completed(manager_name: String) -> void:
     if _pending_transitions.has(manager_name):

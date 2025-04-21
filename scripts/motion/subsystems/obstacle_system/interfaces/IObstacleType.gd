@@ -7,7 +7,7 @@ extends RefCounted
 # context: An ObstacleContext object containing current state.
 # config: Configuration data for this obstacle type.
 # Returns: Modified velocity vector after applying the effect.
-func apply_effect(context: ObstacleContext, config: Dictionary) -> Vector2:
+func apply_effect(context: ObstacleContext, _config: Dictionary) -> Vector2:
 	push_error("IObstacleType.apply_effect() must be implemented by subclasses")
 	return context.entity_velocity
 
@@ -15,7 +15,7 @@ func apply_effect(context: ObstacleContext, config: Dictionary) -> Vector2:
 # context: An ObstacleContext object containing current state.
 # config: Configuration data for this obstacle type.
 # Returns: True if the obstacle can affect the entity, false otherwise.
-func can_affect(context: ObstacleContext, config: Dictionary) -> bool:
+func can_affect(_context: ObstacleContext, _config: Dictionary) -> bool:
 	push_error("IObstacleType.can_affect() must be implemented by subclasses")
 	return false
 
@@ -24,7 +24,7 @@ func can_affect(context: ObstacleContext, config: Dictionary) -> bool:
 # config: Configuration data for this obstacle type.
 # result_velocity: The velocity after applying the effect.
 # Returns: A string with debug information.
-func get_debug_info(context: ObstacleContext, config: Dictionary, result_velocity: Vector2) -> String:
+func get_debug_info(_context: ObstacleContext, _config: Dictionary, _result_velocity: Vector2) -> String:
 	return "Obstacle effect applied: %s" % get_type_name()
 
 # Get the name of this obstacle type.
