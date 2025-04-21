@@ -17,7 +17,6 @@ signal fallback_activated(manager_name, reason)
 
 # Child components
 @onready var ground_manager: GroundVisualManager = $GroundVisualManager
-@onready var background_manager = $BackgroundManager
 @onready var effects_manager = $EffectsManager
 
 # Ground management
@@ -40,10 +39,6 @@ func _ready():
     if ground_manager:
         ground_manager.transition_completed.connect(_on_ground_transition_completed)
         ground_manager.fallback_activated.connect(_on_manager_fallback)
-    
-    if background_manager:
-        background_manager.transition_completed.connect(_on_background_transition_completed)
-        background_manager.fallback_activated.connect(_on_manager_fallback)
     
     if effects_manager:
         effects_manager.transition_completed.connect(_on_effects_transition_completed)
@@ -138,11 +133,8 @@ func _apply_theme(theme: EnvironmentTheme) -> void:
     else:
         _on_manager_transition_completed("ground")
     
-    # Apply to background manager
-    if background_manager:
-        background_manager.apply_theme(theme)
-    else:
-        _on_manager_transition_completed("background")
+    # Background manager has been removed
+    _on_manager_transition_completed("background")
     
     # Apply to effects manager
     if effects_manager:
@@ -160,8 +152,7 @@ func _start_transition() -> void:
     # Register expected transitions
     if ground_manager:
         _pending_transitions["ground"] = true
-    if background_manager:
-        _pending_transitions["background"] = true
+    # Background manager has been removed
     if effects_manager:
         _pending_transitions["effects"] = true
     
@@ -171,9 +162,6 @@ func _start_transition() -> void:
 
 func _on_ground_transition_completed() -> void:
     _on_manager_transition_completed("ground")
-
-func _on_background_transition_completed() -> void:
-    _on_manager_transition_completed("background")
 
 func _on_effects_transition_completed() -> void:
     _on_manager_transition_completed("effects")
@@ -195,16 +183,12 @@ func _on_manager_fallback(reason: String) -> void:
     # Determine which manager triggered the fallback
     if reason.begins_with("GroundVisualManager"):
         manager_name = "ground"
-    elif reason.begins_with("BackgroundManager"):
-        manager_name = "background"
     elif reason.begins_with("EffectsManager"):
         manager_name = "effects"
     
     # For missing textures that don't specify the manager
     if reason.contains("ground texture"):
         manager_name = "ground"
-    elif reason.contains("background texture"):
-        manager_name = "background"
     
     if debug_mode:
         print("Fallback in " + manager_name + ": " + reason)

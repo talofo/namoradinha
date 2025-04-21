@@ -8,7 +8,6 @@ The Environment System follows a manager-based architecture:
 
 ```mermaid
 graph TD
-    EnvironmentSystem[EnvironmentSystem] --> BackgroundManager
     EnvironmentSystem[EnvironmentSystem] --> EffectsManager
     EnvironmentSystem[EnvironmentSystem] --> GroundVisualManager
     EnvironmentSystem --> SharedGroundManager
@@ -31,7 +30,6 @@ graph TD
    - Coordinates visual transitions between themes
 
 2. **Visual Managers**:
-   - **BackgroundManager**: Handles background layers and parallax effects
    - **EffectsManager**: Manages visual effects like particles and animations
    - **GroundVisualManager**: Controls the appearance of ground surfaces
 
@@ -132,7 +130,7 @@ To create a custom theme:
 ```gdscript
 var theme = EnvironmentTheme.new()
 theme.theme_id = "custom_theme"
-theme.background_texture = preload("res://path/to/background.png")
+theme.ground_texture = preload("res://path/to/ground.png")
 # Set other properties...
 
 var theme_database = preload("res://resources/environment/theme_database.tres")

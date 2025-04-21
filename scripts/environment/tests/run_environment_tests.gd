@@ -7,7 +7,6 @@ extends SceneTree
 const TEST_FILES = [
 	"res://scripts/environment/tests/test_environment_system.gd",
 	"res://scripts/environment/tests/test_ground_visual_manager.gd",
-	"res://scripts/environment/tests/test_background_manager.gd",
 	"res://scripts/environment/tests/test_effects_manager.gd",
 	"res://scripts/environment/tests/test_environment_integration.gd"
 ]

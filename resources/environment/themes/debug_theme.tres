@@ -1,13 +1,10 @@
-[gd_resource type="Resource" script_class="EnvironmentTheme" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EnvironmentTheme" load_steps=2 format=3 uid="uid://e3bpajutpv0j"]
 
-[ext_resource type="Script" path="res://resources/environment/EnvironmentTheme.gd" id="1_yjk2e"]
+[ext_resource type="Script" uid="uid://cfxafgri4ovuf" path="res://resources/environment/EnvironmentTheme.gd" id="1_jdj10"]
 
 [resource]
-script = ExtResource("1_yjk2e")
+script = ExtResource("1_jdj10")
 theme_id = "debug"
 ground_tint = Color(1, 0, 1, 1)
-use_single_background = true
-background_tint = Color(0.7, 0, 0.7, 1)
-parallax_ratio = Vector2(0.5, 0.5)
 enable_effects = false
 effect_type = ""

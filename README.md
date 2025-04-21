@@ -26,7 +26,6 @@ graph TD
     MotionSystemCore --> CollisionMotionResolver
     MotionSystemCore --> ContinuousMotionResolver
     
-    EnvironmentSystem --> BackgroundManager
     EnvironmentSystem --> EffectsManager
     EnvironmentSystem --> GroundVisualManager
     
@@ -52,9 +51,9 @@ graph TD
    - `MotionSystemCore.gd`: Core implementation with subsystem management
    - Various subsystems for specific motion behaviors (bounce, boost, etc.)
 
-3. **Environment System**: Manages visual aspects like backgrounds, effects, and ground.
+3. **Environment System**: Manages visual aspects like effects and ground.
    - `EnvironmentSystem.gd`: Coordinates environment managers
-   - `BackgroundManager.gd`, `EffectsManager.gd`, `GroundVisualManager.gd`: Handle specific visual elements
+   - `EffectsManager.gd`, `GroundVisualManager.gd`: Handle specific visual elements
 
 4. **Stage Composition System**: Dynamically generates and manages the game stage.
    - `StageCompositionSystem.gd`: Facade for stage generation
