@@ -13,6 +13,7 @@ script = ExtResource("1_i75et")
 [node name="CameraManager" parent="." instance=ExtResource("1_m71xk")]
 
 [node name="PlayerSpawner" parent="." instance=ExtResource("2_i75et")]
+spawn_position = Vector2(0, 800)
 launch_power = 0.6
 
 [node name="StageCompositionSystem" parent="." instance=ExtResource("3_adwu5")]

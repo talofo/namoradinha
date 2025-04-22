@@ -15,7 +15,7 @@
 [sub_resource type="Resource" id="Resource_pk3e5"]
 script = ExtResource("2_4dtbj")
 texture = ExtResource("3_y7ld0")
-offset = Vector2(0, 0)
+offset = Vector2(0, -379)
 scale = Vector2(1, 1)
 z_index = 0
 modulate = Color(1, 1, 1, 1)
@@ -27,7 +27,7 @@ metadata/_custom_type_script = "uid://bosr5hh8fx6jb"
 [sub_resource type="Resource" id="Resource_s2v0h"]
 script = ExtResource("2_4dtbj")
 texture = ExtResource("4_siarf")
-offset = Vector2(0, 0)
+offset = Vector2(0, -379)
 scale = Vector2(1, 1)
 z_index = 1
 modulate = Color(1, 1, 1, 1)
@@ -46,7 +46,7 @@ z_index = 0
 [sub_resource type="Resource" id="Resource_82qsq"]
 script = ExtResource("2_4dtbj")
 texture = ExtResource("5_fudxm")
-offset = Vector2(0, 0)
+offset = Vector2(0, -379)
 scale = Vector2(1, 1)
 z_index = 0
 modulate = Color(1, 1, 1, 1)
@@ -58,7 +58,7 @@ metadata/_custom_type_script = "uid://bosr5hh8fx6jb"
 [sub_resource type="Resource" id="Resource_3ra3o"]
 script = ExtResource("2_4dtbj")
 texture = ExtResource("6_8tato")
-offset = Vector2(0, 0)
+offset = Vector2(0, -379)
 scale = Vector2(1, 1)
 z_index = 1
 modulate = Color(1, 1, 1, 1)
@@ -70,7 +70,7 @@ metadata/_custom_type_script = "uid://bosr5hh8fx6jb"
 [sub_resource type="Resource" id="Resource_jqqfy"]
 script = ExtResource("2_4dtbj")
 texture = ExtResource("7_bpa43")
-offset = Vector2(0, 0)
+offset = Vector2(0, -379)
 scale = Vector2(1, 1)
 z_index = 2
 modulate = Color(1, 1, 1, 1)
@@ -90,7 +90,7 @@ metadata/_custom_type_script = "uid://davl0jyys8n3v"
 [sub_resource type="Resource" id="Resource_f4blp"]
 script = ExtResource("2_4dtbj")
 texture = ExtResource("8_cwrti")
-offset = Vector2(0, 0)
+offset = Vector2(0, -379)
 scale = Vector2(1, 1)
 z_index = 0
 modulate = Color(1, 1, 1, 1)
@@ -110,7 +110,7 @@ metadata/_custom_type_script = "uid://davl0jyys8n3v"
 [sub_resource type="Resource" id="Resource_wc458"]
 script = ExtResource("2_4dtbj")
 texture = ExtResource("9_ayjf8")
-offset = Vector2(0, 0)
+offset = Vector2(0, -379)
 scale = Vector2(1, 1)
 z_index = 0
 modulate = Color(1, 1, 1, 1)
@@ -127,10 +127,10 @@ elements = Array[ExtResource("2_4dtbj")]([SubResource("Resource_wc458")])
 z_index = 4
 metadata/_custom_type_script = "uid://davl0jyys8n3v"
 
-[sub_resource type="Resource" id="Resource_1rrw5"]
+[sub_resource type="Resource" id="Resource_y7ld0"]
 script = ExtResource("2_4dtbj")
 texture = ExtResource("10_ensqi")
-offset = Vector2(0, 0)
+offset = Vector2(0, -469)
 scale = Vector2(1, 1)
 z_index = 0
 modulate = Color(1, 1, 1, 1)
@@ -143,7 +143,7 @@ metadata/_custom_type_script = "uid://bosr5hh8fx6jb"
 script = ExtResource("2_yjk2e")
 layer_name = &"ground"
 parallax_ratio = Vector2(1, 1)
-elements = Array[ExtResource("2_4dtbj")]([SubResource("Resource_1rrw5")])
+elements = Array[ExtResource("2_4dtbj")]([SubResource("Resource_y7ld0")])
 z_index = 5
 metadata/_custom_type_script = "uid://davl0jyys8n3v"
 
