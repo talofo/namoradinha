@@ -60,6 +60,58 @@ The Environment System uses a theme-based approach to visual styling:
    - Each manager handles its specific visual elements
    - Transitions are coordinated to ensure smooth visual changes
 
+## Biome System Architecture
+
+The biome system is designed with a modular, expandable architecture:
+
+### Current Implementation
+
+Currently, biomes primarily affect ground physics through `GroundPhysicsConfig` resources:
+- Resources are stored as `resources/motion/profiles/ground/{biome_id}_ground.tres`
+- Each biome has specific ground physics properties (friction, bounce, etc.)
+- The `_ground` suffix in filenames indicates these resources specifically control ground physics
+
+```mermaid
+graph TD
+    A[EnvironmentSystem] -->|change_biome| B[MotionProfileResolver]
+    B -->|loads| C["{biome_id}_ground.tres"]
+    C -->|applies to| D[Player Physics]
+```
+
+### Planned Expansion
+
+The biome system is designed to expand beyond ground physics in the future:
+
+1. **Air Physics**: Future air-related configs will define biome-specific air properties
+   - Referenced in code comments as `_air_config`
+   - Would likely handle wind effects and air movement
+
+2. **Environmental Forces**: As mentioned in the Motion System README
+   - Environmental forces like wind and currents
+   - Biome-specific environmental effects
+
+3. **Theme Integration**: 
+   - Comment in EnvironmentSystem.gd: "In the future, biomes might affect theme selection"
+
+### Interaction with Equipment and Traits
+
+The Motion System's layered physics resolution allows biomes to interact with player equipment and traits:
+
+```mermaid
+graph TD
+    A[MotionProfileResolver] --> B[Layer 4: Global Physics Config]
+    A --> C[Layer 3: Biome/Ground Physics]
+    A --> D[Layer 2: Equipment + Traits]
+    A --> E[Layer 1: Temporary Modifiers]
+```
+
+This architecture enables gameplay mechanics like:
+- Equipment that counters specific biome challenges (e.g., ice boots in a slippery biome)
+- Traits that provide advantages in certain environments
+- Specialized gear for different biome types
+
+For more details on this interaction, see the "Physics Resolution Architecture" section in the Motion System README.
+
 ## Integration with Physics and Stage Systems
 
 The Environment System integrates with other systems in several ways:

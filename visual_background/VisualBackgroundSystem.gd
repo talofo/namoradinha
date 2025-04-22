@@ -18,6 +18,7 @@ var theme_database
 
 # State
 var current_theme_name: String = ""
+var initial_camera_position: Vector2 = Vector2.ZERO
 
 func _ready():
 	# Setup references to dependencies (adjust based on your project structure)
@@ -26,6 +27,10 @@ func _ready():
 		environment_system = get_node_or_null("../")  # Try to get parent if we're a child of EnvironmentSystem
 	
 	camera_manager = get_node_or_null("/root/Game/CameraManager")
+	
+	# Get initial camera position if available
+	if camera_manager:
+		initial_camera_position = camera_manager.get_camera_position()
 	
 	# Get theme database from environment system if possible
 	if environment_system and environment_system.has_method("get_theme_database"):
@@ -74,8 +79,8 @@ func apply_theme(theme_config: Resource):
 	# Clear existing layers
 	parallax_controller.clear_layers()
 	
-	# Build new layers from theme config
-	parallax_controller.build_layers(theme_config.layers)
+	# Build new layers from theme config with initial camera position
+	parallax_controller.build_layers(theme_config.layers, initial_camera_position)
 	
 	# Emit signals for other systems
 	theme_changed.emit(current_theme_name)

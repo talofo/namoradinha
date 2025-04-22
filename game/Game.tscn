@@ -20,3 +20,4 @@ launch_power = 0.6
 [node name="MotionSystem" parent="." instance=ExtResource("6_knu3h")]
 
 [node name="EnvironmentSystem" parent="." instance=ExtResource("5_knu3h")]
+debug_mode = false

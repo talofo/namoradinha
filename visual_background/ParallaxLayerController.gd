@@ -14,11 +14,14 @@ var draw_call_estimate: int = 0
 # Internal tracking
 var active_layers = {}  # Dictionary to track created layers by name
 
-func build_layers(layer_configs: Array):
+func build_layers(layer_configs: Array, initial_position: Vector2 = Vector2.ZERO):
 	# Reset performance counters
 	texture_memory_usage = 0
 	active_layer_count = 0
 	draw_call_estimate = 0
+	
+	# Set the initial scroll offset based on the initial camera position
+	scroll_offset = initial_position
 	
 	# Process each layer config
 	for config in layer_configs:
@@ -32,6 +35,9 @@ func build_layers(layer_configs: Array):
 		parallax_layer.z_index = config.z_index
 		parallax_layer.name = "Layer_" + str(config.layer_name)
 		
+		# Get the viewport size (needed for potential future use, keep it for now)
+		var viewport_size = get_viewport().get_visible_rect().size
+
 		# Process each element in the layer
 		for element in config.elements:
 			# Skip if invalid element
@@ -41,11 +47,38 @@ func build_layers(layer_configs: Array):
 			# Create sprite for this element
 			var sprite = Sprite2D.new()
 			sprite.texture = element.texture
-			sprite.position = element.offset
+			
+			# Calculate sprite position relative to the ParallaxLayer origin (0,0)
+			# Position the sprite so its center aligns horizontally with the texture center,
+			# and its bottom edge aligns vertically with the layer's origin (y=0).
+			var sprite_position = element.offset # Start with the element's defined offset
+			if element.texture:
+				var texture_size = element.texture.get_size() * element.scale
+				sprite_position.x += texture_size.x / 2.0 # Center horizontally
+				sprite_position.y += texture_size.y / 2.0 # Align bottom edge to y=0
+
+				# Set motion mirroring for horizontal tiling using the texture width
+				# This applies to ALL layers, including ground, ensuring they tile correctly.
+				parallax_layer.motion_mirroring.x = element.texture.get_width()
+				# Ensure vertical mirroring is off unless specified otherwise (though not typical for backgrounds)
+				# parallax_layer.motion_mirroring.y = 0 # Default is 0, so explicit set might not be needed
+
+				# Add a debug print to show the sprite position and mirroring
+				print("[ParallaxLayerController] Element positioned at: ", sprite_position,
+					" (texture size: ", texture_size, ", layer: ", config.layer_name, ")",
+					" Mirroring.x: ", parallax_layer.motion_mirroring.x)
+
+			sprite.position = sprite_position
 			sprite.scale = element.scale
 			sprite.modulate = element.modulate
 			sprite.z_index = element.z_index
-			
+			print("[ParallaxLayerController]   Creating Sprite2D for element with texture: ", element.texture.resource_path if element.texture else "None",
+				"\n      - Final Position: ", sprite.position,
+				"\n      - Base offset: ", element.offset,
+				"\n      - Layer type: ", config.layer_name,
+				"\n      - Parallax ratio: ", config.parallax_ratio,
+				"\n      - Mirroring: ", parallax_layer.motion_mirroring) # DEBUG PRINT
+
 			# Track approximate texture memory (very rough estimate)
 			if element.texture:
 				var tex_size = element.texture.get_width() * element.texture.get_height() * 4  # 4 bytes per pixel (RGBA)
@@ -53,35 +86,10 @@ func build_layers(layer_configs: Array):
 			
 			# Estimate draw calls (very rough)
 			draw_call_estimate += 1
-			
-			# Handle tiling mode
-			match element.tiling_mode:
-				0:  # None
-					sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_DISABLED
-				1:  # Horizontal
-					sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-					# Setup horizontal tiling (depends on your implementation)
-					var viewport_size = get_viewport().get_visible_rect().size
-					sprite.region_enabled = true
-					sprite.region_rect = Rect2(0, 0, viewport_size.x * 2, element.texture.get_height())
-				2:  # Vertical
-					sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-					# Setup vertical tiling (depends on your implementation)
-					var viewport_size = get_viewport().get_visible_rect().size
-					sprite.region_enabled = true
-					sprite.region_rect = Rect2(0, 0, element.texture.get_width(), viewport_size.y * 2)
-				3:  # Both
-					sprite.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
-					# Setup tiling in both directions
-					var viewport_size = get_viewport().get_visible_rect().size
-					sprite.region_enabled = true
-					sprite.region_rect = Rect2(0, 0, viewport_size.x * 2, viewport_size.y * 2)
-			
-			# Apply any region settings
-			if element.region_enabled:
-				sprite.region_enabled = true
-				sprite.region_rect = element.region_rect
-			
+
+			# Tiling is now handled by ParallaxLayer.motion_mirroring set earlier.
+			# The old Sprite2D region/repeat logic is removed.
+
 			# Add sprite to layer
 			parallax_layer.add_child(sprite)
 		
@@ -124,5 +132,6 @@ func clear_layers():
 
 func update_scroll(camera_position: Vector2):
 	# Update the scroll offset based on camera position
-	# ParallaxBackground handles the differential scrolling automatically
+	# ParallaxBackground handles the differential scrolling automatically based on each layer's motion_scale
+	# This works in conjunction with our initial layer positioning to maintain proper parallax effect
 	scroll_offset = camera_position

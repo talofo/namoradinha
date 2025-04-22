@@ -5,7 +5,7 @@ extends Resource
 @export var target_difficulty: String = "low" # E.g., "low", "medium", "hard"
 @export var flow_profile: Array[String] = ["low", "mid", "low"] # Sequence of flow states (e.g., "low", "rising", "mid", "high", "falling")
 @export var chunk_count_estimate: int = 10 # Estimation for fallback length/progress
-@export var theme: String = "forest"
+@export var theme: String = "default"
 @export var launch_event_type: String = "player_start" # For Story Mode start. E.g., "player_start", "npc_kick", "automatic"
 @export var story_end_condition: Dictionary = { # For Story Mode end.
     "type": "distance", # "distance" | "event"
@@ -22,7 +22,7 @@ extends Resource
 @export var unlock_condition: String = "" # Placeholder for progression gating
 @export var chunk_selection: Dictionary = { # Rules for procedural chunk selection
     "allowed_types": ["straight_easy", "curve_left_easy"], # List of ChunkDefinition.chunk_type
-    "theme_tags": ["forest", "standard"] # List of tags to match ChunkDefinition.theme_tags
+    "theme_tags": ["default", "standard"] # List of tags to match ChunkDefinition.theme_tags
 }
 @export var content_distribution_id: String = "default" # ID linking to a ContentDistribution resource
 @export var debug_markers: bool = false # Enable debug visualizations

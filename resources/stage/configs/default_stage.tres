@@ -1,19 +1,22 @@
-[gd_resource type="Resource" script_class="StageCompositionConfig" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="StageCompositionConfig" load_steps=2 format=3 uid="uid://crukxx3mplw03"]
 
-[ext_resource type="Script" path="res://scripts/stage/resources/StageConfig.gd" id="1_yjk2p"]
+[ext_resource type="Script" uid="uid://c6hgnaey5id50" path="res://scripts/stage/resources/StageConfig.gd" id="1_yjk2p"]
 
 [resource]
 script = ExtResource("1_yjk2p")
 id = "default_stage"
 target_difficulty = "low"
-flow_profile = ["low", "mid", "low"]
+flow_profile = Array[String](["low", "mid", "low"])
 chunk_count_estimate = 10
-theme = "forest"
+theme = "default"
 launch_event_type = "player_start"
 story_end_condition = {
 "type": "distance",
 "value": 1000.0
 }
+next_stage_logic = {}
+mandatory_events = Array[Dictionary]([])
+unlock_condition = ""
 chunk_selection = {
 "allowed_types": ["straight", "straight_easy", "curve_left_easy", "curve_right_easy"],
 "theme_tags": ["standard"]

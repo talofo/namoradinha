@@ -68,6 +68,113 @@ The Motion System is configured through several resource files:
 - **PhysicsConfig (`resources/physics/default_physics.tres`)**: Global physics parameters
 - **GroundPhysicsConfig (`resources/motion/profiles/ground/*.tres`)**: Biome-specific ground physics
 
+## Physics Resolution Architecture
+
+The Motion System uses a layered approach to resolve physics parameters, allowing different sources to influence the final behavior in a predictable, priority-based manner.
+
+### Layered Resolution Model
+
+```mermaid
+graph TD
+    A[MotionProfileResolver] --> B[Layer 4: Global Physics Config]
+    A --> C[Layer 3: Biome/Ground Physics]
+    A --> D[Layer 2: Equipment + Traits]
+    A --> E[Layer 1: Temporary Modifiers]
+    
+    F[Player] --> |Context| A
+    A --> |Resolved Profile| F
+```
+
+Physics parameters are resolved by applying configurations in reverse priority order (lowest priority first):
+
+1. **Layer 4: Global Physics Config**
+   - Source: `PhysicsConfig` (`resources/physics/default_physics.tres`)
+   - Purpose: Defines baseline physics parameters for the entire game
+   - Examples: Bounce thresholds, material properties, boost strengths
+
+2. **Layer 3: Biome/Ground Physics**
+   - Source: `GroundPhysicsConfig` (`resources/motion/profiles/ground/{biome_id}_ground.tres`)
+   - Purpose: Defines environment-specific physics modifications
+   - Examples: Ice has low friction, mud has high drag
+   - Future: May expand to include air physics, water physics, etc.
+
+3. **Layer 2: Equipment + Traits** (Planned)
+   - Source: Future `EquipmentProfile` and `TraitProfile` resources
+   - Purpose: Defines character-specific physics modifications
+   - Examples: Ice boots increase friction on ice, lightweight trait reduces gravity
+
+4. **Layer 1: Temporary Modifiers** (Planned)
+   - Source: Status effects, powerups, environmental conditions
+   - Purpose: Defines temporary physics modifications
+   - Examples: Speed boost, slowing effect, wind gust
+
+### Resolution Process
+
+The `MotionProfileResolver.resolve_motion_profile()` method:
+
+1. Starts with default values for all parameters
+2. Applies each configuration layer in sequence
+3. Later layers can override values from earlier layers
+4. Tracks the source of each parameter for debugging
+5. Returns a complete profile with all resolved parameters
+
+### Biome and Equipment Interaction
+
+This layered approach enables sophisticated interactions between biomes and character equipment:
+
+```gdscript
+# Example scenario: Player with ice boots in a mud biome
+
+# Layer 4: Global Physics (baseline values)
+# friction = 0.2 (default)
+
+# Layer 3: Mud Biome (environment-specific)
+# friction = 0.4 (high friction from mud)
+
+# Layer 2: Ice Boots (character-specific)
+# friction = 0.1 (low friction from boots)
+
+# Result: friction = 0.1 (equipment overrides biome)
+```
+
+This allows for gameplay mechanics like:
+- Equipment that counters specific biome challenges
+- Traits that provide advantages in certain environments
+- Specialized gear for different environmental conditions
+
+### Implementation Status
+
+- **Implemented**: Layers 4 (Global) and 3 (Biome)
+- **Planned**: Layers 2 (Equipment/Traits) and 1 (Temporary)
+
+### Extending the System
+
+To add new configuration sources:
+
+1. Define a new config class (e.g., `AirPhysicsConfig`)
+2. Add a member variable in `MotionProfileResolver` (e.g., `_air_config`)
+3. Create a setter method (e.g., `set_air_config()`)
+4. Add a loading method (e.g., `update_air_config_for_biome()`)
+5. Update the `resolve_motion_profile()` method to apply the new config
+6. Create resource files (e.g., `default_air.tres`, `forest_air.tres`)
+
+### Debugging
+
+The system tracks the source of each parameter, allowing you to see which layer provided each value:
+
+```gdscript
+# Enable debug output
+motion_profile_resolver.set_debug_enabled(true)
+
+# Output example:
+# MotionProfileResolver: Resolved profile for player 12345:
+#   - friction: 0.100 (equipment)
+#   - bounce: 0.800 (default)
+#   - drag: 0.300 (ground)
+```
+
+This helps diagnose unexpected behavior and verify that overrides are working correctly.
+
 ## Usage
 
 ### Integrating with Player Character
