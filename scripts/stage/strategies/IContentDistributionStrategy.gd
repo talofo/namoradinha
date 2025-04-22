@@ -136,6 +136,26 @@ func validate_placement(
 					[content_category, content_type, current_count, max_count])
 			return false
 	
+	# Check distance from player spawn point (only for obstacles)
+	if content_category == "obstacles":
+		# Player spawn is at Vector2(0, 800)
+		var spawn_x = 0.0
+		var spawn_y = 800.0
+		
+		# Calculate distance to spawn point
+		var dx = width_offset - spawn_x
+		var dz = distance_along_chunk - spawn_y
+		var distance_to_spawn = sqrt(dx*dx + dz*dz)
+		
+		# Define minimum safe distance from spawn (adjust as needed)
+		var min_spawn_distance = 4000.0
+		
+		if distance_to_spawn < min_spawn_distance:
+			if _debug_enabled:
+				print("DEBUG: Placement validation failed for %s/%s: Too close to player spawn point (distance: %f, min required: %f)" % 
+					[content_category, content_type, distance_to_spawn, min_spawn_distance])
+			return false
+	
 	# All checks passed
 	if _debug_enabled:
 		print("DEBUG: Placement validation result for %s/%s: VALID" % [content_category, content_type])

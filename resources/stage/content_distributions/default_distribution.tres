@@ -18,7 +18,7 @@ content_categories = {
 },
 "obstacles": {
 "allowed_entities": ["Rock"],
-"base_ratio_weight": 2.0,
+"base_ratio_weight": 6.0,
 "placement_tag": "obstacle_marker"
 }
 }
@@ -40,10 +40,10 @@ placement_constraints = {
 "distance": 10.0
 },
 "obstacle": {
-"distance": 1000.0
+"distance": 150.0
 },
 "obstacles": {
-"distance": 1000.0
+"distance": 150.0
 }
 },
 "pacing_rules": {}

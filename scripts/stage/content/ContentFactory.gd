@@ -103,19 +103,26 @@ func _get_scene_path(category: String, content_type: String) -> String:
 		# Instead of just warning, register a placeholder for this content type
 		if category == "boosts" and content_type == "SpeedPad":
 			# Create a placeholder entry for SpeedPad
-			register_content_type(category, content_type, "res://obstacles/RockObstacle.tscn")
+			# register_content_type(category, content_type, "res://obstacles/RockObstacle.tscn") # Commented out
 			if debug_enabled:
-				print("ContentFactory: Created placeholder for %s/%s" % [category, content_type])
+				# print("ContentFactory: Created placeholder for %s/%s" % [category, content_type]) # Optional: comment out print too
+				push_warning("ContentFactory: No scene path defined for %s/%s. Placeholder logic commented out." % [category, content_type]) # Added warning
 		elif category == "collectibles" and content_type == "Coin":
 			# Create a placeholder entry for Coin
-			register_content_type(category, content_type, "res://obstacles/RockObstacle.tscn")
+			# register_content_type(category, content_type, "res://obstacles/RockObstacle.tscn") # Commented out
 			if debug_enabled:
-				print("ContentFactory: Created placeholder for %s/%s" % [category, content_type])
-		else:
-			if debug_enabled:
-				push_warning("ContentFactory: Unknown content type '%s' in category '%s'" % [content_type, category])
-			return ""
-	
+				# print("ContentFactory: Created placeholder for %s/%s" % [category, content_type]) # Optional: comment out print too
+				push_warning("ContentFactory: No scene path defined for %s/%s. Placeholder logic commented out." % [category, content_type]) # Added warning
+		# else: # Keep the original else for other unknown types
+		#	if debug_enabled:
+		#		push_warning("ContentFactory: Unknown content type '%s' in category '%s'" % [content_type, category])
+
+		# Since placeholders are commented out, return empty if not explicitly defined
+		if debug_enabled:
+			push_warning("ContentFactory: Unknown or undefined content type '%s' in category '%s'" % [content_type, category])
+		return "" # Return empty if not found or placeholder commented out
+
+	# Get the correct path from the dictionary (if it exists)
 	var scene_path = _content_paths[category][content_type]
 	if debug_enabled:
 		print("DEBUG: Scene path for %s/%s: %s" % [category, content_type, scene_path])
@@ -151,7 +158,7 @@ func _set_instance_position(instance: Node, distance: float, _height: float, wid
 		# Special case for obstacles (like rocks) - always place at ground level (y=0)
 		if instance is RockObstacle or (instance.get_groups().has("obstacles")):
 			# For obstacles, use width_offset for X and always set Y to 0
-			position_2d = Vector2(width_offset, 0)
+			position_2d = Vector2(width_offset, 710)  # 720 was adjusted manually and visually for the rock to fit the ground.
 			
 			# Use distance for z-index to handle depth sorting
 			# Higher distance = further away = lower z-index

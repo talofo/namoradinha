@@ -18,7 +18,7 @@ func distribute_content(
 	flow_state: FlowAndDifficultyController.FlowState, 
 	difficulty: String, 
 	content_rules: ContentDistribution, 
-	_current_placements_history: Array
+	current_placements_history: Array
 ) -> Array:
 	if _debug_enabled:
 		print("WeightedRandomStrategy: Distributing content for chunk '%s' with flow state %s and difficulty %s" % 
@@ -26,6 +26,19 @@ func distribute_content(
 	
 	# Clear used positions for this new distribution
 	_used_positions.clear()
+	
+	# Populate _used_positions from current_placements_history to ensure cross-chunk awareness
+	for placement in current_placements_history:
+		if placement.has("width_offset") and placement.has("height") and placement.has("distance_along_chunk"):
+			var pos = Vector3(
+				placement["width_offset"],
+				placement["height"],
+				placement["distance_along_chunk"]
+			)
+			_used_positions.append(pos)
+	
+	if _debug_enabled:
+		print("WeightedRandomStrategy: Loaded %d existing positions from placement history" % _used_positions.size())
 	
 	# Initialize result array
 	var placements = []
@@ -129,8 +142,15 @@ func distribute_content(
 					# Use sector-based placement for obstacles to ensure they're spread out
 					# Divide the available width into sectors based on target count
 					var total_width = 4000.0  # -2000 to 2000 = 4000 total width
-					var sector_width = total_width / target_count
+					
+					# Ensure sector width is reasonable and target_count is not zero
+					var effective_target_count = max(target_count, 1)
+					var sector_width = max(total_width / effective_target_count, 1500.0)
+					
+					# Calculate sector boundaries with better distribution
 					var sector_start = -2000.0 + (i * sector_width)
+					# Ensure sector_start stays within reasonable bounds
+					sector_start = clamp(sector_start, -2000.0, 2000.0 - sector_width)
 					var sector_end = sector_start + sector_width
 					
 					if _debug_enabled:
@@ -158,14 +178,44 @@ func distribute_content(
 						
 						# Check if this position is too close to any previously used position
 						var too_close_to_existing = false
-						for used_pos in _used_positions:
-							var dx = position.x - used_pos.x
-							var dz = position.z - used_pos.z
-							var distance = sqrt(dx*dx + dz*dz)
-							if distance < 1000.0:  # Increased minimum distance between obstacles from 100 to 1000
-								too_close_to_existing = true
-								break
 						
+						# First check against positions in the current chunk
+						for placement in placements:
+							if placement["category"] == "obstacles" or placement["category"] == "collectibles" or placement["category"] == "boosts":
+								var dx = position.x - placement["width_offset"]
+								var dz = position.z - placement["distance_along_chunk"]
+								var distance = sqrt(dx*dx + dz*dz)
+								
+								# Get minimum distance from constraints for the current category
+								var min_distance = constraints.get("minimum_spacing", {}).get(placement["category"], {}).get("distance", 5.0)
+								# Use a potentially larger distance when checking against obstacles specifically
+								if placement["category"] == "obstacles":
+									min_distance = max(min_distance, constraints.get("minimum_spacing", {}).get("obstacles", {}).get("distance", 100.0)) # Ensure we use obstacle spacing if larger
+
+								if distance < min_distance:
+									too_close_to_existing = true
+									if _debug_enabled:
+										print("WeightedRandomStrategy: Position (%f, %f) too close to existing %s (%f, %f), distance: %f" % 
+											[position.x, position.z, placement["category"], placement["width_offset"], placement["distance_along_chunk"], distance])
+									break
+						
+						# Then check against positions from other chunks
+						if not too_close_to_existing:
+							# Get the minimum distance for obstacles from constraints
+							var min_obstacle_distance = constraints.get("minimum_spacing", {}).get("obstacles", {}).get("distance", 100.0)
+
+							for used_pos in _used_positions:
+								var dx = position.x - used_pos.x
+								var dz = position.z - used_pos.z
+								var distance = sqrt(dx*dx + dz*dz)
+								# Check against the configured obstacle minimum distance
+								if distance < min_obstacle_distance:
+									too_close_to_existing = true
+									if _debug_enabled:
+										print("WeightedRandomStrategy: Position (%f, %f) too close to existing position (%f, %f), distance: %f (min: %f)" %
+											[position.x, position.z, used_pos.x, used_pos.z, distance, min_obstacle_distance]) # Added missing argument
+									break
+
 						if too_close_to_existing:
 							if _debug_enabled and attempt == 14:
 								print("WeightedRandomStrategy: Position too close to existing position, trying again")
@@ -309,7 +359,17 @@ func _calculate_target_counts(categories: Dictionary, constraints: Dictionary, c
 		var weight_ratio = categories[category_name]["base_ratio_weight"] / total_weight if total_weight > 0 else 0
 		var base_count = int(weight_ratio * 10 * density_factor)  # 10 is a base multiplier
 		
-		# Apply max_per_chunk constraint
+		# Apply category-specific multipliers to reduce obstacle count
+		# if category_name == "obstacles": # Removed hardcoded reduction and limit
+			# base_count = int(base_count * 0.2)  # Reduce obstacles by 80% - REMOVED
+			
+			# Hard limit on obstacles per chunk to prevent overcrowding
+			# base_count = min(base_count, 2)  # Maximum 2 obstacles per chunk - REMOVED
+			
+			# if _debug_enabled:
+				# print("WeightedRandomStrategy: Reducing obstacle count by 80%% to %s (hard limit: 2)" % str(base_count)) # REMOVED
+		
+		# Apply max_per_chunk constraint (Now uses value from .tres)
 		var max_count = constraints["max_per_chunk"].get(category_name, 999)
 		target_counts[category_name] = min(base_count, max_count)
 	
