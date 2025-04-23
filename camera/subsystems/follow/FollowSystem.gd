@@ -5,6 +5,7 @@ var _camera: Camera2D
 var _config: CameraConfig
 var _target: Node2D
 var _previous_position: Vector2
+var _smoothed_target_y: float = 0.0 # Variable to store the smoothly interpolated target Y
 
 func _init(camera: Camera2D, config: CameraConfig) -> void:
 	_camera = camera
@@ -21,16 +22,29 @@ func update(_delta: float) -> void:
 	if not _target or not _camera.enabled:
 		return
 
-	# Calculate the target position using the existing logic
-	var target_position = calculate_target_position()
+	# --- Calculate Ideal Target Y ---
+	var viewport_size = _camera.get_viewport().get_visible_rect().size
+	var ground_viewport_position = viewport_size.y * _config.ground_viewport_ratio
+	var locked_camera_y = -(viewport_size.y / 2) + ground_viewport_position
+	var ideal_target_y: float
 
-	# Smoothly interpolate towards the target position using lerp
-	# Calculate weight based on smoothing speed and delta time, clamped between 0 and 1
-	var weight = clamp(_config.smoothing_speed * _delta, 0.0, 1.0)
-	_camera.position = _camera.position.lerp(target_position, weight)
+	# Determine if the camera should follow the player's Y or lock
+	if _target.global_position.y < locked_camera_y - viewport_size.y * _config.follow_height_threshold:
+		ideal_target_y = _target.global_position.y # Follow player exactly if high enough
+	else:
+		ideal_target_y = locked_camera_y # Lock Y position otherwise
 
-	# Remove the limit_bottom setting as lerp handles the target position
-	# _camera.limit_bottom = int(camera_min_y_world)
+	# --- Smooth the Target Y ---
+	var vertical_weight = clamp(_config.vertical_smoothing_speed * _delta, 0.0, 1.0)
+	_smoothed_target_y = lerpf(_smoothed_target_y, ideal_target_y, vertical_weight)
+
+	# --- Construct Final Target Position ---
+	# Use player's current X and the smoothed target Y
+	var final_target_position = Vector2(_target.global_position.x, _smoothed_target_y)
+
+	# --- Smooth Camera Towards Final Target ---
+	var camera_weight = clamp(_config.smoothing_speed * _delta, 0.0, 1.0)
+	_camera.position = _camera.position.lerp(final_target_position, camera_weight)
 
 func set_target(target: Node2D) -> void:
 	_target = target # Keep storing the target reference if needed elsewhere
@@ -41,30 +55,17 @@ func set_target(target: Node2D) -> void:
 		# Re-enable manual initial adjustment.
 		_adjust_initial_camera_position()
 
-func calculate_target_position() -> Vector2:
-	if not _target:
-		return Vector2.ZERO
-		
-	var viewport_size = _camera.get_viewport().get_visible_rect().size
-	var ground_viewport_position = viewport_size.y * _config.ground_viewport_ratio
-	var camera_y_position = -(viewport_size.y / 2) + ground_viewport_position
-	
-	var target_position = _target.global_position
-	
-	if _target.global_position.y < camera_y_position - viewport_size.y * _config.follow_height_threshold:
-		target_position.y = _target.global_position.y
-	else:
-		target_position.y = camera_y_position
-		
-	return target_position
+# Removed calculate_target_position as logic is now in update()
 
 func _adjust_initial_camera_position() -> void:
 	if not _target:
 		return
-		
+
 	var viewport_size = _camera.get_viewport().get_visible_rect().size
 	var ground_viewport_position = viewport_size.y * _config.ground_viewport_ratio
 	var camera_y_position = -(viewport_size.y / 2) + ground_viewport_position
-	
+
+	# Set initial camera position and smoothed target Y
 	_camera.position.x = _target.global_position.x
 	_camera.position.y = camera_y_position
+	_smoothed_target_y = camera_y_position # Initialize smoothed Y to the initial locked position
