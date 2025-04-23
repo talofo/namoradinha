@@ -18,6 +18,11 @@ func _ready() -> void:
     if GlobalSignals.player_spawned.is_connected(_on_player_spawned):
         GlobalSignals.player_spawned.disconnect(_on_player_spawned)
     GlobalSignals.player_spawned.connect(_on_player_spawned)
+    
+    # Enable debug logging for camera system
+    if OS.is_debug_build():
+        Debug.toggle_system("CAMERA", true)
+        Debug.print("CAMERA", "Camera system initialized")
 
 func initialize_system() -> void:
     _config = CameraConfig.new()
@@ -25,7 +30,7 @@ func initialize_system() -> void:
     _follow_system.initialize()
     _previous_position = Vector2.ZERO
     _is_initialized = true
-    print("[CameraSystem] Initialized successfully")
+    Debug.print("CAMERA", "Initialized successfully")
 
 func _process(delta: float) -> void:
     if not _is_initialized:

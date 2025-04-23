@@ -26,19 +26,26 @@ func get_physics_config():
 
 # Enable or disable debug prints for the motion system
 func set_debug_enabled(enabled: bool) -> void:
+	Debug.toggle_system("MOTION", enabled)
 	_core.set_debug_enabled(enabled)
 
 # Register a subsystem with the motion system
 # subsystem: An object implementing the IMotionSubsystem interface
 # Returns: True if registration was successful, false otherwise
 func register_subsystem(subsystem) -> bool:
-	return _core.register_subsystem(subsystem)
+	var success = _core.register_subsystem(subsystem)
+	if success:
+		Debug.print("MOTION", "Registered subsystem:", subsystem.get_name())
+	return success
 
 # Unregister a subsystem from the motion system
 # subsystem_name: The name of the subsystem to unregister
 # Returns: True if unregistration was successful, false otherwise
 func unregister_subsystem(subsystem_name: String) -> bool:
-	return _core.unregister_subsystem(subsystem_name)
+	var success = _core.unregister_subsystem(subsystem_name)
+	if success:
+		Debug.print("MOTION", "Unregistered subsystem:", subsystem_name)
+	return success
 
 # Get a registered subsystem by name
 # subsystem_name: The name of the subsystem to get

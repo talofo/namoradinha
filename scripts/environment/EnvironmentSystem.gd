@@ -63,6 +63,9 @@ func _ready():
             var debug_overlay = debug_overlay_scene.instantiate()
             debug_overlay.environment_system = self
             add_child(debug_overlay)
+        
+        # Enable debug logging for this system
+        Debug.toggle_system("ENVIRONMENT", true)
 
 func apply_stage_config(config) -> void:
     if !config:
@@ -128,8 +131,7 @@ func _apply_theme(theme: EnvironmentTheme) -> void:
         push_error("EnvironmentSystem: Null theme provided")
         return
     
-    if debug_mode:
-        print("EnvironmentSystem: Applying theme: " + theme.theme_id)
+    Debug.print("ENVIRONMENT", "Applying theme:", theme.theme_id)
     
     # Begin transition tracking
     _start_transition()
@@ -213,8 +215,7 @@ func _on_manager_fallback(reason: String) -> void:
     if reason.contains("ground texture"):
         manager_name = "ground"
     
-    if debug_mode:
-        print("Fallback in " + manager_name + ": " + reason)
+    Debug.print("ENVIRONMENT", "Fallback in " + manager_name + ":", reason)
     
     fallback_activated.emit(manager_name, reason)
 
@@ -244,8 +245,7 @@ func create_shared_ground_manager() -> Node:
     shared_ground_manager = ground_manager_script.new(self)
     shared_ground_manager.set_debug_enabled(debug_mode)
     
-    if debug_mode:
-        print("EnvironmentSystem: Created SharedGroundManager")
+    Debug.print("ENVIRONMENT", "Created SharedGroundManager")
     
     return shared_ground_manager
 
@@ -257,8 +257,7 @@ func create_shared_ground(parent_node: Node) -> Node:
     if shared_ground_manager:
         var ground = shared_ground_manager.create_shared_ground(parent_node)
         
-        if debug_mode:
-            print("EnvironmentSystem: Created shared ground")
+        Debug.print("ENVIRONMENT", "Created shared ground")
         
         return ground
     
@@ -274,5 +273,4 @@ func initialize_with_resolver(resolver: MotionProfileResolver) -> void:
     # If no biome set yet, update_ground_config_for_biome will handle fallback to default
     _motion_profile_resolver.update_ground_config_for_biome(current_biome_id if current_biome_id else "default")
         
-    if debug_mode:
-        print("EnvironmentSystem: MotionProfileResolver initialized.")
+    Debug.print("ENVIRONMENT", "MotionProfileResolver initialized")

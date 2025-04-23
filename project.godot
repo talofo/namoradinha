@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GlobalSignals="*res://scripts/utils/GlobalSignals.gd"
 ContentInstantiationService="*res://scripts/game/ContentInstantiationService.gd"
+Debug="*res://scripts/utils/Debug.gd"
 
 [display]
 

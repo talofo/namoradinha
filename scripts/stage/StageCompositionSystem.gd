@@ -18,7 +18,8 @@ func _ready():
 	GlobalSignals.flow_state_updated.connect(_on_flow_state_updated)
 	
 	if _debug_enabled:
-		print("StageCompositionSystem: Ready")
+		Debug.toggle_system("STAGE", true)
+		Debug.print("STAGE", "Ready")
 		
 		# Enable debug mode in child components
 		if stage_manager:
@@ -31,7 +32,7 @@ func _ready():
 func initialize_with_resolver(_resolver: MotionProfileResolver) -> void:
 	# No longer needed; StageCompositionManager does not require resolver injection.
 	if _debug_enabled:
-		print("StageCompositionSystem: initialize_with_resolver called, but no action taken (StageCompositionManager does not use resolver).")
+		Debug.print("STAGE", "initialize_with_resolver called, but no action taken (StageCompositionManager does not use resolver)")
 
 # Generate a stage with the given configuration
 func generate_stage(config_id: String, game_mode: String = "story") -> void:
@@ -39,8 +40,7 @@ func generate_stage(config_id: String, game_mode: String = "story") -> void:
 		push_error("StageCompositionSystem: StageCompositionManager not found")
 		return
 	
-	if _debug_enabled:
-		print("StageCompositionSystem: Generating stage '%s' in %s mode" % [config_id, game_mode])
+	Debug.print("STAGE", "Generating stage '%s' in %s mode" % [config_id, game_mode])
 	
 	stage_manager.generate_stage(config_id, game_mode)
 
@@ -87,13 +87,12 @@ func set_debug_enabled(enabled: bool) -> void:
 	if debug_overlay:
 		debug_overlay.visible = enabled
 		
-	if _debug_enabled:
-		print("StageCompositionSystem: Debug mode %s" % ("enabled" if enabled else "disabled"))
+	Debug.toggle_system("STAGE", enabled)
+	Debug.print("STAGE", "Debug mode %s" % ("enabled" if enabled else "disabled"))
 
 # Handle stage loaded event
 func _on_stage_loaded(config) -> void:
-	if _debug_enabled:
-		print("StageCompositionSystem: Stage '%s' ready" % config.id)
+	Debug.print("STAGE", "Stage '%s' ready" % config.id)
 	
 	# Update debug overlay if enabled
 	if debug_overlay and debug_overlay.visible:
@@ -109,8 +108,7 @@ func _on_stage_generation_failed(reason: String) -> void:
 
 # Handle flow state updated event
 func _on_flow_state_updated(flow_state: FlowAndDifficultyController.FlowState) -> void:
-	if _debug_enabled:
-		print("StageCompositionSystem: Flow state updated to %s" % FlowAndDifficultyController.FlowState.keys()[flow_state])
+	Debug.print("STAGE", "Flow state updated to %s" % FlowAndDifficultyController.FlowState.keys()[flow_state])
 	
 	# Update debug overlay if enabled
 	if debug_overlay and debug_overlay.visible:
