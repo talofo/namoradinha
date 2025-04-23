@@ -13,6 +13,7 @@ signal fallback_activated(reason)
 var current_sprite: CanvasItem = null
 var active_tween: Tween = null
 var current_theme_id: String = ""
+var _current_theme: EnvironmentTheme = null # Store the currently applied theme
 var _debug_enabled: bool = false
 
 func _ready():
@@ -23,12 +24,20 @@ func _ready():
 func apply_theme(theme: EnvironmentTheme) -> void:
 	if not theme:
 		push_error("GroundVisualManager: Null theme provided")
-		_create_fallback_ground() # Create fallback even if theme is null
+		# Removed Debug Print
+		_current_theme = null # Clear stored theme
+		# We might still want a fallback if the theme object itself is null,
+		# but not if just the texture is missing later.
+		# Consider if _create_fallback_ground() is appropriate here or just error handling.
+		# For now, keeping it, but removing the trigger based *only* on missing texture later.
+		_create_fallback_ground() # Create fallback if theme object is null
 		fallback_activated.emit("Null theme provided")
 		return
-	
+
+	# Store the valid theme
+	_current_theme = theme
 	current_theme_id = theme.theme_id
-	
+
 	if not theme.ground_texture:
 		# Instead of just warning, create a placeholder texture
 		var placeholder_texture = _create_placeholder_texture(Color(0.5, 0.3, 0.1, 1.0))  # Brown color for ground
@@ -50,27 +59,45 @@ func apply_ground_visuals(ground_data: Array) -> void:
 	# Create container for all ground visuals
 	var container = Node2D.new()
 	add_child(container)
-	
-	# Get the current theme
-	var theme = null
-	if get_parent() and get_parent().has_method("get_theme_by_id"):
-		theme = get_parent().get_theme_by_id(current_theme_id)
-	
-	if not theme or not theme.ground_texture:
-		_create_fallback_ground()
-		fallback_activated.emit("Cannot apply ground visuals - missing theme or texture")
+
+	# Check if we have a valid theme stored
+	if not _current_theme:
+		# If the theme object itself is missing, that's still an error.
+		# We might need a fallback here, depending on desired behavior.
+		# For now, let's just error out and prevent sprite creation.
+		push_error("GroundVisualManager: Cannot apply ground visuals - stored theme is null.")
+		# Ensure transition signal is still emitted even if no visuals are created
+		transition_completed.emit()
 		return
-	
-	# Create sprites for each ground segment
-	for data in ground_data:
-		var sprite = Sprite2D.new()
-		sprite.texture = theme.ground_texture
-		sprite.position = data.position
-		sprite.scale = data.size / sprite.texture.get_size()
-		sprite.modulate = theme.ground_tint
-		container.add_child(sprite)
-	
-	current_sprite = container
+		# Alternatively, could call _create_fallback_ground() here if a visual placeholder is always desired on error.
+
+	# Only create sprites if the theme has a ground texture defined
+	if _current_theme.ground_texture:
+		# Create sprites for each ground segment using the stored theme
+		for data in ground_data:
+			var sprite = Sprite2D.new()
+			sprite.texture = _current_theme.ground_texture
+			sprite.position = data.position
+			# Ensure texture size is valid before division
+			var texture_size = sprite.texture.get_size()
+			if texture_size.x > 0 and texture_size.y > 0:
+				sprite.scale = data.size / texture_size
+			else:
+				push_warning("GroundVisualManager: Ground texture has zero size. Cannot scale sprite.")
+				sprite.scale = Vector2.ONE # Default scale
+			sprite.modulate = _current_theme.ground_tint
+			container.add_child(sprite)
+		current_sprite = container
+	else:
+		# No ground texture in theme, so no sprites created by this manager.
+		# Clear current_sprite if it held a previous fallback or texture.
+		if current_sprite:
+			current_sprite.queue_free()
+			current_sprite = null
+		if _debug_enabled:
+			print("GroundVisualManager: No ground_texture in theme '%s'. Skipping sprite creation." % _current_theme.theme_id)
+
+	# Always emit completion, even if no sprites were created (as the "apply" action is done)
 	transition_completed.emit()
 
 func _apply_ground_texture(texture: Texture2D, tint: Color = Color.WHITE) -> void:
@@ -124,10 +151,12 @@ func _create_fallback_ground() -> void:
 	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	label.size = fallback.size
 	fallback.add_child(label)
-	
+
+	# Removed Debug Print
+
 	if current_sprite:
 		current_sprite.queue_free()
-	
+
 	add_child(fallback)
 	current_sprite = fallback
 	transition_completed.emit()

@@ -1,8 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://b3bkhr2uhnfic"]
-
-[ext_resource type="Script" uid="uid://bmpsepyjbypfc" path="res://camera/CameraManager.gd" id="1_6luu5"]
-
-[node name="CameraManager" type="Node2D"]
-script = ExtResource("1_6luu5")
-
-[node name="Camera2D" type="Camera2D" parent="."]

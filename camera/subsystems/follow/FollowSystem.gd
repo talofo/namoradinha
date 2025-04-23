@@ -22,6 +22,25 @@ func update(_delta: float) -> void:
 	if not _target or not _camera.enabled:
 		return
 
+	# --- Get Target Velocity (Safely) ---
+	var target_velocity: Vector2 = Vector2.ZERO
+	# Check if the target node is valid and has a 'velocity' property
+	if _target and "velocity" in _target:
+		var vel = _target.velocity # Access directly
+		if typeof(vel) == TYPE_VECTOR2: # Verify type just in case
+			target_velocity = vel
+		# else: Consider adding a Debug.warning here if velocity is not Vector2
+	# else: Consider adding a Debug.warning here if velocity property doesn't exist
+
+	# --- Calculate Look-Ahead Offsets ---
+	var lookahead_offset_x: float = target_velocity.x * _config.horizontal_lookahead_factor
+	var lookahead_offset_y: float = target_velocity.y * _config.vertical_lookahead_factor # General vertical lookahead
+
+	# --- Calculate Downward Anticipation Offset ---
+	var downward_anticipation_offset: float = 0.0
+	if target_velocity.y > 0: # Only apply when moving down (positive Y velocity)
+		downward_anticipation_offset = min(target_velocity.y * _config.downward_anticipation_factor, _config.max_downward_anticipation_offset)
+
 	# --- Calculate Ideal Target Y ---
 	var viewport_size = _camera.get_viewport().get_visible_rect().size
 	var ground_viewport_position = viewport_size.y * _config.ground_viewport_ratio
@@ -30,17 +49,19 @@ func update(_delta: float) -> void:
 
 	# Determine if the camera should follow the player's Y or lock
 	if _target.global_position.y < locked_camera_y - viewport_size.y * _config.follow_height_threshold:
-		ideal_target_y = _target.global_position.y # Follow player exactly if high enough
+		# Follow player: Apply general vertical look-ahead AND specific downward anticipation
+		ideal_target_y = _target.global_position.y + lookahead_offset_y + downward_anticipation_offset
 	else:
-		ideal_target_y = locked_camera_y # Lock Y position otherwise
+		# Lock Y position: Do NOT apply vertical look-ahead or anticipation here to prevent dipping below the lock point
+		ideal_target_y = locked_camera_y
 
 	# --- Smooth the Target Y ---
 	var vertical_weight = clamp(_config.vertical_smoothing_speed * _delta, 0.0, 1.0)
 	_smoothed_target_y = lerpf(_smoothed_target_y, ideal_target_y, vertical_weight)
 
 	# --- Construct Final Target Position ---
-	# Use player's current X and the smoothed target Y
-	var final_target_position = Vector2(_target.global_position.x, _smoothed_target_y)
+	# Use player's current X + lookahead offset and the smoothed target Y
+	var final_target_position = Vector2(_target.global_position.x + lookahead_offset_x, _smoothed_target_y)
 
 	# --- Smooth Camera Towards Final Target ---
 	var camera_weight = clamp(_config.smoothing_speed * _delta, 0.0, 1.0)
