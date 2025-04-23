@@ -12,7 +12,7 @@ func _init(camera: Camera2D, config: CameraConfig) -> void:
     _previous_position = Vector2.ZERO
 
 func initialize() -> void:
-    _camera.position_smoothing_enabled = true
+    _camera.position_smoothing_enabled = false # Disable built-in smoothing
     _camera.position_smoothing_speed = _config.smoothing_speed
     _camera.enabled = false
 
@@ -56,4 +56,4 @@ func _adjust_initial_camera_position() -> void:
     var camera_y_position = -(viewport_size.y / 2) + ground_viewport_position
     
     _camera.position.x = _target.global_position.x
-    _camera.position.y = camera_y_position 
+    _camera.position.y = camera_y_position
