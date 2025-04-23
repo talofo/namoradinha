@@ -6,17 +6,20 @@ This folder contains debug tools for the visual background system.
 
 ### BackgroundDebugTools
 
-A debug component that allows you to toggle the visual background system on/off for debugging purposes.
+A debug component that allows you to freeze/unfreeze background movement for debugging purposes.
 
 #### Usage
 
 1. Add the `BackgroundDebugTools.tscn` scene as a child of your `VisualBackgroundSystem` node
-2. Use the `B` key to toggle the background system on/off
+2. Use the `B` key to toggle background movement:
+   - When disabled: Background position is frozen at its current position
+   - When enabled: Background resumes normal parallax movement
 3. Check the console for debug messages
 
 #### Features
 
-- Toggle background system on/off with `B` key
+- Freeze/unfreeze background movement with `B` key
+- Preserves background position when frozen
 - Debug messages in console
 - Easy to add/remove for debugging sessions
 
@@ -30,4 +33,4 @@ add_child(debug_tools)
 
 ## Debug Keys
 
-- `B`: Toggle background system on/off 
+- `B`: Toggle background movement (freeze/unfreeze) 

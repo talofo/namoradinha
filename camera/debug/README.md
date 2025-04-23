@@ -6,17 +6,20 @@ This folder contains debug tools for the camera system.
 
 ### CameraDebugTools
 
-A debug component that allows you to toggle the camera system on/off for debugging purposes.
+A debug component that allows you to freeze/unfreeze camera movement for debugging purposes.
 
 #### Usage
 
 1. Add the `CameraDebugTools.tscn` scene as a child of your `CameraSystem` node
-2. Use the `C` key to toggle the camera system on/off
+2. Use the `C` key to toggle camera movement:
+   - When disabled: Camera position is frozen at its current position
+   - When enabled: Camera resumes normal following behavior
 3. Check the console for debug messages
 
 #### Features
 
-- Toggle camera system on/off with `C` key
+- Freeze/unfreeze camera movement with `C` key
+- Preserves camera position when frozen
 - Debug messages in console
 - Easy to add/remove for debugging sessions
 
@@ -30,4 +33,4 @@ add_child(debug_tools)
 
 ## Debug Keys
 
-- `C`: Toggle camera system on/off 
+- `C`: Toggle camera movement (freeze/unfreeze) 

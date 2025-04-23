@@ -6,20 +6,24 @@ This folder contains debug tools for analyzing player movement and system intera
 
 ### MovementDebugTools
 
-A comprehensive debug component that allows you to toggle both camera and background systems simultaneously for movement analysis.
+A comprehensive debug component that allows you to analyze movement and system interactions with visual feedback.
 
 #### Usage
 
 1. Add the `MovementDebugTools.tscn` scene to any node in your game scene
-2. Use the following keys to toggle systems:
-   - `B`: Toggle background system on/off
-   - `C`: Toggle camera system on/off
-3. Watch the status display in the top-left corner for current system states
+2. Use the following keys to control debugging:
+   - `B`: Toggle background movement (freeze/unfreeze)
+   - `C`: Toggle camera movement (freeze/unfreeze)
+   - `D`: Toggle debug visuals and movement logging
+3. Watch the status display in the top-center of the screen for current system states
+4. Check the console for movement logs
 
 #### Features
 
-- Toggle both camera and background systems from one place
-- Visual status display showing current system states
+- Freeze/unfreeze both camera and background movement
+- Visual camera bounds display (red rectangle)
+- Movement logging for player and camera
+- Status display showing current system states
 - Debug messages in console
 - Easy to add/remove for debugging sessions
 
@@ -33,12 +37,22 @@ add_child(debug_tools)
 
 ## Debug Keys
 
-- `B`: Toggle background system on/off
-- `C`: Toggle camera system on/off
+- `B`: Toggle background movement (freeze/unfreeze)
+- `C`: Toggle camera movement (freeze/unfreeze)
+- `D`: Toggle debug visuals and movement logging
 
 ## Status Display
 
 The status display shows:
-- Current state of the background system
-- Current state of the camera system
-- Key bindings for toggling systems 
+- Current state of background movement
+- Current state of camera movement
+- Debug visuals state
+- Key bindings for all controls
+
+## Debug Visuals
+
+When enabled (D key):
+- Red rectangle showing camera bounds
+- Console logs showing:
+  - Player movement per frame
+  - Camera movement per frame 
