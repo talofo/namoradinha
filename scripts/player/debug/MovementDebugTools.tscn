@@ -1,0 +1,18 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/player/debug/MovementDebugTools.gd" id="1_debug"]
+
+[node name="MovementDebugTools" type="Node"]
+script = ExtResource("1_debug")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="StatusLabel" type="Label" parent="CanvasLayer"]
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 200.0
+offset_bottom = 70.0
+text = "Movement Debug:
+Background: ON (B)
+Camera: ON (C)" 
