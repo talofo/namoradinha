@@ -90,7 +90,7 @@ metadata/_custom_type_script = "uid://davl0jyys8n3v"
 [sub_resource type="Resource" id="Resource_f4blp"]
 script = ExtResource("2_4dtbj")
 texture = ExtResource("8_cwrti")
-offset = Vector2(0, -379)
+offset = Vector2(0, -300)
 scale = Vector2(1, 1)
 z_index = 0
 modulate = Color(1, 1, 1, 1)
