@@ -77,7 +77,7 @@ func _physics_process(delta: float) -> void:
 	_handle_collisions(velocity_before_slide)
 	
 	# Round position to integer pixels to prevent subpixel flickering
-	position = position.round()
+	# position = position.round() # <-- Commented out to test camera smoothness
 
 # Update timers
 func _update_timers(delta: float) -> void:

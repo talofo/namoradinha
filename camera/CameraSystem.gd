@@ -32,7 +32,7 @@ func initialize_system() -> void:
     _is_initialized = true
     Debug.print("CAMERA", "Initialized successfully")
 
-func _process(delta: float) -> void:
+func _physics_process(delta: float) -> void:
     if not _is_initialized:
         return
         
@@ -46,4 +46,4 @@ func _on_player_spawned(player_node: Node2D) -> void:
     _follow_system.set_target(player_node)
 
 func get_camera_position() -> Vector2:
-    return camera.position if camera else Vector2.ZERO 
+    return camera.position if camera else Vector2.ZERO
