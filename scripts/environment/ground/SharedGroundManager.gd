@@ -5,7 +5,7 @@ extends Node
 signal ground_created(ground_data: Array)
 
 # Configuration
-var ground_width: float = 90000.0
+var ground_width: float = 900000.0
 var ground_height: float = 230.0
 var ground_y_position: float = 850.0
 

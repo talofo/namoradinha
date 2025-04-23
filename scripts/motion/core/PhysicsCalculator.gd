@@ -111,6 +111,7 @@ func is_floor_collision(collision_info: Dictionary) -> bool:
 # velocity: Current velocity
 # Returns: The rounded velocity
 func round_velocity(velocity: Vector2) -> Vector2:
-	velocity.x = round(velocity.x * 10) / 10.0
-	velocity.y = round(velocity.y * 10) / 10.0
+	# Use snappedf for smoother rounding with a smaller step value
+	velocity.x = snappedf(velocity.x, 0.05)  # Round to nearest 0.05
+	velocity.y = snappedf(velocity.y, 0.05)  # Round to nearest 0.05
 	return velocity
