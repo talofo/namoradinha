@@ -16,7 +16,7 @@ graph TD
     Game --> EnvironmentSystem
     Game --> StageCompositionSystem
     Game --> PlayerSpawner
-    Game --> CameraManager
+    Game --> CameraSystem
     
     PlayerSpawner --> PlayerCharacter
     
@@ -64,7 +64,12 @@ graph TD
    - `PlayerCharacter.gd`: Player controller with physics integration
    - `PlayerSpawner.gd`: Handles player creation and initialization
 
-6. **Communication**: Uses signal buses for decoupled communication.
+6. **Camera System**: Manages viewport control and camera behavior.
+   - `CameraSystem.gd`: Main system controller
+   - `FollowSystem.gd`: Handles target following and positioning
+   - `ViewportSystem.gd`: Manages viewport configuration
+
+7. **Communication**: Uses signal buses for decoupled communication.
    - `GlobalSignals.gd`: Global event bus
    - `ContentInstantiationService.gd`: Handles content creation requests
 
@@ -95,6 +100,7 @@ The modular architecture provides several extension points:
 2. **Environment Themes**: Create new visual themes by adding resources to `resources/environment/themes/`.
 3. **Stage Content**: Add new obstacles or items by extending the content system.
 4. **Collision Materials**: Define new surface materials using the `MaterialType` component or `CollisionMaterialSystem`.
+5. **Camera Subsystems**: Add new camera behaviors by creating subsystems that implement `ICameraSubsystem`.
 
 ## Getting Started
 
@@ -110,3 +116,4 @@ For more detailed information about specific systems, see the README files in th
 - [Environment System](scripts/environment/README.md)
 - [Stage System](scripts/stage/README.md)
 - [Collision Materials](scripts/collision_materials/README.md)
+- [Camera System](camera/README.md)

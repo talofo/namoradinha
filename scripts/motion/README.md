@@ -13,7 +13,6 @@ graph TD
     MotionSystemCore --> MotionStateManager
     MotionSystemCore --> ContinuousMotionResolver
     MotionSystemCore --> CollisionMotionResolver
-    MotionSystemCore --> MotionDebugger
     MotionSystemCore --> MotionProfileResolver
     
     MotionSystemCore --> Subsystems
@@ -47,7 +46,6 @@ graph TD
 4. **Support Components**:
    - **PhysicsCalculator**: Performs physics calculations
    - **MotionStateManager**: Manages motion state transitions
-   - **MotionDebugger**: Provides debugging functionality
 
 ### Subsystems
 

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Visual Background System provides a modular, data-driven parallax background architecture for the game. It enables dynamic, theme-based multi-layer backgrounds with performance monitoring and seamless integration with the EnvironmentSystem and CameraManager.
+The Visual Background System provides a modular, data-driven parallax background architecture for the game. It enables dynamic, theme-based multi-layer backgrounds with performance monitoring and seamless integration with the EnvironmentSystem and CameraSystem.
 
 - **Data-driven:** All background composition is defined via resource files.
 - **Modular:** Each responsibility is encapsulated in a focused class or resource.
@@ -44,7 +44,7 @@ The Visual Background System provides a modular, data-driven parallax background
 
 - **EnvironmentSystem:** Triggers theme changes; system listens for `visuals_updated` signal.
 - **ThemeDatabase:** Stores and provides `EnvironmentThemeConfig` resources for each theme.
-- **CameraManager:** Provides camera position updates for parallax effect.
+- **CameraSystem:** Provides camera position updates for parallax effect.
 
 ---
 

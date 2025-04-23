@@ -5,7 +5,7 @@ const GameInitializerScript = preload("res://scripts/game/GameInitializer.gd")
 # ContentInstantiationService is now an autoload singleton
 
 # --- Nodes ---
-@onready var camera_manager = $CameraManager
+@onready var camera_system = $CameraSystem
 @onready var player_spawner = $PlayerSpawner
 @onready var stage_composition_system = $StageCompositionSystem
 @onready var motion_system = $MotionSystem
@@ -36,6 +36,9 @@ func _ready():
 	
 	# Generate the default stage
 	stage_composition_system.generate_stage("default_stage", "story")
+	
+	# Initialize camera system
+	camera_system.initialize_system()
 	
 	# Spawn the player after a short delay to ensure MotionSystem is fully initialized
 	# This helps prevent timing issues with subsystem registration

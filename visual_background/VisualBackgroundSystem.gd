@@ -6,7 +6,7 @@ signal transition_completed
 
 # References to other systems
 var environment_system
-var camera_manager
+var camera_system
 var theme_database
 
 # References to managed nodes
@@ -26,11 +26,11 @@ func _ready():
 	if not environment_system:
 		environment_system = get_node_or_null("../")  # Try to get parent if we're a child of EnvironmentSystem
 	
-	camera_manager = get_node_or_null("/root/Game/CameraManager")
+	camera_system = get_node_or_null("/root/Game/CameraSystem")
 	
 	# Get initial camera position if available
-	if camera_manager:
-		initial_camera_position = camera_manager.get_camera_position()
+	if camera_system:
+		initial_camera_position = camera_system.get_camera_position()
 	
 	# Get theme database from environment system if possible
 	if environment_system and environment_system.has_method("get_theme_database"):
@@ -43,16 +43,16 @@ func _ready():
 		if environment_system.has_signal("visuals_updated"):
 			environment_system.visuals_updated.connect(_on_environment_visuals_updated)
 	
-	if camera_manager and use_camera_signal:
-		if camera_manager.has_signal("camera_moved"):
-			camera_manager.camera_moved.connect(_on_camera_moved)
+	if camera_system and use_camera_signal:
+		if camera_system.has_signal("camera_moved"):
+			camera_system.camera_moved.connect(_on_camera_moved)
 		else:
-			push_warning("VisualBackgroundSystem: CameraManager does not have camera_moved signal")
+			push_warning("VisualBackgroundSystem: CameraSystem does not have camera_moved signal")
 
 func _process(_delta):
 	# Optional: Poll camera position if not using signals
-	if camera_manager and not use_camera_signal:
-		_update_camera_position(camera_manager.get_camera_position())
+	if camera_system and not use_camera_signal:
+		_update_camera_position(camera_system.get_camera_position())
 
 # Called when the environment system updates visuals
 func _on_environment_visuals_updated(theme_id: String, _biome_id: String):

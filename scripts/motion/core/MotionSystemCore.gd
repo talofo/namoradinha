@@ -53,7 +53,6 @@ var physics_calculator = null
 var state_manager = null
 var continuous_resolver = null
 var collision_resolver = null
-var debugger = null
 var _motion_profile_resolver: MotionProfileResolver = null # Added resolver reference
 
 func _init() -> void:
@@ -78,7 +77,6 @@ func _init() -> void:
 	state_manager = load("res://scripts/motion/core/MotionStateManager.gd").new(self)
 	continuous_resolver = load("res://scripts/motion/core/ContinuousMotionResolver.gd").new(self)
 	collision_resolver = load("res://scripts/motion/core/CollisionMotionResolver.gd").new(self)
-	debugger = load("res://scripts/motion/core/MotionDebugger.gd").new(self)
 
 # Returns the loaded physics configuration resource
 func get_physics_config() -> PhysicsConfig:
@@ -97,8 +95,6 @@ func _ready() -> void:
 # Enable or disable debug prints for the motion system and resolver
 func set_debug_enabled(enabled: bool) -> void:
 	debug_enabled = enabled
-	if debugger:
-		debugger.set_debug_enabled(enabled)
 
 # Register a subsystem with the motion system
 # subsystem: An object implementing the IMotionSubsystem interface
