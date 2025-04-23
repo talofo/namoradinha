@@ -38,8 +38,13 @@ func update(_delta: float) -> void:
 
 	# --- Calculate Downward Anticipation Offset ---
 	var downward_anticipation_offset: float = 0.0
+	var calculated_anticipation: float = 0.0 # For debugging
 	if target_velocity.y > 0: # Only apply when moving down (positive Y velocity)
-		downward_anticipation_offset = min(target_velocity.y * _config.downward_anticipation_factor, _config.max_downward_anticipation_offset)
+		calculated_anticipation = target_velocity.y * _config.downward_anticipation_factor # Keep for potential future debugging if needed
+		downward_anticipation_offset = min(calculated_anticipation, _config.max_downward_anticipation_offset)
+		# Removed debug prints
+	# Removed debug prints
+
 
 	# --- Calculate Ideal Target Y ---
 	var viewport_size = _camera.get_viewport().get_visible_rect().size

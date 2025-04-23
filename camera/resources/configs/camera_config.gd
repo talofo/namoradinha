@@ -12,5 +12,7 @@ extends Resource
 @export var vertical_lookahead_factor: float = 0.1   # Multiplier for general vertical velocity to offset camera target
 
 # Downward anticipation (when falling)
-@export var downward_anticipation_factor: float = 0.05 # Multiplier specifically for downward velocity
-@export var max_downward_anticipation_offset: float = 1850.0 # Max pixels camera will offset downwards due to anticipation
+# NOTE: These defaults are used because CameraSystem creates this config with .new()
+# Changes in the Inspector won't apply unless CameraSystem is modified to export the resource itself.
+@export var downward_anticipation_factor: float = 0.65 # Multiplier specifically for downward velocity (Increase for stronger effect)
+@export var max_downward_anticipation_offset: float = 620.0 # Max pixels camera will offset downwards due to anticipation (Sensible default)
