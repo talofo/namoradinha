@@ -1493,7 +1493,7 @@ Last updated: 2025-04-24 19:28:21
 <p>The Motion System is responsible for handling all physics and movement-related functionality in the game. It provides a framework for calculating motion, resolving collisions, and applying various motion modifiers.</p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
 <p>The Motion System follows a layered architecture with a facade pattern:</p>
-<div class="highlight"><pre><span></span><code>graph TD
+<pre class="mermaid"><code>graph TD
     MotionSystem[MotionSystem] --&gt; MotionSystemCore
     MotionSystemCore --&gt; PhysicsCalculator
     MotionSystemCore --&gt; MotionStateManager
@@ -1510,8 +1510,7 @@ Last updated: 2025-04-24 19:28:21
     Subsystems --&gt; CollisionMaterialSystem
 
     MotionProfileResolver --&gt; PhysicsConfig
-    MotionProfileResolver --&gt; GroundPhysicsConfig
-</code></pre></div>
+    MotionProfileResolver --&gt; GroundPhysicsConfig</code></pre>
 <h3 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>MotionSystem (<code>MotionSystem.gd</code>)</strong>: </li>
@@ -1560,15 +1559,14 @@ Last updated: 2025-04-24 19:28:21
 <h2 id="physics-resolution-architecture">Physics Resolution Architecture<a class="headerlink" href="#physics-resolution-architecture" title="Permanent link">&para;</a></h2>
 <p>The Motion System uses a layered approach to resolve physics parameters, allowing different sources to influence the final behavior in a predictable, priority-based manner.</p>
 <h3 id="layered-resolution-model">Layered Resolution Model<a class="headerlink" href="#layered-resolution-model" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code>graph TD
+<pre class="mermaid"><code>graph TD
     A[MotionProfileResolver] --&gt; B[Layer 4: Global Physics Config]
     A --&gt; C[Layer 3: Biome/Ground Physics]
     A --&gt; D[Layer 2: Equipment + Traits]
     A --&gt; E[Layer 1: Temporary Modifiers]
 
     F[Player] --&gt; |Context| A
-    A --&gt; |Resolved Profile| F
-</code></pre></div>
+    A --&gt; |Resolved Profile| F</code></pre>
 <p>Physics parameters are resolved by applying configurations in reverse priority order (lowest priority first):</p>
 <ol>
 <li><strong>Layer 4: Global Physics Config</strong></li>
@@ -1844,6 +1842,8 @@ Last updated: 2025-04-24 19:28:21
     
     
       <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
       
     
   </body>

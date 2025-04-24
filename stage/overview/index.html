@@ -1458,7 +1458,7 @@ Last updated: 2025-04-24 19:28:21
 <p>This separation of scripts and scenes is a standard pattern throughout the project.</p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
 <p>The Stage Composition System follows a layered architecture with specialized subsystems:</p>
-<div class="highlight"><pre><span></span><code>graph TD
+<pre class="mermaid"><code>graph TD
     StageCompositionSystem[StageCompositionSystem] --&gt; StageCompositionManager
 
     StageCompositionManager --&gt; ChunkManagementSystem
@@ -1470,8 +1470,7 @@ Last updated: 2025-04-24 19:28:21
     ContentDistributionSystem -.-&gt;|request_content_placement| GlobalSignals
 
     GlobalSignals -.-&gt; ContentInstantiationService
-    ContentInstantiationService --&gt; ContentFactory
-</code></pre></div>
+    ContentInstantiationService --&gt; ContentFactory</code></pre>
 <h3 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>StageCompositionSystem (<code>StageCompositionSystem.gd</code>)</strong>: </li>
@@ -1751,6 +1750,8 @@ Last updated: 2025-04-24 19:28:21
     
     
       <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
       
     
   </body>

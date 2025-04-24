@@ -1439,7 +1439,7 @@ Last updated: 2025-04-24 19:28:21
 <p>The Environment System manages the visual aspects of the game world, including backgrounds, effects, and ground visuals. It coordinates multiple visual managers and handles theme/biome transitions.</p>
 <h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
 <p>The Environment System follows a manager-based architecture:</p>
-<div class="highlight"><pre><span></span><code>graph TD
+<pre class="mermaid"><code>graph TD
     EnvironmentSystem[EnvironmentSystem] --&gt; EffectsManager
     EnvironmentSystem[EnvironmentSystem] --&gt; GroundVisualManager
     EnvironmentSystem --&gt; SharedGroundManager
@@ -1451,8 +1451,7 @@ Last updated: 2025-04-24 19:28:21
 
     GlobalSignals -.-&gt;|stage_loaded| EnvironmentSystem
     GlobalSignals -.-&gt;|theme_changed| EnvironmentSystem
-    GlobalSignals -.-&gt;|biome_changed| EnvironmentSystem
-</code></pre></div>
+    GlobalSignals -.-&gt;|biome_changed| EnvironmentSystem</code></pre>
 <h3 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h3>
 <ol>
 <li><strong>EnvironmentSystem (<code>EnvironmentSystem.gd</code>)</strong>: </li>
@@ -1512,11 +1511,10 @@ Last updated: 2025-04-24 19:28:21
 - Resources are stored as <code>resources/motion/profiles/ground/{biome_id}_ground.tres</code>
 - Each biome has specific ground physics properties (friction, bounce, etc.)
 - The <code>_ground</code> suffix in filenames indicates these resources specifically control ground physics</p>
-<div class="highlight"><pre><span></span><code>graph TD
+<pre class="mermaid"><code>graph TD
     A[EnvironmentSystem] --&gt;|change_biome| B[MotionProfileResolver]
-    B --&gt;|loads| C[&quot;{biome_id}_ground.tres&quot;]
-    C --&gt;|applies to| D[Player Physics]
-</code></pre></div>
+    B --&gt;|loads| C["{biome_id}_ground.tres"]
+    C --&gt;|applies to| D[Player Physics]</code></pre>
 <h3 id="planned-expansion">Planned Expansion<a class="headerlink" href="#planned-expansion" title="Permanent link">&para;</a></h3>
 <p>The biome system is designed to expand beyond ground physics in the future:</p>
 <ol>
@@ -1539,12 +1537,11 @@ Last updated: 2025-04-24 19:28:21
 </ol>
 <h3 id="interaction-with-equipment-and-traits">Interaction with Equipment and Traits<a class="headerlink" href="#interaction-with-equipment-and-traits" title="Permanent link">&para;</a></h3>
 <p>The Motion System's layered physics resolution allows biomes to interact with player equipment and traits:</p>
-<div class="highlight"><pre><span></span><code>graph TD
+<pre class="mermaid"><code>graph TD
     A[MotionProfileResolver] --&gt; B[Layer 4: Global Physics Config]
     A --&gt; C[Layer 3: Biome/Ground Physics]
     A --&gt; D[Layer 2: Equipment + Traits]
-    A --&gt; E[Layer 1: Temporary Modifiers]
-</code></pre></div>
+    A --&gt; E[Layer 1: Temporary Modifiers]</code></pre>
 <p>This architecture enables gameplay mechanics like:
 - Equipment that counters specific biome challenges (e.g., ice boots in a slippery biome)
 - Traits that provide advantages in certain environments
@@ -1695,6 +1692,8 @@ Last updated: 2025-04-24 19:28:21
     
     
       <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+        <script src="https://unpkg.com/mermaid/dist/mermaid.min.js"></script>
       
     
   </body>
