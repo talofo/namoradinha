@@ -38,3 +38,4 @@ Effects are typically instantiated and attached to game objects that need them:
 var boost_effect = load("res://scripts/effects/visual_effects/BoostEffect.gd").new()
 add_child(boost_effect)
 boost_effect.show_effect(direction, "manual_air")
+```

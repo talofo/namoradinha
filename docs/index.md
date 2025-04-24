@@ -7,10 +7,13 @@ Welcome to the Namoradinha project documentation. This site aggregates all the d
 The project is organized into several key systems:
 
 - **Camera System**: Handles camera movement, zoom, and effects
-- **Environment**: Manages the game environment and backgrounds
-- **Motion**: Controls character and object movement
-- **Stage**: Handles level composition and layout
-- **Visual Background**: Manages parallax backgrounds and visual effects
+- **Environment System**: Manages the game environment, effects, ground visuals, themes, and biomes
+- **Game System**: Handles game initialization and content instantiation
+- **Motion System**: Controls character and object movement, including bounce, boost, launch, and obstacle systems
+- **Player System**: Manages player characters and spawning
+- **Stage Composition System**: Handles level composition and layout
+- **Visual Background System**: Manages parallax backgrounds and visual effects
+- **Cross-Systems**: Components that work across multiple systems, like dependency injection and effects
 
 ## Documentation Organization
 

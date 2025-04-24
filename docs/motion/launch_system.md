@@ -63,3 +63,4 @@ The LaunchSystem emits the `entity_launched` signal when an entity is launched:
 launch_system.entity_launched.connect(func(entity_id, launch_vector, position): 
     print("Entity " + str(entity_id) + " launched with vector " + str(launch_vector) + " at position " + str(position))
 )
+```
