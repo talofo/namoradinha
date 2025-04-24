@@ -1,0 +1,1757 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Namoradinha Godot project">
+      
+      
+        <meta name="author" content="Marcio Machado">
+      
+      
+      
+        <link rel="prev" href="../../visual_background/overview/">
+      
+      
+        <link rel="next" href="../../player/debug/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.12">
+    
+    
+      
+        <title>Overview - Namoradinha Project Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.2afb09e1.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#stage-composition-system" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Namoradinha Project Documentation" class="md-header__button md-logo" aria-label="Namoradinha Project Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Namoradinha Project Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Overview
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/yourusername/namoradinha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Namoradinha
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Namoradinha Project Documentation" class="md-nav__button md-logo" aria-label="Namoradinha Project Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Namoradinha Project Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/yourusername/namoradinha" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc.--><path d="M439.55 236.05 244 40.45a28.87 28.87 0 0 0-40.81 0l-40.66 40.63 51.52 51.52c27.06-9.14 52.68 16.77 43.39 43.68l49.66 49.66c34.23-11.8 61.18 31 35.47 56.69-26.49 26.49-70.21-2.87-56-37.34L240.22 199v121.85c25.3 12.54 22.26 41.85 9.08 55a34.34 34.34 0 0 1-48.55 0c-17.57-17.6-11.07-46.91 11.25-56v-123c-20.8-8.51-24.6-30.74-18.64-45L142.57 101 8.45 235.14a28.86 28.86 0 0 0 0 40.81l195.61 195.6a28.86 28.86 0 0 0 40.8 0l194.69-194.69a28.86 28.86 0 0 0 0-40.81"/></svg>
+  </div>
+  <div class="md-source__repository">
+    Namoradinha
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Environment System
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Environment System
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../environment/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Motion System
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Motion System
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../motion/boost_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Boost System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../motion/bounce_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Bounce System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../motion/collision_material_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Collision Material System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../motion/collision_materials/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Collision Materials
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../motion/launch_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Launch System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../motion/obstacle_system/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Obstacle System
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../motion/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Camera System
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            Camera System
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../camera/debug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Debug
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../camera/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Visual Background System
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            Visual Background System
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visual_background/debug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Debug
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visual_background/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Stage Composition System
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            Stage Composition System
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Overview
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Directory Structure
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Components
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-generation-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stage Generation Process
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Game Modes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flow-and-difficulty" class="md-nav__link">
+    <span class="md-ellipsis">
+      Flow and Difficulty
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generating-a-stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generating a Stage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating-player-position" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating Player Position
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recording-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recording Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-custom-stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a Custom Stage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chunk-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chunk System
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#content-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Content Distribution
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analytics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Analytics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debugging
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Integration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#legacy-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Legacy Systems
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Player System
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Player System
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../player/debug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Debug
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+      
+        
+      
+        
+      
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Cross-Systems
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Cross-Systems
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cross-systems/dependency_injection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Dependency Injection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../cross-systems/effects/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Effects
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Directory Structure
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      Architecture
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      Core Components
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stage-generation-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      Stage Generation Process
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#game-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Game Modes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#flow-and-difficulty" class="md-nav__link">
+    <span class="md-ellipsis">
+      Flow and Difficulty
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Usage
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Usage">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generating-a-stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Generating a Stage
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating-player-position" class="md-nav__link">
+    <span class="md-ellipsis">
+      Updating Player Position
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recording-performance" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recording Performance
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#creating-a-custom-stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Creating a Custom Stage
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#chunk-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Chunk System
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#content-distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Content Distribution
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#analytics" class="md-nav__link">
+    <span class="md-ellipsis">
+      Analytics
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debugging
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#best-practices" class="md-nav__link">
+    <span class="md-ellipsis">
+      Best Practices
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#system-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      System Integration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#legacy-systems" class="md-nav__link">
+    <span class="md-ellipsis">
+      Legacy Systems
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<!--
+WARNING: This file is automatically generated from scripts/stage/README.md.
+Do not edit this file directly. Make changes to the source README.md instead.
+Last updated: 2025-04-24 19:38:03
+-->
+
+<h1 id="stage-composition-system">Stage Composition System<a class="headerlink" href="#stage-composition-system" title="Permanent link">&para;</a></h1>
+<p>The Stage Composition System is responsible for dynamically generating and managing the game stage. It handles chunk creation, content distribution, and flow/difficulty adjustment based on player performance.</p>
+<h2 id="directory-structure">Directory Structure<a class="headerlink" href="#directory-structure" title="Permanent link">&para;</a></h2>
+<p>The Stage Composition System follows this directory structure:</p>
+<ul>
+<li><code>scripts/stage/</code> - Contains all GDScript (.gd) files for the Stage Composition System</li>
+<li><code>stage/</code> - Contains all scene (.tscn) files that use those scripts</li>
+</ul>
+<p>This separation of scripts and scenes is a standard pattern throughout the project.</p>
+<h2 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h2>
+<p>The Stage Composition System follows a layered architecture with specialized subsystems:</p>
+<div class="highlight"><pre><span></span><code>graph TD
+    StageCompositionSystem[StageCompositionSystem] --&gt; StageCompositionManager
+
+    StageCompositionManager --&gt; ChunkManagementSystem
+    StageCompositionManager --&gt; ContentDistributionSystem
+    StageCompositionManager --&gt; StageConfigSystem
+    StageCompositionManager --&gt; FlowAndDifficultyController
+
+    ChunkManagementSystem -.-&gt;|request_chunk_instantiation| GlobalSignals
+    ContentDistributionSystem -.-&gt;|request_content_placement| GlobalSignals
+
+    GlobalSignals -.-&gt; ContentInstantiationService
+    ContentInstantiationService --&gt; ContentFactory
+</code></pre></div>
+<h3 id="core-components">Core Components<a class="headerlink" href="#core-components" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>StageCompositionSystem (<code>StageCompositionSystem.gd</code>)</strong>: </li>
+<li>Facade that provides a simplified interface to the rest of the game</li>
+<li>
+<p>Delegates most calls to the StageCompositionManager</p>
+</li>
+<li>
+<p><strong>StageCompositionManager (<code>StageCompositionManager.gd</code>)</strong>: </p>
+</li>
+<li>Central component that coordinates stage generation and management</li>
+<li>Handles game modes (story, arcade) and stage transitions</li>
+<li>
+<p>Manages the flow and difficulty of the stage</p>
+</li>
+<li>
+<p><strong>Subsystems</strong>:</p>
+</li>
+<li><strong>ChunkManagementSystem</strong>: Manages the creation, placement, and recycling of stage chunks</li>
+<li><strong>ContentDistributionSystem</strong>: Determines what content (obstacles, items, etc.) to place in each chunk</li>
+<li><strong>StageConfigSystem</strong>: Loads and manages stage configuration resources</li>
+<li>
+<p><strong>FlowAndDifficultyController</strong>: Adjusts difficulty based on player performance</p>
+</li>
+<li>
+<p><strong>Content Creation</strong>:</p>
+</li>
+<li>Stage components emit signals to request content creation</li>
+<li><code>GlobalSignals</code> routes these requests to the <code>ContentInstantiationService</code></li>
+<li><code>ContentFactory</code> creates the actual content objects</li>
+</ol>
+<h2 id="stage-generation-process">Stage Generation Process<a class="headerlink" href="#stage-generation-process" title="Permanent link">&para;</a></h2>
+<p>The stage generation process follows these steps:</p>
+<ol>
+<li>A stage generation is requested with a config ID and game mode</li>
+<li>The <code>StageConfigSystem</code> loads the corresponding <code>StageCompositionConfig</code></li>
+<li>The <code>FlowAndDifficultyController</code> is initialized with the config's parameters</li>
+<li>The <code>ChunkManagementSystem</code> generates initial chunks</li>
+<li>As the player moves, new chunks are generated ahead and old ones recycled</li>
+<li>The <code>ContentDistributionSystem</code> populates chunks with content based on the current difficulty and flow state</li>
+</ol>
+<h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
+<p>The Stage Composition System is configured through several resource files:</p>
+<ul>
+<li><strong>StageCompositionConfig (<code>resources/stage/configs/*.tres</code>)</strong>: Defines stage parameters</li>
+<li><strong>ChunkDefinition (<code>resources/stage/chunks/*.tres</code>)</strong>: Defines chunk layouts</li>
+<li><strong>ContentDistribution (<code>resources/stage/content_distributions/*.tres</code>)</strong>: Defines content placement rules</li>
+</ul>
+<h2 id="game-modes">Game Modes<a class="headerlink" href="#game-modes" title="Permanent link">&para;</a></h2>
+<p>The system supports different game modes:</p>
+<ol>
+<li><strong>Story Mode</strong>:</li>
+<li>Has a defined end condition (distance or event)</li>
+<li>Follows a predetermined difficulty curve</li>
+<li>
+<p>Can transition to cutscenes or other stages</p>
+</li>
+<li>
+<p><strong>Arcade Mode</strong>:</p>
+</li>
+<li>Potentially endless</li>
+<li>Dynamically adjusts difficulty based on player performance</li>
+<li>Can transition to other arcade stages for variety</li>
+</ol>
+<h2 id="flow-and-difficulty">Flow and Difficulty<a class="headerlink" href="#flow-and-difficulty" title="Permanent link">&para;</a></h2>
+<p>The <code>FlowAndDifficultyController</code> adjusts the stage difficulty based on player performance:</p>
+<ol>
+<li><strong>Flow States</strong>:</li>
+<li>FLOW_EASY: Player is struggling, reduce difficulty</li>
+<li>FLOW_BALANCED: Player is performing as expected</li>
+<li>
+<p>FLOW_CHALLENGING: Player is excelling, increase difficulty</p>
+</li>
+<li>
+<p><strong>Performance Metrics</strong>:</p>
+</li>
+<li>Speed</li>
+<li>Height</li>
+<li>Combo chains</li>
+<li>Obstacle avoidance</li>
+<li>
+<p>Collection rate</p>
+</li>
+<li>
+<p><strong>Difficulty Adjustments</strong>:</p>
+</li>
+<li>Content density</li>
+<li>Obstacle complexity</li>
+<li>Reward placement</li>
+<li>Special event frequency</li>
+</ol>
+<h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
+<h3 id="generating-a-stage">Generating a Stage<a class="headerlink" href="#generating-a-stage" title="Permanent link">&para;</a></h3>
+<p>To generate a stage:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Using the StageCompositionSystem</span>
+<span class="n">stage_composition_system</span><span class="o">.</span><span class="n">generate_stage</span><span class="p">(</span><span class="s2">&quot;default_stage&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;story&quot;</span><span class="p">)</span>
+
+<span class="c1"># Or via GlobalSignals</span>
+<span class="k">var</span><span class="w"> </span><span class="n">config</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">stage_config_system</span><span class="o">.</span><span class="n">get_config</span><span class="p">(</span><span class="s2">&quot;default_stage&quot;</span><span class="p">)</span>
+<span class="n">GlobalSignals</span><span class="o">.</span><span class="n">stage_generation_requested</span><span class="o">.</span><span class="n">emit</span><span class="p">(</span><span class="n">config</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;arcade&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="updating-player-position">Updating Player Position<a class="headerlink" href="#updating-player-position" title="Permanent link">&para;</a></h3>
+<p>The system needs to know the player's position to generate chunks ahead:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># In the player&#39;s _physics_process</span>
+<span class="n">stage_composition_system</span><span class="o">.</span><span class="n">update_player_position</span><span class="p">(</span><span class="n">position</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="recording-performance">Recording Performance<a class="headerlink" href="#recording-performance" title="Permanent link">&para;</a></h3>
+<p>To enable dynamic difficulty adjustment:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># When the player performs an action</span>
+<span class="n">stage_composition_system</span><span class="o">.</span><span class="n">record_performance_event</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FlowAndDifficultyController</span><span class="o">.</span><span class="n">PerformanceMetric</span><span class="o">.</span><span class="n">SPEED</span><span class="p">,</span>
+<span class="w">    </span><span class="n">player_speed</span>
+<span class="p">)</span>
+</code></pre></div>
+<h3 id="creating-a-custom-stage">Creating a Custom Stage<a class="headerlink" href="#creating-a-custom-stage" title="Permanent link">&para;</a></h3>
+<p>To create a custom stage:</p>
+<ol>
+<li>Create a new <code>StageCompositionConfig</code> resource</li>
+<li>Set the stage parameters (length, theme, difficulty, etc.)</li>
+<li>Define the content distribution</li>
+<li>Add chunk definitions</li>
+<li>Save the config to <code>resources/stage/configs/</code></li>
+</ol>
+<h2 id="chunk-system">Chunk System<a class="headerlink" href="#chunk-system" title="Permanent link">&para;</a></h2>
+<p>The chunk system is responsible for the physical layout of the stage:</p>
+<ol>
+<li><strong>Chunk Definition</strong>:</li>
+<li>Defines the physical structure of a chunk</li>
+<li>Can include predefined platforms, obstacles, etc.</li>
+<li>
+<p>Can define marker points for dynamic content placement</p>
+</li>
+<li>
+<p><strong>Chunk Management</strong>:</p>
+</li>
+<li>Chunks are instantiated ahead of the player</li>
+<li>Old chunks are recycled when they're far behind the player</li>
+<li>
+<p>Chunks are positioned to create a continuous stage</p>
+</li>
+<li>
+<p><strong>Chunk Types</strong>:</p>
+</li>
+<li><strong>Default Chunks</strong>: Standard chunks with basic layouts</li>
+<li><strong>Random Chunks</strong>: Chunks with randomized elements</li>
+<li><strong>Varied Chunks</strong>: Chunks with multiple possible configurations</li>
+<li><strong>Special Chunks</strong>: Chunks for specific events or challenges</li>
+</ol>
+<h2 id="content-distribution">Content Distribution<a class="headerlink" href="#content-distribution" title="Permanent link">&para;</a></h2>
+<p>The content distribution system determines what content to place in each chunk:</p>
+<ol>
+<li><strong>Content Categories</strong>:</li>
+<li>Obstacles: Impede player progress</li>
+<li>Collectibles: Provide rewards</li>
+<li>Power-ups: Grant temporary abilities</li>
+<li>
+<p>Decorations: Visual elements with no gameplay effect</p>
+</li>
+<li>
+<p><strong>Distribution Rules</strong>:</p>
+</li>
+<li>Based on difficulty level</li>
+<li>Influenced by flow state</li>
+<li>Can be biome/theme specific</li>
+<li>
+<p>Can create patterns or sequences</p>
+</li>
+<li>
+<p><strong>Placement Strategies</strong>:</p>
+</li>
+<li>Grid-based placement</li>
+<li>Height zone placement</li>
+<li>Pattern-based placement</li>
+<li>Random placement with constraints</li>
+</ol>
+<h2 id="analytics">Analytics<a class="headerlink" href="#analytics" title="Permanent link">&para;</a></h2>
+<p>The Stage Composition System emits analytics events to track player progress and system performance:</p>
+<div class="highlight"><pre><span></span><code><span class="n">GlobalSignals</span><span class="o">.</span><span class="n">analytics_event</span><span class="o">.</span><span class="n">emit</span><span class="p">({</span>
+<span class="w">    </span><span class="s2">&quot;event_type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;stage_generated&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;stage_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="n">config</span><span class="o">.</span><span class="n">id</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;game_mode&quot;</span><span class="p">:</span><span class="w"> </span><span class="n">game_mode</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;theme&quot;</span><span class="p">:</span><span class="w"> </span><span class="n">config</span><span class="o">.</span><span class="n">theme</span><span class="p">,</span>
+<span class="w">    </span><span class="s2">&quot;difficulty&quot;</span><span class="p">:</span><span class="w"> </span><span class="n">config</span><span class="o">.</span><span class="n">target_difficulty</span>
+<span class="p">})</span>
+</code></pre></div>
+<p>These events can be used for debugging, balancing, and player behavior analysis.</p>
+<h2 id="debugging">Debugging<a class="headerlink" href="#debugging" title="Permanent link">&para;</a></h2>
+<p>The system includes debugging functionality:</p>
+<ol>
+<li><strong>Debug Overlay</strong>: Shows information about chunks, content, flow state, etc.</li>
+<li><strong>Debug Methods</strong>: Methods to inspect the current state of the system</li>
+<li><strong>Debug Prints</strong>: Detailed logging when debug mode is enabled</li>
+</ol>
+<h2 id="best-practices">Best Practices<a class="headerlink" href="#best-practices" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Config-Driven Design</strong>: Use configuration resources rather than hardcoded values</li>
+<li><strong>Balanced Difficulty</strong>: Ensure the difficulty curve is smooth and responsive</li>
+<li><strong>Performance Optimization</strong>: Recycle chunks and content to minimize instantiation</li>
+<li><strong>Visual Consistency</strong>: Coordinate with the Environment System for theme consistency</li>
+<li><strong>Extensibility</strong>: Design chunk and content systems to be easily extended</li>
+</ol>
+<h2 id="system-integration">System Integration<a class="headerlink" href="#system-integration" title="Permanent link">&para;</a></h2>
+<p>To integrate the Stage Composition System into a game:</p>
+<ol>
+<li>Add the StageCompositionSystem scene to your game scene</li>
+<li>Initialize it with the player node for tracking:
+   <div class="highlight"><pre><span></span><code><span class="c1"># Set the player node for tracking</span>
+<span class="n">stage_composition_system</span><span class="o">.</span><span class="n">set_player_node</span><span class="p">(</span><span class="n">player_character</span><span class="p">)</span>
+</code></pre></div></li>
+<li>Generate a stage with the desired configuration:
+   <div class="highlight"><pre><span></span><code><span class="c1"># Generate the initial stage</span>
+<span class="n">stage_composition_system</span><span class="o">.</span><span class="n">generate_stage</span><span class="p">(</span><span class="s2">&quot;default_stage&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;story&quot;</span><span class="p">)</span>
+</code></pre></div></li>
+<li>Update the player position in your game loop:
+   <div class="highlight"><pre><span></span><code><span class="c1"># In _process or _physics_process</span>
+<span class="n">stage_composition_system</span><span class="o">.</span><span class="n">update_player_position</span><span class="p">(</span><span class="n">player_character</span><span class="o">.</span><span class="n">global_position</span><span class="p">)</span>
+</code></pre></div></li>
+<li>Record performance metrics to enable dynamic difficulty adjustment:
+   <div class="highlight"><pre><span></span><code><span class="c1"># When player collects items, hits obstacles, etc.</span>
+<span class="n">stage_composition_system</span><span class="o">.</span><span class="n">record_performance_event</span><span class="p">(</span>
+<span class="w">    </span><span class="n">FlowAndDifficultyController</span><span class="o">.</span><span class="n">PerformanceMetric</span><span class="o">.</span><span class="n">COLLECTIBLE_COLLECTION_RATE</span><span class="p">,</span>
+<span class="w">    </span><span class="mf">1.0</span>
+<span class="p">)</span>
+</code></pre></div></li>
+</ol>
+<h2 id="legacy-systems">Legacy Systems<a class="headerlink" href="#legacy-systems" title="Permanent link">&para;</a></h2>
+<p>Note that the older <code>scripts/stages/StageManager.gd</code> has been removed from the project. All code should use the Stage Composition System.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.expand", "navigation.indexes", "toc.follow", "content.code.copy"], "search": "../../assets/javascripts/workers/search.f8cc74c7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.c8b220af.min.js"></script>
+      
+    
+  </body>
+</html>
