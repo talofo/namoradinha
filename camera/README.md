@@ -19,23 +19,24 @@ This subsystem is responsible for making the camera follow the player character.
 
 1.  **Target Assignment**: Receives the player node via `set_target` when the player spawns.
 2.  **Manual Smoothing**: Implements custom smoothing logic within its `update` method.
-    -   The `Camera2D`'s built-in `position_smoothing_enabled` is **disabled** to avoid conflicts.
+	-   The `Camera2D`'s built-in `position_smoothing_enabled` is **disabled** to avoid conflicts.
 3.  **Horizontal Following**: The camera's target X position directly uses the player's `global_position.x` with optional look-ahead based on velocity.
 4.  **Vertical Following & Locking**:
-    -   Calculates an `ideal_target_y` based on whether the player is above a certain height threshold (`follow_height_threshold`).
-    -   **Vertical Smoothing**: Uses `_smoothed_target_y` to smoothly interpolate towards the `ideal_target_y` using `vertical_smoothing_speed`.
-    -   **Look-ahead & Anticipation**: Applies additional offsets based on player velocity for smoother following during fast movements.
+	-   Calculates an `ideal_target_y` based on whether the player is above a certain height threshold (`follow_height_threshold`).
+	-   **Vertical Smoothing**: Uses `_smoothed_target_y` to smoothly interpolate towards the `ideal_target_y` using `vertical_smoothing_speed`.
+	-   **Look-ahead & Anticipation**: Applies additional offsets based on player velocity for smoother following during fast movements.
 5.  **Camera Smoothing**: The camera's position is smoothly interpolated towards the final target position.
 
 ### `ZoomSystem.gd` (`camera/subsystems/zoom/`)
 
-This subsystem handles dynamic camera zoom based on player movement speed.
+This subsystem handles dynamic camera zoom based on player movement speed and supports custom zoom effects.
 
 **Key Logic:**
 
 1. **Speed-Based Zoom**: Adjusts the camera zoom level based on the player's horizontal speed.
 2. **Configurable Thresholds**: Uses `zoom_min_speed_threshold` and `zoom_max_speed_threshold` to determine when to start/stop zooming.
 3. **Smooth Transitions**: Implements smooth interpolation between zoom levels using `zoom_smoothing_speed`.
+4. **Custom Zoom Effects**: Supports setting custom zoom levels for specific durations, overriding the velocity-based zoom temporarily.
 
 ### `SlowMotionSystem.gd` (`camera/subsystems/slowmo/`)
 
@@ -75,3 +76,38 @@ Contains tools like `CameraDebugTools.gd` for toggling camera freezing during de
 ## Usage in Game
 
 The camera system is included in `Game.tscn` and initialized in `Game.gd`. The system automatically connects to the `player_spawned` signal to set the player as the target for all relevant subsystems.
+
+## Dynamic Effects API
+
+The camera system provides APIs for triggering context-specific effects:
+
+### Slow Motion
+
+```gdscript
+# Trigger slow motion with default parameters from config
+camera_system.trigger_slow_motion()
+
+# Trigger slow motion with custom parameters (duration in seconds, time scale factor)
+camera_system.trigger_slow_motion(1.5, 0.3)  # 1.5 seconds at 30% speed
+
+# Stop slow motion manually (before duration ends)
+camera_system.stop_slow_motion()
+
+# Check if slow motion is active
+var is_active = camera_system.is_slow_motion_active()
+```
+
+### Custom Zoom
+
+```gdscript
+# Set custom zoom level for a specific duration
+camera_system.set_custom_zoom(1.5, 2.0)  # Zoom level 1.5 for 2 seconds
+
+# Clear custom zoom and return to velocity-based zooming
+camera_system.clear_custom_zoom()
+```
+
+These APIs allow you to create dynamic camera effects for different gameplay situations, such as:
+- Zooming in for dramatic moments or to focus on details
+- Zooming out to show more of the environment during special events
+- Applying slow motion during impactful collisions or special moves

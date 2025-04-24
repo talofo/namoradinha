@@ -118,13 +118,21 @@ func is_slow_motion_active() -> bool:
 	return false
 
 
+# --- Custom Zoom API ---
+
+func set_custom_zoom(zoom_level: float, duration: float = 1.0) -> void:
+	if _zoom_system:
+		_zoom_system.set_custom_zoom(zoom_level, duration)
+	else:
+		Debug.print("CAMERA", "ERROR: Cannot set custom zoom, system not initialized.")
+
+func clear_custom_zoom() -> void:
+	if _zoom_system:
+		_zoom_system.clear_custom_zoom()
+	else:
+		Debug.print("CAMERA", "ERROR: Cannot clear custom zoom, system not initialized.")
+
 # --- Accessors ---
 
 func get_camera_position() -> Vector2:
 	return camera.position if camera else Vector2.ZERO
-
-# Optional: Add getter for the timer if direct access is too risky
-# func get_slow_motion_timer() -> Timer:
-#     if _slow_motion_system:
-#         return _slow_motion_system._slowmo_timer # Or call a getter in SlowMotionSystem
-#     return null
