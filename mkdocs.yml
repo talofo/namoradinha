@@ -1,0 +1,52 @@
+site_name: Namoradinha Project Documentation
+site_description: Documentation for the Namoradinha Godot project
+site_author: Marcio Machado
+repo_name: Namoradinha
+repo_url: https://github.com/yourusername/namoradinha
+edit_uri: edit/main/docs/
+nav:
+- Home: index.md
+- Environment System:
+  - Overview: environment/overview.md
+- Motion System:
+  - Boost System: motion/boost_system.md
+  - Bounce System: motion/bounce_system.md
+  - Collision Material System: motion/collision_material_system.md
+  - Collision Materials: motion/collision_materials.md
+  - Launch System: motion/launch_system.md
+  - Obstacle System: motion/obstacle_system.md
+  - Overview: motion/overview.md
+- Camera System:
+  - Debug: camera/debug.md
+  - Overview: camera/overview.md
+- Visual Background System:
+  - Debug: visual_background/debug.md
+  - Overview: visual_background/overview.md
+- Stage Composition System:
+  - Overview: stage/overview.md
+- Player System:
+  - Debug: player/debug.md
+- Cross-Systems:
+  - Dependency Injection: cross-systems/dependency_injection.md
+  - Effects: cross-systems/effects.md
+theme:
+  name: material
+  palette:
+    primary: indigo
+    accent: indigo
+  features:
+  - navigation.instant
+  - navigation.tracking
+  - navigation.expand
+  - navigation.indexes
+  - toc.follow
+  - content.code.copy
+markdown_extensions:
+- admonition
+- codehilite
+- toc:
+    permalink: true
+- pymdownx.highlight
+- pymdownx.superfences
+plugins:
+- search

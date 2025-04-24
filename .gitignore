@@ -29,17 +29,17 @@ Thumbs.db
 .vscode/
 .godot/
 .qodo/
-.github/
+# .github/ - Needed for GitHub Actions workflow
 
 # Output & logs
 *.log
 test_output*.log
 godot_output.log
 
-# Project docs and tools
-docs/
-README_DOCUMENTATION.md
-mkdocs.yml
-pre-commit-hook.sh
-requirements.txt
-sync_docs.py
+# Project docs and tools - Needed for documentation system
+# docs/
+# README_DOCUMENTATION.md
+# mkdocs.yml
+# pre-commit-hook.sh
+# requirements.txt
+# sync_docs.py
