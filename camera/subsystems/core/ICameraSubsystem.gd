@@ -7,5 +7,5 @@ func initialize() -> void:
 func update(_delta: float) -> void:
     pass
 
-func cleanup() -> void:
-    pass 
+func set_target(_target: Node2D) -> void:
+    pass

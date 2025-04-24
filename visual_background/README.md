@@ -23,6 +23,7 @@ The Visual Background System provides a modular, data-driven parallax background
 
 ### VisualBackgroundSystem (Node2D)
 - Entry point for the system.
+- Uses configurable NodePaths to locate dependencies (EnvironmentSystem, CameraSystem).
 - Listens for theme changes from `EnvironmentSystem`.
 - Passes theme config to `ParallaxLayerController`.
 - Receives camera updates and forwards to controller.
@@ -30,11 +31,11 @@ The Visual Background System provides a modular, data-driven parallax background
 ### ParallaxLayerController (ParallaxBackground)
 - Manages creation and clearing of `ParallaxLayer` nodes.
 - Instantiates and configures `Sprite2D` elements per layer.
-- Handles tiling, scaling, modulate, and z-index for each element.
-- Tracks performance metrics.
+- Handles tiling via `ParallaxLayer.motion_mirroring`, scaling, modulate, and z-index for each element.
+- Tracks performance metrics and provides debug logging through the Debug system.
 
 ### Resource Types
-- **BackgroundLayerElement.gd:** Defines a single visual element (texture, offset, scale, tiling, etc).
+- **BackgroundLayerElement.gd:** Defines a single visual element (texture, offset, scale, modulate, z-index).
 - **BackgroundLayerConfig.gd:** Defines a parallax layer (parallax ratio, z-index, elements).
 - **EnvironmentThemeConfig.gd:** Defines a full background theme (name, array of layers).
 
@@ -54,7 +55,7 @@ The Visual Background System provides a modular, data-driven parallax background
 
 1. Create a new `.tres` resource using `EnvironmentThemeConfig.gd`.
 2. Define one or more `BackgroundLayerConfig` resources, each with an array of `BackgroundLayerElement` resources.
-3. Assign textures, offsets, tiling, and other properties as needed.
+3. Assign textures, offsets, scale, modulate, and z-index properties as needed.
 4. Register the new theme in `ThemeDatabase` under `visual_background_themes`.
 
 ### Adding Layers or Elements
@@ -90,4 +91,4 @@ The Visual Background System provides a modular, data-driven parallax background
 
 ---
 
-This documentation is up-to-date and reflects the current system architecture and usage. For further details, see the code and resource files referenced above.
+This documentation is up-to-date as of the latest refactoring (April 2025) and reflects the current system architecture and usage. For further details, see the code and resource files referenced above.

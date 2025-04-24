@@ -63,21 +63,21 @@ func build_layers(layer_configs: Array, initial_position: Vector2 = Vector2.ZERO
 				# Ensure vertical mirroring is off unless specified otherwise (though not typical for backgrounds)
 				# parallax_layer.motion_mirroring.y = 0 # Default is 0, so explicit set might not be needed
 
-				# Add a debug print to show the sprite position and mirroring
-				print("[ParallaxLayerController] Element positioned at: ", sprite_position,
-					" (texture size: ", texture_size, ", layer: ", config.layer_name, ")",
-					" Mirroring.x: ", parallax_layer.motion_mirroring.x)
+				# Add a debug log to show the sprite position and mirroring
+				Debug.print("BACKGROUND", "Element positioned at: %s (texture size: %s, layer: %s, Mirroring.x: %s)" % 
+					[sprite_position, texture_size, config.layer_name, parallax_layer.motion_mirroring.x])
 
 			sprite.position = sprite_position
 			sprite.scale = element.scale
 			sprite.modulate = element.modulate
 			sprite.z_index = element.z_index
-			print("[ParallaxLayerController]   Creating Sprite2D for element with texture: ", element.texture.resource_path if element.texture else "None",
-				"\n      - Final Position: ", sprite.position,
-				"\n      - Base offset: ", element.offset,
-				"\n      - Layer type: ", config.layer_name,
-				"\n      - Parallax ratio: ", config.parallax_ratio,
-				"\n      - Mirroring: ", parallax_layer.motion_mirroring) # DEBUG PRINT
+			Debug.print("BACKGROUND", "Creating Sprite2D for element with texture: %s" % 
+				[element.texture.resource_path if element.texture else "None"])
+			Debug.print("BACKGROUND", "  - Final Position: %s" % [sprite.position])
+			Debug.print("BACKGROUND", "  - Base offset: %s" % [element.offset])
+			Debug.print("BACKGROUND", "  - Layer type: %s" % [config.layer_name])
+			Debug.print("BACKGROUND", "  - Parallax ratio: %s" % [config.parallax_ratio])
+			Debug.print("BACKGROUND", "  - Mirroring: %s" % [parallax_layer.motion_mirroring])
 
 			# Track approximate texture memory (very rough estimate)
 			if element.texture:
@@ -113,7 +113,7 @@ func build_layers(layer_configs: Array, initial_position: Vector2 = Vector2.ZERO
 			push_warning("Performance Warning: Estimated draw calls per frame: %d (recommended: 15)" % draw_call_estimate)
 		
 		if debug_mode:
-			print("Background System Stats - Layers: %d, Memory: %.2f MB, Draw Calls: %d" % 
+			Debug.print("BACKGROUND", "System Stats - Layers: %d, Memory: %.2f MB, Draw Calls: %d" % 
 				[active_layer_count, texture_memory_usage, draw_call_estimate])
 
 func clear_layers():

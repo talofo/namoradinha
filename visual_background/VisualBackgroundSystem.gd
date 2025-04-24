@@ -5,9 +5,13 @@ signal theme_changed(theme_name)
 signal transition_completed
 
 # References to other systems
-var environment_system
-var camera_system
-var theme_database
+@export var environment_system_path: NodePath = "/root/Game/EnvironmentSystem"
+@export var camera_system_path: NodePath = "/root/Game/CameraSystem"
+
+# System references (populated in _ready)
+var environment_system: Node
+var camera_system: Node
+var theme_database: Resource
 
 # References to managed nodes
 @onready var parallax_controller = $ParallaxLayerController
@@ -21,22 +25,23 @@ var current_theme_name: String = ""
 var initial_camera_position: Vector2 = Vector2.ZERO
 
 func _ready():
-	# Setup references to dependencies (adjust based on your project structure)
-	environment_system = get_node_or_null("/root/Game/EnvironmentSystem")
+	# Setup references to dependencies using exported NodePaths
+	environment_system = get_node_or_null(environment_system_path)
 	if not environment_system:
-		environment_system = get_node_or_null("../")  # Try to get parent if we're a child of EnvironmentSystem
+		push_warning("VisualBackgroundSystem: Could not find EnvironmentSystem at path: " + str(environment_system_path))
 	
-	camera_system = get_node_or_null("/root/Game/CameraSystem")
-	
-	# Get initial camera position if available
-	if camera_system:
+	camera_system = get_node_or_null(camera_system_path)
+	if not camera_system:
+		push_warning("VisualBackgroundSystem: Could not find CameraSystem at path: " + str(camera_system_path))
+	else:
+		# Get initial camera position if available
 		initial_camera_position = camera_system.get_camera_position()
 	
-	# Get theme database from environment system if possible
+	# Get theme database from environment system
 	if environment_system and environment_system.has_method("get_theme_database"):
 		theme_database = environment_system.get_theme_database()
-	else:
-		theme_database = get_node_or_null("/root/Game/ThemeDatabase")
+		if not theme_database:
+			push_warning("VisualBackgroundSystem: Could not get ThemeDatabase from EnvironmentSystem")
 	
 	# Connect signals
 	if environment_system:

@@ -7,7 +7,7 @@ This system manages the game's main camera (`Camera2D`) and its behavior through
 -   **`CameraSystem.gd`**: The main node (`Node2D`) that orchestrates the camera logic. It initializes subsystems and calls their `update` methods in `_physics_process` to ensure synchronization with player movement.
 -   **`Camera2D` (Child Node)**: The actual Godot `Camera2D` node used for rendering.
 -   **`CameraConfig.gd`**: A `Resource` defining configuration parameters for all camera subsystems. Found in `camera/resources/configs/`.
--   **`ICameraSubsystem.gd`**: Interface that all camera subsystems implement, providing a consistent API.
+-   **`ICameraSubsystem.gd`**: Interface that all camera subsystems implement, providing a consistent API with `initialize()`, `update()`, and `set_target()` methods.
 
 ## Subsystems
 
