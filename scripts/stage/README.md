@@ -257,6 +257,6 @@ To integrate the Stage Composition System into a game:
    )
    ```
 
-## Deprecated Systems
+## Legacy Systems
 
-Note that the older `scripts/stages/StageManager.gd` is deprecated and should not be used for new development. All new code should use the Stage Composition System instead.
+Note that the older `scripts/stages/StageManager.gd` has been removed from the project. All code should use the Stage Composition System.

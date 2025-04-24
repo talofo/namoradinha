@@ -38,7 +38,7 @@ func assert_not_null(val, message: String = ""):
 
 # --- Test Subjects ---
 var environment_system = null
-var stage_manager = null
+var stage_composition_system = null
 var theme_database = null
 
 # --- Signal Tracking ---
@@ -134,11 +134,16 @@ func _setup_test_environment():
 	# Assign the test theme database
 	environment_system.theme_database = theme_database
 	
-	# Create stage manager
-	var StageManagerClass = load("res://scripts/stages/StageManager.gd")
-	stage_manager = StageManagerClass.new()
-	
-	# We no longer need to create a GroundManager as it's been replaced by the chunk system
+	# Create stage composition system
+	var stage_composition_system_scene = load("res://stage/StageCompositionSystem/StageCompositionSystem.tscn")
+	if not stage_composition_system_scene:
+		printerr("    FATAL: Failed to load StageCompositionSystem.tscn")
+		return # Cannot proceed
+		
+	stage_composition_system = stage_composition_system_scene.instantiate()
+	if not stage_composition_system:
+		printerr("    FATAL: Failed to instantiate StageCompositionSystem")
+		return # Cannot proceed
 	
 	# Connect signals for testing
 	environment_system.visuals_updated.connect(_on_visuals_updated)
@@ -146,7 +151,7 @@ func _setup_test_environment():
 	environment_system.fallback_activated.connect(_on_fallback_activated)
 	
 	add_child(environment_system)
-	add_child(stage_manager)
+	add_child(stage_composition_system)
 
 func _cleanup_test_environment():
 	# Disconnect signals
@@ -161,11 +166,11 @@ func _cleanup_test_environment():
 	# Free resources
 	if environment_system:
 		environment_system.queue_free()
-	if stage_manager:
-		stage_manager.queue_free()
+	if stage_composition_system:
+		stage_composition_system.queue_free()
 	
 	environment_system = null
-	stage_manager = null
+	stage_composition_system = null
 	theme_database = null
 
 # --- Signal Handlers ---
