@@ -1,18 +1,45 @@
-# Godot-specific
-.import/
-.godot/
-/android/
-export_presets.cfg
+# MkDocs build directory
+site/
 
-# macOS junk
+# Python virtual environment
+venv/
+env/
+.env/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Optional: Godot crash logs and backups
-*.log
-*.tmp
-*.converted_res
-
-# Optional: if you use VS Code
+# Godot and project-specific folders
 .vscode/
+.godot/
 .qodo/
-.qodo
+.github/
+
+# Output & logs
+*.log
+test_output*.log
+godot_output.log
+
+# Project docs and tools
+docs/
+README_DOCUMENTATION.md
+mkdocs.yml
+pre-commit-hook.sh
+requirements.txt
+sync_docs.py
