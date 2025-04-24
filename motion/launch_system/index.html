@@ -9,7 +9,7 @@
         <meta name="description" content="Documentation for the Namoradinha Godot project">
       
       
-        <meta name="author" content="Marcio Machado">
+        <meta name="author" content="oiKr4m">
       
       
       
@@ -1271,11 +1271,11 @@ Last updated: 2025-04-24 19:28:21
 </code></pre></div>
 <h2 id="signal-connections">Signal Connections<a class="headerlink" href="#signal-connections" title="Permanent link">&para;</a></h2>
 <p>The LaunchSystem emits the <code>entity_launched</code> signal when an entity is launched:</p>
-<p>```gdscript</p>
-<h1 id="connect-to-the-entity_launched-signal">Connect to the entity_launched signal<a class="headerlink" href="#connect-to-the-entity_launched-signal" title="Permanent link">&para;</a></h1>
-<p>launch_system.entity_launched.connect(func(entity_id, launch_vector, position): 
-    print("Entity " + str(entity_id) + " launched with vector " + str(launch_vector) + " at position " + str(position))
-)</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Connect to the entity_launched signal</span>
+<span class="n">launch_system</span><span class="o">.</span><span class="n">entity_launched</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="k">func</span><span class="p">(</span><span class="n">entity_id</span><span class="p">,</span><span class="w"> </span><span class="n">launch_vector</span><span class="p">,</span><span class="w"> </span><span class="n">position</span><span class="p">):</span><span class="w"> </span>
+<span class="w">    </span><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Entity &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">str</span><span class="p">(</span><span class="n">entity_id</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s2">&quot; launched with vector &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">str</span><span class="p">(</span><span class="n">launch_vector</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="s2">&quot; at position &quot;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="nb">str</span><span class="p">(</span><span class="n">position</span><span class="p">))</span>
+<span class="p">)</span>
+</code></pre></div>
 
 
 

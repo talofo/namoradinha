@@ -9,7 +9,7 @@
         <meta name="description" content="Documentation for the Namoradinha Godot project">
       
       
-        <meta name="author" content="Marcio Machado">
+        <meta name="author" content="oiKr4m">
       
       
       
@@ -1187,11 +1187,11 @@ Last updated: 2025-04-24 19:28:21
 <p>Game effects affect the entire game state, such as slow motion or screen effects. This directory will be implemented in the future.</p>
 <h2 id="usage">Usage<a class="headerlink" href="#usage" title="Permanent link">&para;</a></h2>
 <p>Effects are typically instantiated and attached to game objects that need them:</p>
-<p>```gdscript</p>
-<h1 id="example-creating-a-boost-effect">Example: Creating a boost effect<a class="headerlink" href="#example-creating-a-boost-effect" title="Permanent link">&para;</a></h1>
-<p>var boost_effect = load("res://scripts/effects/visual_effects/BoostEffect.gd").new()
-add_child(boost_effect)
-boost_effect.show_effect(direction, "manual_air")</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: Creating a boost effect</span>
+<span class="k">var</span><span class="w"> </span><span class="n">boost_effect</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">load</span><span class="p">(</span><span class="s2">&quot;res://scripts/effects/visual_effects/BoostEffect.gd&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">new</span><span class="p">()</span>
+<span class="n">add_child</span><span class="p">(</span><span class="n">boost_effect</span><span class="p">)</span>
+<span class="n">boost_effect</span><span class="o">.</span><span class="n">show_effect</span><span class="p">(</span><span class="n">direction</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;manual_air&quot;</span><span class="p">)</span>
+</code></pre></div>
 
 
 
